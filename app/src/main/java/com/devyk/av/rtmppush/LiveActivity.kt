@@ -90,7 +90,7 @@ class LiveActivity : BaseActivity<Int>(), OnConnectListener {
             .setBps(400, 800)
             .setFps(25)
             .setCodeType(VideoConfiguration.ICODEC.ENCODE)
-            .setSize(320, 240)
+            .setSize(1920, 960)
             .setIfi(5)
             .setMediaCodec(true)
             .build()
@@ -100,7 +100,7 @@ class LiveActivity : BaseActivity<Int>(), OnConnectListener {
         var cameraConfiguration = CameraConfiguration.Builder()
             .setFacing(CameraConfiguration.Facing.FRONT)
             .setFps(25)
-            .setPreview(320, 240)
+            .setPreview(1920, 960)
             .build()
         live.setCameraConfigure(cameraConfiguration)
 
