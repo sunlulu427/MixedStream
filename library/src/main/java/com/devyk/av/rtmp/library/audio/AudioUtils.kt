@@ -4,7 +4,6 @@ import android.media.AudioFormat
 import android.media.AudioRecord
 import android.media.MediaRecorder
 import android.util.Log
-import java.lang.RuntimeException
 import java.nio.ByteBuffer
 
 /**
@@ -26,7 +25,7 @@ import java.nio.ByteBuffer
  * 利用ffmpeg将PCM文件转换为WAV文件
  * 		ffmpeg -f s16le  -sample_rate 44100  -channels 1 -i record.pcm -acodec pcm_s16le record.wav
  */
-public object AudioUtils {
+object AudioUtils {
 
 
     private var TAG = javaClass.simpleName;
@@ -44,13 +43,13 @@ public object AudioUtils {
      * @see AudioFormat.CHANNEL_IN_MONO 单声道
      * @see AudioFormat.CHANNEL_IN_STEREO 立体声
      */
-    public var AUDIO_CHANNEL_CONFIG = AudioFormat.CHANNEL_IN_MONO
+    var AUDIO_CHANNEL_CONFIG = AudioFormat.CHANNEL_IN_MONO
 
     /**
      * 采样率 如果 AudioRecord 初始化失败，那么可以降低为 16000 ，或者检查权限是否开启
      * 默认 44100
      */
-    public var SAMPLE_RATE_IN_HZ = 44100
+    var SAMPLE_RATE_IN_HZ = 44100
 
     /**
      * 采样格式
@@ -58,7 +57,7 @@ public object AudioUtils {
      *
      * @see AudioFormat.ENCODING_PCM_16BIT 兼容大部分手机
      */
-    public var AUDIO_FROMAT = AudioFormat.ENCODING_PCM_16BIT
+    var AUDIO_FROMAT = AudioFormat.ENCODING_PCM_16BIT
 
     /**
      * 录音源
@@ -66,7 +65,7 @@ public object AudioUtils {
      * @see MediaRecorder.AudioSource.VOICE_RECOGNITION 用于语音识别，等同于默认
      * @see MediaRecorder.AudioSource.VOICE_COMMUNICATION 用于 VOIP 应用
      */
-    public var AUDIO_SOURCE = MediaRecorder.AudioSource.MIC;
+    var AUDIO_SOURCE = MediaRecorder.AudioSource.MIC;
 
     /**
      * 配置内部音频缓冲区的大小，由于不同厂商会有不同的实现。那么我们可以通过一个静态函数来 getMinBufferSize 来定义
@@ -78,7 +77,7 @@ public object AudioUtils {
     /**
      * 获取音频缓冲区大小
      */
-    public fun getMinBufferSize(
+    fun getMinBufferSize(
         sampleRateInHz: Int = SAMPLE_RATE_IN_HZ,
         channelConfig: Int = AUDIO_CHANNEL_CONFIG,
         audioFormat: Int = AUDIO_FROMAT
@@ -87,7 +86,7 @@ public object AudioUtils {
     /**
      * 拿到 AudioRecord 对象
      */
-    public fun initAudioRecord(
+    fun initAudioRecord(
         audioSource: Int = AUDIO_SOURCE,
         sampleRateInHz: Int = SAMPLE_RATE_IN_HZ,
         channelConfig: Int = AUDIO_CHANNEL_CONFIG,
@@ -105,7 +104,13 @@ public object AudioUtils {
         try {
             //得到录音缓冲大小
             mBufferSizeInBytes = getMinBufferSize(sampleRateInHz, channelConfig, audioFormat)
-            mAudioRecord = AudioRecord(audioSource, sampleRateInHz, channelConfig, audioFormat, mBufferSizeInBytes)
+            mAudioRecord = AudioRecord(
+                audioSource,
+                sampleRateInHz,
+                channelConfig,
+                audioFormat,
+                mBufferSizeInBytes
+            )
         } catch (error: Exception) {
             Log.e(TAG, "AudioRecord init error :${error.message}")
             return false
@@ -121,88 +126,65 @@ public object AudioUtils {
     /**
      * 拿到录音设备
      */
-    public fun getAudioRecord(): AudioRecord? = mAudioRecord
+    fun getAudioRecord(): AudioRecord? = mAudioRecord
 
     /**
      * 开始录制
      */
-    public fun startRecord() {
-        mAudioRecord?.run {
-            if (state == AudioRecord.STATE_INITIALIZED)
-                startRecording()
-        }
-
+    fun startRecord() {
+        mAudioRecord?.takeIf { it.state == AudioRecord.STATE_INITIALIZED }
+            ?.startRecording()
     }
 
     /**
      * 开始录制
      */
-    public fun stopRecord() {
-        mAudioRecord?.run {
-            if (mAudioRecord?.state == AudioRecord.STATE_INITIALIZED)
-                stop()
-        }
+    fun stopRecord() {
+        mAudioRecord?.takeIf { it.state == AudioRecord.STATE_INITIALIZED }
+            ?.stop()
     }
 
     /**
      * 释放资源
      */
-    public fun releaseRecord() {
-        mAudioRecord?.run {
-            release()
-        }
+    fun releaseRecord() {
+        mAudioRecord?.release()
         mAudioRecord = null
     }
 
     /**
      * 读取音频数据
      */
-    public fun read(bufferSize: Int = mBufferSizeInBytes, offsetInBytes: Int = 0, byte: ByteArray): Int {
-        var ret = 0;
-        mAudioRecord?.run {
-            ret = read(byte, offsetInBytes, bufferSize)
-        }
-        return ret;
+    fun read(bufferSize: Int = mBufferSizeInBytes, offsetInBytes: Int = 0, byte: ByteArray): Int {
+        return mAudioRecord?.read(byte, offsetInBytes, bufferSize) ?: 0
     }
 
     /**
      * 读取音频数据
      */
-    public fun read(bufferSize: Int = mBufferSizeInBytes, offsetInBytes: Int = 0, short: ShortArray): Int {
-        var ret = 0;
-        mAudioRecord?.run {
-            ret = read(short, offsetInBytes, bufferSize)
-        }
-        return ret;
+    fun read(bufferSize: Int = mBufferSizeInBytes, offsetInBytes: Int = 0, short: ShortArray): Int {
+        return mAudioRecord?.read(short, offsetInBytes, bufferSize) ?: 0
     }
 
     /**
      * 读取音频数据
      */
-    public fun read(bufferSize: Int = mBufferSizeInBytes, buffer: ByteBuffer): Int {
-        var ret = 0;
-        mAudioRecord?.run {
-            ret = read(buffer, bufferSize)
-        }
-        return ret;
+    fun read(bufferSize: Int = mBufferSizeInBytes, buffer: ByteBuffer): Int {
+        return mAudioRecord?.read(buffer, bufferSize) ?: 0
     }
 
     /**
      * 读取音频数据
      */
-    public fun read(bufferSize: Int = mBufferSizeInBytes, buffer: ByteArray): Int {
-        var ret = 0;
-        mAudioRecord?.run {
-            ret = read(buffer, 0, bufferSize)
-        }
-        return ret;
+    fun read(bufferSize: Int = mBufferSizeInBytes, buffer: ByteArray): Int {
+        return mAudioRecord?.read(buffer, 0, bufferSize) ?: 0
     }
 
 
     /**
      * 拿到缓冲大小
      */
-    public fun getBufferSize(): Int = mBufferSizeInBytes
+    fun getBufferSize(): Int = mBufferSizeInBytes
 
 
 }

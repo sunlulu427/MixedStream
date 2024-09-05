@@ -1,10 +1,9 @@
-package com.devyk.ikavedit.base
+package com.devyk.av.rtmppush.base
 
 import android.annotation.SuppressLint
 import android.graphics.Color
 import android.os.Bundle
 import android.os.SystemClock
-import android.view.Choreographer
 import android.view.View
 import android.view.Window
 import android.view.WindowManager
@@ -26,22 +25,20 @@ import com.tbruyelle.rxpermissions2.RxPermissions
  */
 
 abstract class BaseActivity<T> : AppCompatActivity() {
-    public var TAG = javaClass.simpleName;
+    protected val TAG = javaClass.simpleName
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         onContentViewBefore()
 
-        if (getLayoutId() is Int){
+        if (getLayoutId() is Int) {
             setContentView(getLayoutId() as Int)
-        }else  if (getLayoutId() is View){
+        } else if (getLayoutId() is View) {
             setContentView(getLayoutId() as View)
         }
         checkPermission()
-        init();
-        initListener();
-        initData();
-
-
+        init()
+        initListener()
+        initData()
     }
 
     /**
@@ -75,14 +72,15 @@ abstract class BaseActivity<T> : AppCompatActivity() {
         supportRequestWindowFeature(Window.FEATURE_NO_TITLE)
     }
 
-
     /**
      * 检查权限
      */
     @SuppressLint("CheckResult")
     protected fun checkPermission() {
-        if (SPUtils.getInstance().getBoolean(getString(R.string.OPEN_PERMISSIONS))) return
-        var rxPermissions = RxPermissions(this);
+        if (SPUtils.getInstance().getBoolean(getString(R.string.OPEN_PERMISSIONS))) {
+            return
+        }
+        val rxPermissions = RxPermissions(this)
         rxPermissions.requestEach(
             android.Manifest.permission.READ_EXTERNAL_STORAGE,
             android.Manifest.permission.RECORD_AUDIO,
@@ -91,25 +89,24 @@ abstract class BaseActivity<T> : AppCompatActivity() {
         ).subscribe {
             if (it.granted) {
                 SPUtils.getInstance().put(getString(R.string.OPEN_PERMISSIONS), true)
-                Toast.makeText(this, getString(R.string.GET_PERMISSION_ERROR), Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, getString(R.string.GET_PERMISSION_ERROR), Toast.LENGTH_SHORT)
+                    .show()
             } else if (it.shouldShowRequestPermissionRationale) {
-                Toast.makeText(this, getString(R.string.GET_PERMISSION_ERROR), Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, getString(R.string.GET_PERMISSION_ERROR), Toast.LENGTH_SHORT)
+                    .show()
                 SPUtils.getInstance().put(getString(R.string.OPEN_PERMISSIONS), false)
             }
         }
     }
 
-
-    public fun startTime(timer: Chronometer) {
-        var hour = ((SystemClock.elapsedRealtime() - timer.getBase()) / 1000 / 60).toInt();
-        timer.setFormat("0${hour}:%s");
+    fun startTime(timer: Chronometer) {
+        val hour = ((SystemClock.elapsedRealtime() - timer.base) / 1000 / 60).toInt()
+        timer.setFormat("0${hour}:%s")
         timer.start()
     }
 
-    public fun cleanTime(timer: Chronometer) {
-        timer?.setBase(SystemClock.elapsedRealtime());
-        timer?.stop()
+    fun cleanTime(timer: Chronometer) {
+        timer.setBase(SystemClock.elapsedRealtime())
+        timer.stop()
     }
-
-
 }

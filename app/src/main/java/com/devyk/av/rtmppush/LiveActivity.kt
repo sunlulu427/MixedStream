@@ -1,15 +1,12 @@
 package com.devyk.av.rtmppush
 
 import android.content.res.Configuration
-import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.os.Build
 import android.text.TextUtils
 import android.view.View
-import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
-import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
@@ -18,12 +15,13 @@ import com.devyk.av.rtmp.library.camera.Watermark
 import com.devyk.av.rtmp.library.config.AudioConfiguration
 import com.devyk.av.rtmp.library.config.CameraConfiguration
 import com.devyk.av.rtmp.library.config.VideoConfiguration
-import com.devyk.av.rtmp.library.stream.packer.DefaultPacker
 import com.devyk.av.rtmp.library.stream.packer.rtmp.RtmpPacker
 import com.devyk.av.rtmp.library.stream.sender.rtmp.RtmpSender
 import com.devyk.av.rtmp.library.utils.LogHelper
-import com.devyk.ikavedit.base.BaseActivity
-import kotlinx.android.synthetic.main.activity_live.*
+import com.devyk.av.rtmppush.base.BaseActivity
+import kotlinx.android.synthetic.main.activity_live.live
+import kotlinx.android.synthetic.main.activity_live.live_icon
+import kotlinx.android.synthetic.main.activity_live.progressBar
 
 class LiveActivity : BaseActivity<Int>(), OnConnectListener {
     /**
@@ -143,7 +141,7 @@ class LiveActivity : BaseActivity<Int>(), OnConnectListener {
         uploadDialog?.show()
     }
 
-    public fun camera_change(view: View) {
+    fun camera_change(view: View) {
         live.switchCamera()
     }
 
@@ -191,7 +189,7 @@ class LiveActivity : BaseActivity<Int>(), OnConnectListener {
 
     fun initRtmpAddressDialog() {
         val inflater = layoutInflater
-        val playView = inflater.inflate(R.layout.address_dialog, findViewById<ViewGroup>(R.id.dialog))
+        val playView = inflater.inflate(R.layout.address_dialog, findViewById(R.id.dialog))
         var address = playView.findViewById<EditText>(R.id.address)
         address.setText(mDataSource)
         val okBtn = playView.findViewById<Button>(R.id.ok)
@@ -203,7 +201,8 @@ class LiveActivity : BaseActivity<Int>(), OnConnectListener {
         okBtn.setOnClickListener {
             val uploadUrl = address.getText().toString()
             if (TextUtils.isEmpty(uploadUrl)) {
-                Toast.makeText(applicationContext, "Upload address is empty!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(applicationContext, "Upload address is empty!", Toast.LENGTH_SHORT)
+                    .show()
             } else {
                 //设置 rtmp 地址
                 mSender.setDataSource(uploadUrl)

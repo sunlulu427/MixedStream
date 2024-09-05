@@ -1,7 +1,5 @@
 package com.devyk.av.rtmp.library.audio
 
-import android.media.AudioFormat
-import android.media.MediaRecorder
 import com.devyk.av.rtmp.library.Contacts
 import com.devyk.av.rtmp.library.audio.AudioUtils.AUDIO_CHANNEL_CONFIG
 import com.devyk.av.rtmp.library.audio.AudioUtils.AUDIO_FROMAT
@@ -9,7 +7,7 @@ import com.devyk.av.rtmp.library.audio.AudioUtils.SAMPLE_RATE_IN_HZ
 import com.devyk.av.rtmp.library.audio.AudioUtils.getBufferSize
 import com.devyk.av.rtmp.library.common.ThreadImpl
 import com.devyk.av.rtmp.library.utils.LogHelper
-import java.util.*
+import java.util.Arrays
 
 /**
  * <pre>
@@ -20,7 +18,7 @@ import java.util.*
  *     desc    : This is AudioProcessor
  * </pre>
  */
-public class AudioProcessor : ThreadImpl() {
+class AudioProcessor : ThreadImpl() {
     /**
      * 读取大小
      */
@@ -45,14 +43,20 @@ public class AudioProcessor : ThreadImpl() {
     /**
      * 初始化
      */
-    public fun init(
+    fun init(
         audioSource: Int = AudioUtils.AUDIO_SOURCE,
         sampleRateInHz: Int = AudioUtils.SAMPLE_RATE_IN_HZ,
         channelConfig: Int = AudioUtils.AUDIO_CHANNEL_CONFIG,
         audioFormat: Int = AudioUtils.AUDIO_FROMAT
     ) {
         try {
-            if (AudioUtils.initAudioRecord(audioSource, sampleRateInHz, channelConfig, audioFormat)) {
+            if (AudioUtils.initAudioRecord(
+                    audioSource,
+                    sampleRateInHz,
+                    channelConfig,
+                    audioFormat
+                )
+            ) {
                 mReadSize = getBufferSize()
             }
         } catch (error: Exception) {
@@ -63,7 +67,7 @@ public class AudioProcessor : ThreadImpl() {
 
     override fun setPause(pause: Boolean) {
         super.setPause(pause)
-        if (pause == true) {
+        if (pause) {
             mRecordListener?.onPause()
         } else {
             mLock.notifyAll()
@@ -91,16 +95,16 @@ public class AudioProcessor : ThreadImpl() {
     /**
      * 设置禁言
      */
-    public fun setMute(mute: Boolean) {
+    fun setMute(mute: Boolean) {
         this.isMute = mute
     }
 
-    public fun isMute() = isMute
+    fun isMute() = isMute
 
     /**
      * 子线程执行的函数入口
      */
-    public fun main() {
+    fun main() {
         var data = ByteArray(mReadSize);
         while (isRuning()) {
             val name = Thread.currentThread().name
@@ -125,20 +129,21 @@ public class AudioProcessor : ThreadImpl() {
     }
 
 
-    public fun addRecordListener(listener: OnRecordListener) {
+    fun addRecordListener(listener: OnRecordListener) {
         mRecordListener = listener
     }
 
-    public interface OnRecordListener {
+    interface OnRecordListener {
         fun onStart(
             sampleRate: Int = SAMPLE_RATE_IN_HZ,
             channels: Int = AUDIO_CHANNEL_CONFIG,
             sampleFormat: Int = AUDIO_FROMAT
         )
+
         fun onError(meg: String?)
         fun onPcmData(byteArray: ByteArray);
-        fun onPause(){}
-        fun onResume(){}
-        fun onStop(){}
+        fun onPause() {}
+        fun onResume() {}
+        fun onStop() {}
     }
 }
