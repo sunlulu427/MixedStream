@@ -6,8 +6,7 @@ buildscript {
     ext.kotlinx_coroutines_version = '1.1.1'
     repositories {
         google()
-        jcenter()
-        
+        mavenCentral()
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:3.4.1'
@@ -16,14 +15,13 @@ buildscript {
         // in the individual module build.gradle files
 
         //加入bintray-release插件
-        classpath 'com.novoda:bintray-release:0.9.1'
     }
 }
 
 allprojects {
     repositories {
         google()
-        jcenter()
+        mavenCentral()
         maven { url 'https://jitpack.io' }
         
     }

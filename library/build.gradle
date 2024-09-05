@@ -1,8 +1,6 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
-//apply plugin: 'com.novoda.bintray-release'
 apply plugin: 'kotlin-android-extensions'
-apply plugin: 'com.novoda.bintray-release'//添加 bintray-release 配置
 android {
     compileSdkVersion rootProject.ext.android["compileSdkVersion"]
     buildToolsVersion rootProject.ext.android["buildToolsVersion"]
@@ -12,8 +10,8 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
     }
 
-
     defaultConfig {
+        ndkVersion "21.1.6352462"
         minSdkVersion rootProject.ext.android["minSdkVersion"]
         targetSdkVersion rootProject.ext.android["targetSdkVersion"]
         versionCode rootProject.ext.android["versionCode"]
@@ -45,23 +43,6 @@ android {
             path file('src/main/cpp/CMakeLists.txt')
         }
     }
-}
-
-publish {
-    //bintray.com 用户名
-    userOrg = 'yangkun19921001'
-    // bintray 上仓库的名字
-    repoName = 'AVRtmpPushSDK'
-    //jcenter上 的路径
-    groupId = 'com.devyk.av.rtmp.library'
-    //项目名称
-    artifactId = 'AVRtmpPushSDK'
-    //版本号
-    publishVersion = '1.0.0'// 描述
-    //描述
-    desc = '这是一个由 kotlin 、C++ 编写的 RTMP 推流项目'
-    //一般填 github 项目地址,一定是要有效的地址
-    website = 'https://github.com/yangkun19921001/AVRtmpPushSDK'
 }
 
 dependencies {
