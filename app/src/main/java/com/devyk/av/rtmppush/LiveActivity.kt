@@ -61,7 +61,7 @@ class LiveActivity : BaseActivity<Int>(), OnConnectListener {
 
 
     override fun initListener() {
-        mSender?.setOnConnectListener(this)
+        mSender.setOnConnectListener(this)
     }
 
     override fun initData() {
@@ -96,7 +96,7 @@ class LiveActivity : BaseActivity<Int>(), OnConnectListener {
 
         //初始化 camera 参数
         var cameraConfiguration = CameraConfiguration.Builder()
-            .setFacing(CameraConfiguration.Facing.FRONT)
+            .setFacing(CameraConfiguration.Facing.BACK)
             .setFps(25)
             .setPreview(1920, 960)
             .build()
@@ -128,11 +128,11 @@ class LiveActivity : BaseActivity<Int>(), OnConnectListener {
     }
 
 
-    public fun rtmp_live(view: View) {
+    fun rtmp_live(view: View) {
         if (isConncet) {
             progressBar.visibility = View.VISIBLE;
             live.stopLive()
-            mSender?.close()
+            mSender.close()
             isConncet = false
             mPacker.stop()
             return
@@ -148,7 +148,7 @@ class LiveActivity : BaseActivity<Int>(), OnConnectListener {
 
     override fun onDestroy() {
         super.onDestroy()
-        mSender?.close()
+        mSender.close()
         live.stopLive()
         live.releaseCamera()
     }

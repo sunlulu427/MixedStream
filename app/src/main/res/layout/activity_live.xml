@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
-        xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
         xmlns:live="http://schemas.android.com/apk/res-auto"
         android:layout_width="match_parent"
@@ -18,8 +17,7 @@
             live:preview_height="1280"
             live:preview_width="720"
             live:videoMaxRate="300"
-            live:videoMinRate="200"
-    />
+            live:videoMinRate="200" />
 
 
     <LinearLayout
@@ -29,11 +27,12 @@
             android:gravity="center"
             android:layout_width="80dp"
             android:layout_height="80dp">
+
         <ImageView
                 android:id="@+id/live_icon"
                 android:src="@mipmap/live"
                 android:layout_width="60dp"
-                android:layout_height="60dp"/>
+                android:layout_height="60dp" />
 
     </LinearLayout>
 
@@ -45,19 +44,19 @@
             android:id="@+id/progressBar"
             style="?android:attr/progressBarStyleLarge"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-    />
+            android:layout_height="wrap_content" />
 
     <LinearLayout
             android:onClick="camera_change"
             android:gravity="center"
             android:layout_width="80dp"
             android:layout_height="80dp">
+
         <ImageView
                 android:id="@+id/camera_change_icon"
                 android:src="@mipmap/camera_change"
-                android:layout_width="40dp"
-                android:layout_height="40dp"/>
+                android:layout_width="32dp"
+                android:layout_height="32dp" />
 
     </LinearLayout>
 

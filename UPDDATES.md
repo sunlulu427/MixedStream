@@ -12,3 +12,4 @@ cmake.dir=/Users/bytedance/Library/Android/sdk/cmake/3.10.2.4988404
 ```
 
 - update default preview resolution and push resolution
+- change camera facing to back (for emulator)
