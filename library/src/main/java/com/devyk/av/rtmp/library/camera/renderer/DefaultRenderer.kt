@@ -1,7 +1,7 @@
 package com.devyk.av.rtmp.library.camera.renderer
 
 import android.opengl.GLES20
-import com.devyk.av.camera_recorder.callback.IRenderer
+import com.devyk.av.rtmp.library.callback.IRenderer
 
 /**
  * <pre>

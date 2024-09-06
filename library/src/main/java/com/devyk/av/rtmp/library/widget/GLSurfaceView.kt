@@ -4,7 +4,7 @@ import android.content.Context
 import android.util.AttributeSet
 import android.view.SurfaceHolder
 import android.view.SurfaceView
-import com.devyk.av.camera_recorder.callback.IRenderer
+import com.devyk.av.rtmp.library.callback.IRenderer
 import java.lang.ref.WeakReference
 import android.view.Surface
 import com.devyk.av.camera_recorder.callback.IGLThreadConfig
@@ -30,13 +30,10 @@ import javax.microedition.khronos.egl.EGLContext
  * 4、提供和系统 GLSurfaceView 相同的调用方法
  *
  */
-public open class GLSurfaceView : SurfaceView, SurfaceHolder.Callback, IGLThreadConfig {
+open class GLSurfaceView : SurfaceView, SurfaceHolder.Callback, IGLThreadConfig {
 
 
-
-
-
-    public val TAG = javaClass.simpleName
+    val TAG = javaClass.simpleName
 
 
     /**
@@ -60,13 +57,12 @@ public open class GLSurfaceView : SurfaceView, SurfaceHolder.Callback, IGLThread
     private var mEGLContext: EGLContext? = null
 
 
-
-
     companion object {
         /**
          * 手动调用渲染
          */
         const val RENDERERMODE_WHEN_DIRTY = 0
+
         /**
          * 自动渲染
          */
@@ -80,11 +76,15 @@ public open class GLSurfaceView : SurfaceView, SurfaceHolder.Callback, IGLThread
     /**
      * 渲染器
      */
-    public var mRenderer: IRenderer? = null
+    var mRenderer: IRenderer? = null
 
     constructor(context: Context?) : this(context, null)
     constructor(context: Context?, attrs: AttributeSet?) : this(context, attrs, 0)
-    constructor(context: Context?, attrs: AttributeSet?, defStyleAttr: Int) : super(context, attrs, defStyleAttr) {
+    constructor(context: Context?, attrs: AttributeSet?, defStyleAttr: Int) : super(
+        context,
+        attrs,
+        defStyleAttr
+    ) {
         holder.addCallback(this)
     }
 
@@ -116,7 +116,7 @@ public open class GLSurfaceView : SurfaceView, SurfaceHolder.Callback, IGLThread
     /**
      * 配置渲染属性
      */
-    public fun configure(rendererConfiguration: RendererConfiguration) {
+    fun configure(rendererConfiguration: RendererConfiguration) {
         this.mRendererConfiguration = rendererConfiguration
         this.mRenderer = mRendererConfiguration.renderer;
         this.mRendererMode = mRendererConfiguration.rendererMode;
@@ -128,7 +128,7 @@ public open class GLSurfaceView : SurfaceView, SurfaceHolder.Callback, IGLThread
     /**
      * 拿到 EGL 上下文
      */
-    public override fun getEGLContext(): EGLContext? {
+    override fun getEGLContext(): EGLContext? {
         if (mEGLContext == null)
             return mEglThread.getEGLContext()
         return mEGLContext
@@ -137,7 +137,7 @@ public open class GLSurfaceView : SurfaceView, SurfaceHolder.Callback, IGLThread
     /**
      * 外部请求渲染刷新
      */
-    public  fun requestRenderer() = mEglThread.requestRenderer()
+    fun requestRenderer() = mEglThread.requestRenderer()
 
     /**
      * 得到渲染器
@@ -157,12 +157,13 @@ public open class GLSurfaceView : SurfaceView, SurfaceHolder.Callback, IGLThread
     /**
      * 自定义GLThread线程类，主要用于OpenGL的绘制操作
      */
-    public class GLSurfaceThread(weakReference: WeakReference<IGLThreadConfig>) : GLThread(weakReference) {
+    class GLSurfaceThread(weakReference: WeakReference<IGLThreadConfig>) :
+        GLThread(weakReference) {
 
         /**
          * 获取 EGL 上下文环境
          */
-        public fun getEGLContext(): EGLContext? = mEGLHelper?.getEglContext()
+        fun getEGLContext(): EGLContext? = mEGLHelper?.getEglContext()
 
     }
 }

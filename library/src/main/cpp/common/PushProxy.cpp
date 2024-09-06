@@ -1,7 +1,6 @@
 //
 // Created by 阳坤 on 2020-07-17.
 //
-
 #include "PushProxy.h"
 
 
@@ -11,7 +10,6 @@ IPush *PushProxy::getPushEngine() {
 
 PushProxy::PushProxy() {
 }
-
 
 PushProxy *PushProxy::getInstance() {
     static PushProxy proxy[1];
@@ -37,9 +35,6 @@ void PushProxy::stop() {
     if (javaCallback) {
         delete (javaCallback);
     }
-
-
-
 }
 
 void PushProxy::pushSpsPps(uint8_t *sps, int sps_len, uint8_t *pps, int pps_len) {

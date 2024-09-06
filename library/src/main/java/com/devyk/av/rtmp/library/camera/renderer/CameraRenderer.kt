@@ -4,7 +4,7 @@ import android.content.Context
 import android.graphics.SurfaceTexture
 import android.opengl.GLES20
 import android.opengl.Matrix
-import com.devyk.av.camera_recorder.callback.IRenderer
+import com.devyk.av.rtmp.library.callback.IRenderer
 
 
 import java.nio.ByteBuffer
@@ -26,7 +26,7 @@ import com.devyk.av.rtmp.library.utils.LogHelper
  *     desc    : This is CameraRenderer
  * </pre>
  */
-public class CameraRenderer(context: Context) : IRenderer {
+class CameraRenderer(private val context: Context) : IRenderer {
 
     private var TAG = this.javaClass.simpleName
 
@@ -57,11 +57,6 @@ public class CameraRenderer(context: Context) : IRenderer {
     )
 
     /**
-     * 定义一个上下文变量
-     */
-    private lateinit var mContext: Context
-
-    /**
      * 执行着色器代码的程序
      */
     private var program = 0
@@ -70,6 +65,7 @@ public class CameraRenderer(context: Context) : IRenderer {
      * 顶点索引
      */
     private var vPosition = 0
+
     /**
      * 纹理索引
      */
@@ -83,17 +79,20 @@ public class CameraRenderer(context: Context) : IRenderer {
     /**
      * 使用 VBO
      * 概念:
-     * - 不使用VBO时，我们每次绘制（ glDrawArrays ）图形时都是从本地内存处获取顶点数据然后传输给OpenGL来绘制，这样就会频繁的操作CPU->GPU增大开销，从而降低效率。
-     * - 使用VBO，我们就能把顶点数据缓存到GPU开辟的一段内存中，然后使用时不必再从本地获取，而是直接从显存中获取，这样就能提升绘制的效率。
-     *
+     * - 不使用VBO时，我们每次绘制（ glDrawArrays ）图形时都是从本地内存处获取顶点数据然后传输给OpenGL来绘制，
+     *   这样就会频繁的操作CPU->GPU增大开销，从而降低效率。
+     * - 使用VBO，我们就能把顶点数据缓存到GPU开辟的一段内存中，然后使用时不必再从本地获取，
+     *   而是直接从显存中获取，这样就能提升绘制的效率。
      *
      */
-    private var mVboID = 0;
+    private var mVboID = 0
 
     /**
      *  FBO 概念：
      * 为什么要用FBO?
-     * - 当我们需要对纹理进行多次渲染采样时，而这些渲染采样是不需要展示给用户看的，所以我们就可以用一个单独的缓冲对象（离屏渲染）来存储我们的这几次渲染采样的结果，等处理完后才显示到窗口上。
+     * - 当我们需要对纹理进行多次渲染采样时，而这些渲染采样是不需要展示给用户看的，
+     *   所以我们就可以用一个单独的缓冲对象（离屏渲染）来存储我们的这几次渲染采样的结果，
+     *   等处理完后才显示到窗口上。
      *
      * 优势
      * - 提高渲染效率，避免闪屏，可以很方便的实现纹理共享等。
@@ -109,21 +108,35 @@ public class CameraRenderer(context: Context) : IRenderer {
     /**
      * 为顶点坐标分配 native 地址空间
      */
-    private lateinit var mVertexBuffer: FloatBuffer
+    private val mVertexBuffer: FloatBuffer = ByteBuffer
+        .allocateDirect(mVertexData.size * 4)
+        .order(ByteOrder.nativeOrder()) //大内存在前面，字节对齐
+        .asFloatBuffer()
+        .put(mVertexData).also {
+            //指向第一个索引，相当于 C 里面的第一个内存地址
+            it.position(0)
+        }
+
     /**
      * 为片元坐标分配 native 地址空间
      */
-    private lateinit var mFragmentBuffer: FloatBuffer
+    private val mFragmentBuffer: FloatBuffer = ByteBuffer
+        .allocateDirect(mFragmentData.size * 4)
+        .order(ByteOrder.nativeOrder())
+        .asFloatBuffer()
+        .put(mFragmentData).also {
+            it.position(0)
+        }
 
     /**
      * fbo renderer
      */
-    private lateinit var mFboRenderer: FboRenderer
+    private val mFboRenderer: FboRenderer = FboRenderer(context)
 
     /**
      * bitmap 纹理 ID
      */
-    private var mCameraTextureId = 0;
+    private var mCameraTextureId = 0
 
     /**
      * 设置 fbo 离屏渲染的 size
@@ -149,39 +162,19 @@ public class CameraRenderer(context: Context) : IRenderer {
      * 做矩阵方向变换的
      */
     private val mMatrix = FloatArray(16)
-
     private var mRendererListener: OnRendererListener? = null
 
-    init {
-        mContext = context
-        mFboRenderer = FboRenderer(mContext)
-        mVertexBuffer = ByteBuffer.allocateDirect(mVertexData.size * 4)
-            .order(ByteOrder.nativeOrder()) //大内存在前面，字节对齐
-            .asFloatBuffer()
-            .put(mVertexData)
-        //指向第一个索引，相当于 C 里面的第一个内存地址
-        mVertexBuffer.position(0)
-
-        mFragmentBuffer = ByteBuffer.allocateDirect(mFragmentData.size * 4)
-            .order(ByteOrder.nativeOrder())
-            .asFloatBuffer()
-            .put(mFragmentData)
-        mFragmentBuffer.position(0)
-
-
-    }
-
-
     override fun onSurfaceCreate(width: Int, height: Int) {
-        mScreenWidth = mContext.resources.displayMetrics.widthPixels
-        mScreenHeight = mContext.resources.displayMetrics.heightPixels
+        mScreenWidth = context.resources.displayMetrics.widthPixels
+        mScreenHeight = context.resources.displayMetrics.heightPixels
         this.mHeight = height
         this.mWidth = width
         mFboRenderer.onSurfaceCreate(width, height)
 
         //1. 获取顶点/片元源代码资源
-        var vertexSource = ShaderHelper.getRawShaderResource(mContext, R.raw.vertex_shader_matrix)
-        var fragmentSource = ShaderHelper.getRawShaderResource(mContext, R.raw.fragment_shader_camera)
+        val vertexSource = ShaderHelper.getRawShaderResource(context, R.raw.vertex_shader_matrix)
+        val fragmentSource =
+            ShaderHelper.getRawShaderResource(context, R.raw.fragment_shader_camera)
 
         //2. 为 顶点和片元创建一个执行程序
         program = ShaderHelper.createProgram(vertexSource, fragmentSource)
@@ -189,11 +182,11 @@ public class CameraRenderer(context: Context) : IRenderer {
         //3. 拿到顶点/片元 源代码中的索引位置
         vPosition = GLES20.glGetAttribLocation(program, "v_Position")
         fPosition = GLES20.glGetAttribLocation(program, "f_Position")
-        umatrix = GLES20.glGetUniformLocation(program, "u_Matrix");
+        umatrix = GLES20.glGetUniformLocation(program, "u_Matrix")
 
         //4. 生成一个 VBO
-        var vbo = IntArray(1)
-        GLES20.glGenBuffers(1, vbo, 0);
+        val vbo = IntArray(1)
+        GLES20.glGenBuffers(1, vbo, 0)
         mVboID = vbo[0]
         //4.1 绑定 VBO
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, mVboID)
@@ -203,15 +196,20 @@ public class CameraRenderer(context: Context) : IRenderer {
             mVertexData.size * 4 + mFragmentData.size * 4,
             null,
             GLES20.GL_STATIC_DRAW
-        );
+        )
         //4.3 为 VBO 设置顶点、片元数据的值
-        GLES20.glBufferSubData(GLES20.GL_ARRAY_BUFFER, 0, mVertexData.size * 4, mVertexBuffer);
-        GLES20.glBufferSubData(GLES20.GL_ARRAY_BUFFER, mVertexData.size * 4, mFragmentData.size * 4, mFragmentBuffer);
+        GLES20.glBufferSubData(GLES20.GL_ARRAY_BUFFER, 0, mVertexData.size * 4, mVertexBuffer)
+        GLES20.glBufferSubData(
+            GLES20.GL_ARRAY_BUFFER,
+            mVertexData.size * 4,
+            mFragmentData.size * 4,
+            mFragmentBuffer
+        )
         //4.4 解绑 VBO
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0)
 
         //5. 生成一个 FBO
-        var fbo = IntArray(1)
+        val fbo = IntArray(1)
         GLES20.glGenFramebuffers(1, fbo, 0)
         mFboID = fbo[0]
         //5.1 绑定 FBO
@@ -219,7 +217,7 @@ public class CameraRenderer(context: Context) : IRenderer {
 
 
         //6. 生成一个纹理 ID
-        var textureIds = IntArray(1)
+        val textureIds = IntArray(1)
         GLES20.glGenTextures(1, textureIds, 0)
         mTextureID = textureIds[0]
 
@@ -253,18 +251,18 @@ public class CameraRenderer(context: Context) : IRenderer {
             GLES20.GL_TEXTURE_2D,
             mTextureID,
             0
-        );
+        )
 
 
         //5.4 检查 FBO 是否绑定成功
         if (GLES20.glCheckFramebufferStatus(GLES20.GL_FRAMEBUFFER) != GLES20.GL_FRAMEBUFFER_COMPLETE) {
-            LogHelper.e(TAG, "fbo bind error");
+            LogHelper.e(TAG, "fbo bind error")
         } else {
-            LogHelper.e(TAG, "fbo bind success");
+            LogHelper.e(TAG, "fbo bind success")
         }
 
         //5.5 解绑 FBO
-        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
+        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0)
         //解绑纹理
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0)
 
@@ -275,21 +273,18 @@ public class CameraRenderer(context: Context) : IRenderer {
         val surfaceTexture = SurfaceTexture(mCameraTextureId)
         mRendererListener?.onCreate(mCameraTextureId, mTextureID)
         mRendererListener?.onCreate(surfaceTexture, mTextureID)
-        GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, 0);
-
+        GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, 0)
     }
 
     override fun onSurfaceChange(width: Int, height: Int) {
         //指定渲染框口的大小
         this.mHeight = height
         this.mWidth = width
-
     }
-
 
     override fun onDraw() {
         if (!isTexture) {
-           Thread.sleep(300)
+            Thread.sleep(300)
             isTexture = switchCametaListener?.onChange()!!
             if (!isTexture)
                 return
@@ -303,13 +298,13 @@ public class CameraRenderer(context: Context) : IRenderer {
         //1. 使用顶点和片元创建出来的执行程序
         GLES20.glUseProgram(program)
         GLES20.glViewport(0, 0, mScreenWidth, mScreenHeight)
-        GLES20.glUniformMatrix4fv(umatrix, 1, false, mMatrix, 0);
+        GLES20.glUniformMatrix4fv(umatrix, 1, false, mMatrix, 0)
 
         //绑定 fbo
-        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, mFboID);
+        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, mFboID)
 
         //3. 绑定 VBO
-        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, mVboID);
+        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, mVboID)
 
 
         //4. 设置顶点坐标
@@ -329,7 +324,7 @@ public class CameraRenderer(context: Context) : IRenderer {
         // 解绑 VBO
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0)
         //解绑 fbo
-        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
+        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0)
 
         mFboRenderer.onSurfaceChange(mWidth, mHeight)
         //绘制纹理
@@ -340,10 +335,26 @@ public class CameraRenderer(context: Context) : IRenderer {
         val textureidseos = IntArray(1)
         GLES20.glGenTextures(1, textureidseos, 0)
         GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, textureidseos[0])
-        GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_REPEAT)
-        GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_REPEAT)
-        GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR)
-        GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR)
+        GLES20.glTexParameteri(
+            GLES11Ext.GL_TEXTURE_EXTERNAL_OES,
+            GLES20.GL_TEXTURE_WRAP_S,
+            GLES20.GL_REPEAT
+        )
+        GLES20.glTexParameteri(
+            GLES11Ext.GL_TEXTURE_EXTERNAL_OES,
+            GLES20.GL_TEXTURE_WRAP_T,
+            GLES20.GL_REPEAT
+        )
+        GLES20.glTexParameteri(
+            GLES11Ext.GL_TEXTURE_EXTERNAL_OES,
+            GLES20.GL_TEXTURE_MIN_FILTER,
+            GLES20.GL_LINEAR
+        )
+        GLES20.glTexParameteri(
+            GLES11Ext.GL_TEXTURE_EXTERNAL_OES,
+            GLES20.GL_TEXTURE_MAG_FILTER,
+            GLES20.GL_LINEAR
+        )
         return textureidseos[0]
 
     }
@@ -351,18 +362,18 @@ public class CameraRenderer(context: Context) : IRenderer {
     /**
      * 设置水印
      */
-    public fun setWatemark(watermark: Watermark) {
+    fun setWatemark(watermark: Watermark) {
         mFboRenderer?.setWatemark(watermark)
     }
 
 
-    public interface OnRendererListener {
+    interface OnRendererListener {
         fun onCreate(cameraTextureId: Int, textureID: Int)
         fun onCreate(surfaceTexture: SurfaceTexture, textureID: Int)
         fun onDraw()
     }
 
-    public fun setOnRendererListener(listener: OnRendererListener) {
+    fun setOnRendererListener(listener: OnRendererListener) {
         this.mRendererListener = listener
     }
 
@@ -370,11 +381,11 @@ public class CameraRenderer(context: Context) : IRenderer {
      * 设置方向
      */
     fun setAngle(angle: Int, x: Int, y: Int, z: Int) {
-        Matrix.rotateM(mMatrix, 0, angle.toFloat(), x.toFloat(), y.toFloat(), z.toFloat());
+        Matrix.rotateM(mMatrix, 0, angle.toFloat(), x.toFloat(), y.toFloat(), z.toFloat())
     }
 
     fun resetMatrix() {
-        Matrix.setIdentityM(mMatrix, 0);
+        Matrix.setIdentityM(mMatrix, 0)
     }
 
     fun switchCamera(listener: OnSwitchCameraListener) {
@@ -383,7 +394,7 @@ public class CameraRenderer(context: Context) : IRenderer {
 
     }
 
-    public interface OnSwitchCameraListener {
+    interface OnSwitchCameraListener {
         fun onChange(): Boolean
     }
 }

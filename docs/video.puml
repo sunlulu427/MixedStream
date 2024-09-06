@@ -1,0 +1,10 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+
+autonumber
+participant LiveActivity
+participant CameraView
+LiveActivity-> LiveActivity: startPreview
+LiveActivity-> CameraView: startPreview
+
+@enduml

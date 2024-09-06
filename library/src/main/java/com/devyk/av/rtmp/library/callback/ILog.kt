@@ -9,7 +9,7 @@ package com.devyk.av.rtmp.library.callback
  *     desc    : This is ILog
  * </pre>
  */
-public interface ILog {
+interface ILog {
     fun i(tag: String = javaClass.simpleName, info: String?);
     fun e(tag: String = javaClass.simpleName, info: String?);
     fun w(tag: String = javaClass.simpleName, info: String?);

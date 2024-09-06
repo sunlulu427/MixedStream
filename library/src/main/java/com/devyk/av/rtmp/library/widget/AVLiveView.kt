@@ -21,8 +21,11 @@ import com.devyk.av.rtmp.library.stream.sender.Sender
  *     desc    : This is LiveView
  * </pre>
  */
-public class AVLiveView : CameraView, ICameraOpenListener {
-
+class AVLiveView @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0
+) : CameraView(context, attrs, defStyleAttr), ICameraOpenListener {
 
     private var mFps = 20
     private var mPreviewWidth = 720
@@ -32,22 +35,13 @@ public class AVLiveView : CameraView, ICameraOpenListener {
     private var mVideoMinRate = 400
     private var mVideoMaxRate = 1800
 
-
-    private var mVideoConfiguration=VideoConfiguration.createDefault()
-    private var mAudioConfiguration=AudioConfiguration.createDefault()
-    private var mCameraConfiguration=CameraConfiguration.createDefault()
-
-
+    private var mVideoConfiguration = VideoConfiguration.createDefault()
+    private var mAudioConfiguration = AudioConfiguration.createDefault()
+    private var mCameraConfiguration = CameraConfiguration.createDefault()
     private var mStreamController: StreamController? = null
 
-    constructor(context: Context?) : this(context, null)
-    constructor(context: Context?, attrs: AttributeSet?) : this(context, attrs, 0)
-    constructor(context: Context?, attrs: AttributeSet?, defStyleAttr: Int) : super(context, attrs, defStyleAttr) {
-        init(context!!, attrs)
-    }
-
-    private fun init(context: Context, attrs: AttributeSet?) {
-        var typeArray = context.obtainStyledAttributes(attrs, R.styleable.AVLiveView)
+    init {
+        val typeArray = context.obtainStyledAttributes(attrs, R.styleable.AVLiveView)
         mFps = typeArray.getInteger(R.styleable.AVLiveView_fps, mFps)
         mPreviewHeight = typeArray.getInteger(R.styleable.AVLiveView_preview_height, mPreviewHeight)
         mPreviewWidth = typeArray.getInteger(R.styleable.AVLiveView_preview_width, mPreviewWidth)
@@ -55,11 +49,12 @@ public class AVLiveView : CameraView, ICameraOpenListener {
         mBack = typeArray.getBoolean(R.styleable.AVLiveView_back, mBack)
         mVideoMinRate = typeArray.getInteger(R.styleable.AVLiveView_videoMinRate, mVideoMinRate)
         mVideoMaxRate = typeArray.getInteger(R.styleable.AVLiveView_videoMaxRate, mVideoMaxRate)
+        typeArray.recycle()
 
         //实例化数据流的控制器
         mStreamController = StreamController()
         // Camera 预览配置
-       mCameraConfiguration = CameraConfiguration.Builder()
+        mCameraConfiguration = CameraConfiguration.Builder()
             .setFacing(if (mBack) CameraConfiguration.Facing.BACK else CameraConfiguration.Facing.FRONT)
             .setFps(mFps)
             .setPreview(mPreviewHeight, mPreviewWidth)
@@ -84,20 +79,20 @@ public class AVLiveView : CameraView, ICameraOpenListener {
      * 设置音频编码和采集的参数
      */
     fun setAudioConfigure(audioConfiguration: AudioConfiguration) {
-      this.mAudioConfiguration = audioConfiguration
+        this.mAudioConfiguration = audioConfiguration
     }
 
     /**
      * 设置视频编码参数
      */
-    fun setVideoConfigure(videoConfiguration: VideoConfiguration){
+    fun setVideoConfigure(videoConfiguration: VideoConfiguration) {
         this.mVideoConfiguration = videoConfiguration
     }
 
     /**
      * 设置预览视频的参数
      */
-    fun setCameraConfigure(cameraConfiguration: CameraConfiguration){
+    fun setCameraConfigure(cameraConfiguration: CameraConfiguration) {
         this.mCameraConfiguration = cameraConfiguration
 
     }
@@ -105,7 +100,7 @@ public class AVLiveView : CameraView, ICameraOpenListener {
     /**
      * 开始预览
      */
-    fun startPreview(){
+    fun startPreview() {
         mStreamController?.setAudioConfigure(mAudioConfiguration)
         mStreamController?.setVideoConfigure(mVideoConfiguration)
         //开始预览
@@ -117,10 +112,6 @@ public class AVLiveView : CameraView, ICameraOpenListener {
         super.setWatermark(watermark)
         mStreamController?.setWatermark(watermark)
     }
-
-
-
-
 
     /**
      * 设置打包器
@@ -143,13 +134,11 @@ public class AVLiveView : CameraView, ICameraOpenListener {
         mStreamController?.prepare(context, getTextureId(), getEGLContext())
     }
 
-
     /**
      * 开始
      */
     fun startLive() {
         mStreamController?.start()
-
     }
 
     /**
@@ -157,7 +146,6 @@ public class AVLiveView : CameraView, ICameraOpenListener {
      */
     fun pause() {
         mStreamController?.pause()
-
     }
 
     /**
@@ -165,7 +153,6 @@ public class AVLiveView : CameraView, ICameraOpenListener {
      */
     fun resume() {
         mStreamController?.resume()
-
     }
 
     /**
@@ -173,7 +160,6 @@ public class AVLiveView : CameraView, ICameraOpenListener {
      */
     fun stopLive() {
         mStreamController?.stop()
-
     }
 
     /**
@@ -189,8 +175,6 @@ public class AVLiveView : CameraView, ICameraOpenListener {
     fun setVideoBps(bps: Int) {
         mStreamController?.setVideoBps(bps)
     }
-
-
 
     /**
      * 释放相机

@@ -80,11 +80,11 @@ class LiveActivity : BaseActivity<Int>(), OnConnectListener {
         live.setSender(mSender)
 
         //初始化音频参数
-        var audioConfiguration = AudioConfiguration.createDefault()
+        val audioConfiguration = AudioConfiguration.createDefault()
         live.setAudioConfigure(audioConfiguration)
 
         //初始化视频编码参数
-        var videoConfiguration = VideoConfiguration.Builder()
+        val videoConfiguration = VideoConfiguration.Builder()
             .setBps(400, 800)
             .setFps(25)
             .setCodeType(VideoConfiguration.ICODEC.ENCODE)
@@ -95,7 +95,7 @@ class LiveActivity : BaseActivity<Int>(), OnConnectListener {
         live.setVideoConfigure(videoConfiguration)
 
         //初始化 camera 参数
-        var cameraConfiguration = CameraConfiguration.Builder()
+        val cameraConfiguration = CameraConfiguration.Builder()
             .setFacing(CameraConfiguration.Facing.BACK)
             .setFps(25)
             .setPreview(1920, 960)

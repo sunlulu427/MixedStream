@@ -1,7 +1,7 @@
 package com.devyk.av.rtmp.library.config
 
 import android.view.Surface
-import com.devyk.av.camera_recorder.callback.IRenderer
+import com.devyk.av.rtmp.library.callback.IRenderer
 import com.devyk.av.rtmp.library.annotation.RendererMode
 import com.devyk.av.rtmp.library.camera.renderer.DefaultRenderer
 import com.devyk.av.rtmp.library.widget.GLSurfaceView

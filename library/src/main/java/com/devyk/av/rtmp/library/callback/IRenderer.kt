@@ -1,4 +1,4 @@
-package com.devyk.av.camera_recorder.callback
+package com.devyk.av.rtmp.library.callback
 
 /**
  * <pre>
@@ -13,19 +13,19 @@ package com.devyk.av.camera_recorder.callback
  *     @see ![](https://devyk.oss-cn-qingdao.aliyuncs.com/blog/20200706174743.png)
  * </pre>
  */
-public interface IRenderer {
+interface IRenderer {
     /**
      * 当 Surface 创建的时候
      */
-    public fun onSurfaceCreate(width: Int, height: Int);
+    fun onSurfaceCreate(width: Int, height: Int)
 
     /**
      * 当 surface 窗口改变的时候
      */
-    public fun onSurfaceChange(width: Int, height: Int);
+    fun onSurfaceChange(width: Int, height: Int)
 
     /**
      * 绘制的时候
      */
-    public fun onDraw();
+    fun onDraw()
 }

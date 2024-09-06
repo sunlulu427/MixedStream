@@ -1,6 +1,7 @@
 package com.devyk.av.camera_recorder.callback
 
 import android.view.Surface
+import com.devyk.av.rtmp.library.callback.IRenderer
 import javax.microedition.khronos.egl.EGLContext
 
 /**

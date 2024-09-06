@@ -3,7 +3,7 @@ package com.devyk.av.rtmp.library.camera
 import android.content.Context
 import android.view.Surface
 import com.devyk.av.camera_recorder.callback.IGLThreadConfig
-import com.devyk.av.camera_recorder.callback.IRenderer
+import com.devyk.av.rtmp.library.callback.IRenderer
 import com.devyk.av.rtmp.library.camera.renderer.EncodeRenderer
 import com.devyk.av.rtmp.library.mediacodec.VideoEncoder
 import com.devyk.av.rtmp.library.widget.GLSurfaceView
@@ -19,21 +19,12 @@ import javax.microedition.khronos.egl.EGLContext
  *     desc    : This is CameraRecorder 摄像头录制
  * </pre>
  */
-public class CameraRecorder(context: Context, textureId: Int, eglContext: EGLContext?) : VideoEncoder(),
-    IGLThreadConfig {
-
-
-    protected lateinit var mRenderer: EncodeRenderer
-    protected var mEGLContext: EGLContext?
+class CameraRecorder(context: Context, textureId: Int, private val eglContext: EGLContext?) :
+    VideoEncoder(), IGLThreadConfig {
+    protected val mRenderer: EncodeRenderer = EncodeRenderer(context, textureId)
     protected var mRendererMode = GLSurfaceView.RENDERERMODE_CONTINUOUSLY
     protected var mGLThread: EncodeRendererThread? = null
     protected var mSurface: Surface? = null
-
-    init {
-        this.mEGLContext = eglContext
-        this.mRenderer = EncodeRenderer(context, textureId)
-    }
-
 
     /**
      * surface 创建的时候开始进行 GL 线程渲染
@@ -43,17 +34,11 @@ public class CameraRecorder(context: Context, textureId: Int, eglContext: EGLCon
         mSurface = surface
         mGLThread = EncodeRendererThread(WeakReference(this))
         mGLThread?.run {
-            setRendererSize(mConfiguration!!.width, mConfiguration!!.height)
+            setRendererSize(mConfiguration.width, mConfiguration.height)
             isCreate = true
             isChange = true
             start()
         }
-    }
-
-
-    override fun start() {
-        super.start()
-
     }
 
     override fun stop() {
@@ -62,12 +47,11 @@ public class CameraRecorder(context: Context, textureId: Int, eglContext: EGLCon
     }
 
 
-    public fun pause() {
+    fun pause() {
         mGLThread?.setPause()
-
     }
 
-    public fun resume() {
+    fun resume() {
         mGLThread?.setResume()
     }
 
@@ -77,19 +61,19 @@ public class CameraRecorder(context: Context, textureId: Int, eglContext: EGLCon
         return super.getSurface()
     }
 
-    override fun getRenderer(): IRenderer? = mRenderer
-    override fun getEGLContext(): EGLContext? = mEGLContext
+    override fun getEGLContext(): EGLContext? = eglContext
+    override fun getRenderer(): IRenderer = mRenderer
     override fun getRendererMode(): Int = mRendererMode
 
     fun setWatermark(watermark: Watermark) {
-        mRenderer?.setWatemark(watermark)
+        mRenderer.setWatemark(watermark)
     }
-
 
     /**
      * 摄像头渲染线程
      */
-    class EncodeRendererThread(weakReference: WeakReference<IGLThreadConfig>) : GLThread(weakReference) {
+    class EncodeRendererThread(weakReference: WeakReference<IGLThreadConfig>) :
+        GLThread(weakReference) {
 
     }
 

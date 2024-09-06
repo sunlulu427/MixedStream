@@ -4,20 +4,19 @@
 
 #include "JavaCallback.h"
 
-JavaCallback::JavaCallback(JavaVM *vm, JNIEnv *env, jobject obj) {
-    this->javaVM = vm;
-    this->jniEnv = env;
+JavaCallback::JavaCallback(JavaVM *vm, JNIEnv *env, jobject obj)
+        : javaVM(vm), jniEnv(env), jobject1(env->NewGlobalRef(obj)) {
     //必须声明全局 不然会报 error JNI DETECTED ERROR IN APPLICATION: use of invalid jobject 0xff868d8c
-    this->jobject1 = env->NewGlobalRef(obj);// 坑，需要是全局（jobject一旦涉及到跨函数，跨线程，必须是全局引用）
-    if (!jniEnv || !jobject1)
+    if (!jniEnv || !jobject1) {
         return;
+    }
 
+    // 从Native中调用Java方法
     jclass jcls = jniEnv->GetObjectClass(this->jobject1);
     this->jmid_connecting = jniEnv->GetMethodID(jcls, "onConnecting", "()V");
     this->jmid_success = jniEnv->GetMethodID(jcls, "onConnected", "()V");
     this->jmid_close = jniEnv->GetMethodID(jcls, "onClose", "()V");
     this->jmid_fail = jniEnv->GetMethodID(jcls, "onError", "(I)V");
-
 }
 
 JavaCallback::~JavaCallback() {
@@ -39,7 +38,6 @@ void JavaCallback::onConnecting(int threadType) {
     } else {
         jniEnv->CallVoidMethod(jobject1, jmid_connecting);
     }
-
 }
 
 void JavaCallback::onClose(int threadType) {
@@ -53,8 +51,6 @@ void JavaCallback::onClose(int threadType) {
     } else {
         jniEnv->CallVoidMethod(jobject1, jmid_close);
     }
-
-
 }
 
 void JavaCallback::onConnectSuccess() {

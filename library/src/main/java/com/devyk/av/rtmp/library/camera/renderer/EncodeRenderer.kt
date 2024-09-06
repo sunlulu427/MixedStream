@@ -4,12 +4,11 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.opengl.GLES20
-import com.devyk.av.camera_recorder.callback.IRenderer
 import com.devyk.av.rtmp.library.R
+import com.devyk.av.rtmp.library.callback.IRenderer
 import com.devyk.av.rtmp.library.camera.ShaderHelper
 import com.devyk.av.rtmp.library.camera.Watermark
 import com.devyk.av.rtmp.library.utils.BitmapUtils
-import com.devyk.av.rtmp.library.utils.LogHelper
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
@@ -23,11 +22,7 @@ import java.nio.FloatBuffer
  *     desc    : This is EncodeRenderer MediaCodec 编码渲染器
  * </pre>
  */
-public class EncodeRenderer(context: Context?, textureId: Int) : IRenderer {
-
-
-    private var TAG = this.javaClass.simpleName
-
+class EncodeRenderer(private val context: Context, private val textureId: Int) : IRenderer {
     /**
      * 顶点坐标
      */
@@ -59,11 +54,6 @@ public class EncodeRenderer(context: Context?, textureId: Int) : IRenderer {
     )
 
     /**
-     * 定义一个上下文变量
-     */
-    private var mContext: Context? = null
-
-    /**
      * 执行着色器代码的程序
      */
     private var program = 0
@@ -72,15 +62,11 @@ public class EncodeRenderer(context: Context?, textureId: Int) : IRenderer {
      * 顶点索引
      */
     private var vPosition = 0
+
     /**
      * 纹理索引
      */
     private var fPosition = 0
-
-    /**
-     * 绘制的纹理 ID
-     */
-    private var mTextureID = 0
 
     /**
      * 使用 VBO
@@ -90,74 +76,60 @@ public class EncodeRenderer(context: Context?, textureId: Int) : IRenderer {
      *
      *
      */
-    private var mVboID = 0;
+    private var mVboID = 0
 
 
     /**
      * 为顶点坐标分配 native 地址空间
      */
-    private lateinit var mVertexBuffer: FloatBuffer
+    private var mVertexBuffer: FloatBuffer = ByteBuffer
+        .allocateDirect(mVertexData.size * 4)
+        .order(ByteOrder.nativeOrder()) //大内存在前面，字节对齐
+        .asFloatBuffer()
+        .put(mVertexData).also {
+            it.position(0)
+        }
+
     /**
      * 为片元坐标分配 native 地址空间
      */
-    private lateinit var mFragmentBuffer: FloatBuffer
+    private val mFragmentBuffer: FloatBuffer = ByteBuffer
+        .allocateDirect(mFragmentData.size * 4)
+        .order(ByteOrder.nativeOrder())
+        .asFloatBuffer()
+        .put(mFragmentData).also {
+            it.position(0)
+        }
 
 
-    private  var mBitmap: Bitmap?=null
+    private var mBitmap: Bitmap? = null
     private var mBitmapTextureId = -1
 
     init {
-        mContext = context
-        mTextureID = textureId
-
         initWatemark()
-
-
-//        var r = 1.0f * mBitmap.getWidth() / mBitmap.getHeight();
-//        var w = r * 0.1f;
+//        var r = 1.0f * mBitmap.getWidth() / mBitmap.getHeight()
+//        var w = r * 0.1f
 //
-//        mVertexData[8] = 0.8f - w;
-//        mVertexData[9] = -0.8f;
+//        mVertexData[8] = 0.8f - w
+//        mVertexData[9] = -0.8f
 //
-//        mVertexData[10] = 0.8f;
-//        mVertexData[11] = -0.8f;
+//        mVertexData[10] = 0.8f
+//        mVertexData[11] = -0.8f
 //
-//        mVertexData[12] = 0.8f - w;
-//        mVertexData[13] = -0.7f;
+//        mVertexData[12] = 0.8f - w
+//        mVertexData[13] = -0.7f
 //
-//        mVertexData[14] = 0.8f;
-//        mVertexData[15] = -0.7f;
-
-        mVertexBuffer = ByteBuffer.allocateDirect(mVertexData.size * 4)
-            .order(ByteOrder.nativeOrder()) //大内存在前面，字节对齐
-            .asFloatBuffer()
-            .put(mVertexData)
-        //指向第一个索引，相当于 C 里面的第一个内存地址
-        mVertexBuffer.position(0)
-
-        mFragmentBuffer = ByteBuffer.allocateDirect(mFragmentData.size * 4)
-            .order(ByteOrder.nativeOrder())
-            .asFloatBuffer()
-            .put(mFragmentData)
-        mFragmentBuffer.position(0)
-        LogHelper.e(TAG, "TextureId:${mTextureID}")
+//        mVertexData[14] = 0.8f
+//        mVertexData[15] = -0.7f
     }
-
-
-    fun setTextureId(textureId: Int) {
-        mTextureID = textureId
-    }
-
 
     override fun onSurfaceCreate(width: Int, height: Int) {
-
-        GLES20.glEnable(GLES20.GL_BLEND);
-        GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
-
+        GLES20.glEnable(GLES20.GL_BLEND)
+        GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA)
 
         //1. 获取顶点/片元源代码资源
-        var vertexSource = ShaderHelper.getRawShaderResource(mContext, R.raw.vertex_shader)
-        var fragmentSource = ShaderHelper.getRawShaderResource(mContext, R.raw.fragment_shader)
+        val vertexSource = ShaderHelper.getRawShaderResource(context, R.raw.vertex_shader)
+        val fragmentSource = ShaderHelper.getRawShaderResource(context, R.raw.fragment_shader)
 
         //2. 为 顶点和片元创建一个执行程序
         program = ShaderHelper.createProgram(vertexSource, fragmentSource)
@@ -167,8 +139,8 @@ public class EncodeRenderer(context: Context?, textureId: Int) : IRenderer {
         fPosition = GLES20.glGetAttribLocation(program, "f_Position")
 
         //4. 生成一个 VBO
-        var vbo = IntArray(1)
-        GLES20.glGenBuffers(1, vbo, 0);
+        val vbo = IntArray(1)
+        GLES20.glGenBuffers(1, vbo, 0)
         mVboID = vbo[0]
         //4.1 绑定 VBO
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, mVboID)
@@ -178,14 +150,17 @@ public class EncodeRenderer(context: Context?, textureId: Int) : IRenderer {
             mVertexData.size * 4 + mFragmentData.size * 4,
             null,
             GLES20.GL_STATIC_DRAW
-        );
+        )
         //4.3 为 VBO 设置顶点、片元数据的值
-        GLES20.glBufferSubData(GLES20.GL_ARRAY_BUFFER, 0, mVertexData.size * 4, mVertexBuffer);
-        GLES20.glBufferSubData(GLES20.GL_ARRAY_BUFFER, mVertexData.size * 4, mFragmentData.size * 4, mFragmentBuffer);
+        GLES20.glBufferSubData(GLES20.GL_ARRAY_BUFFER, 0, mVertexData.size * 4, mVertexBuffer)
+        GLES20.glBufferSubData(
+            GLES20.GL_ARRAY_BUFFER,
+            mVertexData.size * 4,
+            mFragmentData.size * 4,
+            mFragmentBuffer
+        )
         //4.4 解绑 VBO
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0)
-
-
         //创建一个水印
         mBitmapTextureId = createWatemark()
     }
@@ -202,10 +177,10 @@ public class EncodeRenderer(context: Context?, textureId: Int) : IRenderer {
         GLES20.glUseProgram(program)
 
         //2. 绑定纹理
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTextureID)
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureId)
 
         //3. 绑定 VBO
-        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, mVboID);
+        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, mVboID)
 
         //4. 设置顶点坐标
         GLES20.glEnableVertexAttribArray(vPosition)
@@ -225,15 +200,15 @@ public class EncodeRenderer(context: Context?, textureId: Int) : IRenderer {
             GLES20.glVertexAttribPointer(
                 vPosition, 2, GLES20.GL_FLOAT, false, 8,
                 32
-            );
+            )
 
-            GLES20.glEnableVertexAttribArray(fPosition);
+            GLES20.glEnableVertexAttribArray(fPosition)
             GLES20.glVertexAttribPointer(
                 fPosition, 2, GLES20.GL_FLOAT, false, 8,
                 mVertexData.size * 4
             )
 
-            GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4);
+            GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4)
         }
         //7. 解绑
         // 解绑 纹理
@@ -245,26 +220,22 @@ public class EncodeRenderer(context: Context?, textureId: Int) : IRenderer {
 
     private fun initWatemark() {
         if (mBitmap == null) {
-            mContext?.let { context ->
-                mBitmap = BitmapUtils.creatBitmap("  ", context, 20, Color.WHITE,  Color.TRANSPARENT)
-            }
+            mBitmap = BitmapUtils.creatBitmap("  ", context, 20, Color.WHITE, Color.TRANSPARENT)
         }
-
 
         mWatemarkData?.let { watemark ->
-            mVertexData[8] = watemark[0];
-            mVertexData[9] = watemark[1];
+            mVertexData[8] = watemark[0]
+            mVertexData[9] = watemark[1]
 
-            mVertexData[10] = watemark[2];
-            mVertexData[11] = watemark[3];
+            mVertexData[10] = watemark[2]
+            mVertexData[11] = watemark[3]
 
-            mVertexData[12] = watemark[4];
-            mVertexData[13] = watemark[5];
+            mVertexData[12] = watemark[4]
+            mVertexData[13] = watemark[5]
 
-            mVertexData[14] = watemark[6];
-            mVertexData[15] = watemark[7];
+            mVertexData[14] = watemark[6]
+            mVertexData[15] = watemark[7]
         }
-
 
         mVertexBuffer = ByteBuffer.allocateDirect(mVertexData.size * 4)
             .order(ByteOrder.nativeOrder()) //大内存在前面，字节对齐
@@ -272,44 +243,43 @@ public class EncodeRenderer(context: Context?, textureId: Int) : IRenderer {
             .put(mVertexData)
         //指向第一个索引，相当于 C 里面的第一个内存地址
         mVertexBuffer.position(0)
-
-
     }
 
     private fun createWatemark(): Int {
-        var watemarkId = ShaderHelper.loadBitmapTexture(mBitmap!!);
+        val watemarkId = ShaderHelper.loadBitmapTexture(mBitmap!!)
         //解绑纹理
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0)
         return watemarkId
-
     }
 
 
     fun setWatemark(watermark: Watermark) {
-        watermark?.txt?.let { txt ->
-            mContext?.let { context ->
-                mBitmap =
-                    BitmapUtils.creatBitmap(txt, context, watermark.textSize, watermark.textColor, Color.TRANSPARENT)
-            }
+        watermark.txt?.let { txt ->
+            mBitmap = BitmapUtils.creatBitmap(
+                txt,
+                context,
+                watermark.textSize,
+                watermark.textColor,
+                Color.TRANSPARENT
+            )
         }
 
-        watermark?.markImg?.let { oldBitmap ->
+        watermark.markImg?.let { oldBitmap ->
             mBitmap = oldBitmap
         }
 
-
         if (watermark.floatArray == null) {
             mBitmap?.let { bitmap ->
-                var r = 1.0f * bitmap.getWidth() / bitmap.getHeight();
-                var w = r * 0.1f;
-                mVertexData[8] =0.7f - w;
-                mVertexData[9] = -0.9f;
-                mVertexData[10] = 0.9f;
-                mVertexData[11] = -0.9f;
-                mVertexData[12] = 0.7f - w;
-                mVertexData[13] = -0.75f;
-                mVertexData[14] = 0.9f;
-                mVertexData[15] = -0.75f;
+                val r = 1.0f * bitmap.getWidth() / bitmap.getHeight()
+                val w = r * 0.1f
+                mVertexData[8] = 0.7f - w
+                mVertexData[9] = -0.9f
+                mVertexData[10] = 0.9f
+                mVertexData[11] = -0.9f
+                mVertexData[12] = 0.7f - w
+                mVertexData[13] = -0.75f
+                mVertexData[14] = 0.9f
+                mVertexData[15] = -0.75f
             }
         }
 
@@ -318,8 +288,5 @@ public class EncodeRenderer(context: Context?, textureId: Int) : IRenderer {
         }
         initWatemark()
         mBitmapTextureId = createWatemark()
-
-
     }
-
 }

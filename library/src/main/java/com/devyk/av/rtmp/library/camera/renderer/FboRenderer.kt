@@ -4,7 +4,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.opengl.GLES20
-import com.devyk.av.camera_recorder.callback.IRenderer
+import com.devyk.av.rtmp.library.callback.IRenderer
 import com.devyk.av.rtmp.library.R
 import com.devyk.av.rtmp.library.camera.ShaderHelper
 import com.devyk.av.rtmp.library.camera.Watermark
@@ -189,7 +189,7 @@ public class FboRenderer(context: Context) : IRenderer {
     override fun onDraw() {
     }
 
-    public fun onDraw(textureId: Int) {
+    fun onDraw(textureId: Int) {
         //相当于清屏
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT)
         GLES20.glClearColor(0.0f, 0.0f, 0.0f, 0.0f)

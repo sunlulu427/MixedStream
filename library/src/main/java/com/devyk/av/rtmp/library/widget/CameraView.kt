@@ -23,21 +23,21 @@ import com.devyk.av.rtmp.library.utils.LogHelper
  *     desc    : This is CameraView
  * </pre>
  */
-public open class CameraView : GLSurfaceView, SurfaceTexture.OnFrameAvailableListener {
-
-
+open class CameraView @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0
+) : GLSurfaceView(context, attrs, defStyleAttr), SurfaceTexture.OnFrameAvailableListener {
     /**
      * Camera 渲染器
      */
     protected lateinit var renderer: CameraRenderer
-
 
     /**
      * 相机预览的纹理 ID
      */
     protected var mTextureId = -1;
     protected var mCameraTexture = -1;
-
     protected var mCameraOpenListener: ICameraOpenListener? = null
 
     /**
@@ -45,24 +45,19 @@ public open class CameraView : GLSurfaceView, SurfaceTexture.OnFrameAvailableLis
      */
     private var mCameraConfiguration = CameraConfiguration.createDefault()
 
-
     /**
      * 默认后置摄像头
      */
     private var cameraId = CameraConfiguration.Facing.BACK
 
-
-
-    constructor(context: Context?) : this(context, null)
-    constructor(context: Context?, attrs: AttributeSet?) : this(context, attrs, 0)
-    constructor(context: Context?, attrs: AttributeSet?, defStyleAttr: Int) : super(context, attrs, defStyleAttr)
-
-
-    public fun startPreview(cameraConfiguration: CameraConfiguration) {
+    fun startPreview(cameraConfiguration: CameraConfiguration) {
         this.mCameraConfiguration = cameraConfiguration
         cameraId = cameraConfiguration.facing
-        renderer = CameraRenderer(context!!)
-        configure(RendererConfiguration.Builder().setRenderer(renderer).setRendererMode(RENDERERMODE_CONTINUOUSLY).build())
+        renderer = CameraRenderer(context)
+        configure(
+            RendererConfiguration.Builder().setRenderer(renderer)
+                .setRendererMode(RENDERERMODE_CONTINUOUSLY).build()
+        )
         //第一次需要初始化预览角度
         previewAngle(context)
         addRendererListener()
@@ -93,15 +88,15 @@ public open class CameraView : GLSurfaceView, SurfaceTexture.OnFrameAvailableLis
     /**
      * 释放 Camera 资源的时候调用
      */
-    public open fun releaseCamera() {
+    open fun releaseCamera() {
         CameraHolder.instance().stopPreview()
         CameraHolder.instance().releaseCamera()
         CameraHolder.instance().release()
     }
 
     @Synchronized
-    public open fun switchCamera(): Boolean {
-        var ret = CameraHolder.instance().switchCamera()
+    open fun switchCamera(): Boolean {
+        val ret = CameraHolder.instance().switchCamera()
         if (ret) {
             if (cameraId == CameraConfiguration.Facing.BACK) {
                 cameraId = CameraConfiguration.Facing.FRONT
@@ -121,8 +116,8 @@ public open class CameraView : GLSurfaceView, SurfaceTexture.OnFrameAvailableLis
     /**
      * 设置水印
      */
-    public open fun setWatermark(watermark: Watermark) {
-        renderer?.setWatemark(watermark)
+    open fun setWatermark(watermark: Watermark) {
+        renderer.setWatemark(watermark)
     }
 
     override fun onFrameAvailable(surfaceTexture: SurfaceTexture?) {
@@ -180,10 +175,10 @@ public open class CameraView : GLSurfaceView, SurfaceTexture.OnFrameAvailableLis
     /**
      * 拿到纹理 ID
      */
-    public fun getTextureId(): Int = mTextureId
+    fun getTextureId(): Int = mTextureId
 
 
-    public fun addCameraOpenCallback(listener: ICameraOpenListener) {
+    fun addCameraOpenCallback(listener: ICameraOpenListener) {
         mCameraOpenListener = listener
     }
 
