@@ -106,7 +106,7 @@ class AudioProcessor : ThreadImpl() {
      */
     fun main() {
         var data = ByteArray(mReadSize);
-        while (isRuning()) {
+        while (isRunning()) {
             val name = Thread.currentThread().name
             synchronized(mLock) {
 

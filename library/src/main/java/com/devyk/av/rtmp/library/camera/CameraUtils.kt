@@ -6,9 +6,6 @@ import android.graphics.ImageFormat
 import android.hardware.Camera
 import android.util.Log
 import com.devyk.av.rtmp.library.black.BlackListHelper
-import com.devyk.av.rtmp.library.camera.exception.CameraDisabledException
-import com.devyk.av.rtmp.library.camera.exception.CameraNotSupportException
-import com.devyk.av.rtmp.library.camera.exception.NoCameraException
 import com.devyk.av.rtmp.library.config.CameraConfiguration
 
 /**

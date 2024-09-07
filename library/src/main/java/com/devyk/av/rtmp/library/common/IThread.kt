@@ -9,7 +9,7 @@ package com.devyk.av.rtmp.library.common
  *     desc    : This is IThread
  * </pre>
  */
-public interface IThread {
+interface IThread {
 
     /**
      * 开始执行线程
@@ -34,5 +34,5 @@ public interface IThread {
     /**
      * 是否运行
      */
-    fun isRuning(): Boolean
+    fun isRunning(): Boolean
 }

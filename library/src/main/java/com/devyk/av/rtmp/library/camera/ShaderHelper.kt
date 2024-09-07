@@ -6,9 +6,8 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.opengl.GLES20
-import android.text.TextUtils
 import com.devyk.av.rtmp.library.utils.LogHelper
-import java.io.*
+import java.io.InputStreamReader
 import java.nio.ByteBuffer
 
 
@@ -21,36 +20,16 @@ import java.nio.ByteBuffer
  *     desc    : This is ShaderHelper 对 shader 加载的一些操作帮助类
  * </pre>
  */
-public object ShaderHelper {
+object ShaderHelper {
 
     private var TAG = this.javaClass.simpleName
-
-
     /**
      * 从资源文件中加载着色器源代码
      */
     fun getRawShaderResource(context: Context?, id: Int): String {
-        context?.let { ctx ->
-            val inputStream = ctx.resources.openRawResource(id)
-            val bufferedReader = BufferedReader(InputStreamReader(inputStream))
-            var sb = StringBuffer()
-            var line: String? = null
-
-            while (true) {
-                try {
-                    line = bufferedReader.readLine()
-                    if (TextUtils.isEmpty(line)) {
-                        bufferedReader.close()
-                        return sb.toString()
-                    }
-                    sb.append(line).append("\n")
-                } catch (error: IOException) {
-                    LogHelper.e(TAG, error.message)
-                }
-            }
-
-        }
-        return ""
+        context ?: return ""
+        val inputStream = context.resources.openRawResource(id)
+        return InputStreamReader(inputStream).readText()
     }
 
     /**

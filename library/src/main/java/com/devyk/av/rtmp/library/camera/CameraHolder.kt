@@ -4,8 +4,6 @@ import android.graphics.Rect
 import android.graphics.SurfaceTexture
 import android.hardware.Camera
 import android.util.Log
-import com.devyk.av.rtmp.library.camera.exception.CameraHardwareException
-import com.devyk.av.rtmp.library.camera.exception.CameraNotSupportException
 import com.devyk.av.rtmp.library.config.CameraConfiguration
 import java.io.IOException
 
@@ -206,7 +204,6 @@ class CameraHolder {
         cameraData = null
         state = State.INIT
         CameraUtils.stop()
-
     }
 
     fun release() {

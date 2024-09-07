@@ -21,7 +21,7 @@ public open class ThreadImpl : IThread {
 
 
     override fun start(main: () -> Unit) {
-        if (isRuning())return
+        if (isRunning())return
         isRuning = true
         isPause = false
         Thread {
@@ -56,6 +56,6 @@ public open class ThreadImpl : IThread {
     /**
      * 是否执行
      */
-    override fun isRuning(): Boolean = isRuning
+    override fun isRunning(): Boolean = isRuning
 
 }
