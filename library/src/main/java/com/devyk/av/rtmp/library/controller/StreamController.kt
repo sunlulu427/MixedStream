@@ -6,10 +6,8 @@ import android.media.MediaFormat
 import com.devyk.av.rtmp.library.callback.IController
 import com.devyk.av.rtmp.library.camera.Watermark
 import com.devyk.av.rtmp.library.config.AudioConfiguration
-import com.devyk.av.rtmp.library.config.CameraConfiguration
 import com.devyk.av.rtmp.library.config.VideoConfiguration
 import com.devyk.av.rtmp.library.stream.PacketType
-import com.devyk.av.rtmp.library.stream.packer.DefaultPacker
 import com.devyk.av.rtmp.library.stream.packer.Packer
 import com.devyk.av.rtmp.library.stream.sender.Sender
 import com.devyk.av.rtmp.library.utils.LogHelper
@@ -47,7 +45,7 @@ public class StreamController : IController.OnAudioDataListener, IController.OnV
     /**
      * 音频采集编码默认配置
      */
-    private var mAudioConfiguration = AudioConfiguration.createDefault()
+    private var mAudioConfiguration = AudioConfiguration()
     /**
      * 视频编码默认配置
      */

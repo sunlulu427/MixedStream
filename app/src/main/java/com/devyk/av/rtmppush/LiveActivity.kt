@@ -80,7 +80,7 @@ class LiveActivity : BaseActivity<Int>(), OnConnectListener {
         live.setSender(mSender)
 
         //初始化音频参数
-        val audioConfiguration = AudioConfiguration.createDefault()
+        val audioConfiguration = AudioConfiguration()
         live.setAudioConfigure(audioConfiguration)
 
         //初始化视频编码参数

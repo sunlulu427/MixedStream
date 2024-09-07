@@ -18,7 +18,7 @@ import java.nio.ByteBuffer
  *     desc    : This is AudioMediaCodec
  * </pre>
  */
-public class AudioMediaCodec {
+class AudioMediaCodec {
     companion object {
 
         fun selectCodec(mimeType: String): MediaCodecInfo? {
@@ -42,18 +42,15 @@ public class AudioMediaCodec {
         fun getAudioMediaCodec(configuration: AudioConfiguration): MediaCodec? {
             //数据类型  "audio/mp4a-latm"
             val format =
-                MediaFormat.createAudioFormat(configuration.mime, configuration.frequency, configuration.channelCount)
-            if (configuration.mime.equals(AudioConfiguration.DEFAULT_MIME)) {
-                //用来标记aac的类型
-                format.setInteger(MediaFormat.KEY_AAC_PROFILE, configuration.aacProfile)
-            }
+                MediaFormat.createAudioFormat(configuration.mime, configuration.sampleRate, configuration.channelCount)
+            format.setInteger(MediaFormat.KEY_AAC_PROFILE, configuration.aacProfile)
             //比特率
             format.setInteger(MediaFormat.KEY_BIT_RATE, configuration.maxBps * 1024)
             //采样率
-            format.setInteger(MediaFormat.KEY_SAMPLE_RATE, configuration.frequency)
+            format.setInteger(MediaFormat.KEY_SAMPLE_RATE, configuration.sampleRate)
             //缓冲区大小
             val maxInputSize =
-                AudioUtils.getMinBufferSize(configuration.frequency, configuration.channelCount, configuration.encoding)
+                AudioUtils.getMinBufferSize(configuration.sampleRate, configuration.channelCount, configuration.encoding)
             //最大的缓冲区
             format.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, maxInputSize)
             //通道数量
@@ -84,10 +81,7 @@ public class AudioMediaCodec {
                     mediaCodec = null
                 }
             }
-
             return mediaCodec
         }
     }
-
-
 }

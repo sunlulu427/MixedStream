@@ -36,7 +36,7 @@ class AVLiveView @JvmOverloads constructor(
     private var mVideoMaxRate = 1800
 
     private var mVideoConfiguration = VideoConfiguration.createDefault()
-    private var mAudioConfiguration = AudioConfiguration.createDefault()
+    private var mAudioConfiguration = AudioConfiguration()
     private var mCameraConfiguration = CameraConfiguration()
     private var mStreamController: StreamController? = null
 
@@ -61,10 +61,11 @@ class AVLiveView @JvmOverloads constructor(
             facing = if (mBack) CameraConfiguration.Facing.BACK else CameraConfiguration.Facing.FRONT
         )
         //配置音频参数
-        mAudioConfiguration = AudioConfiguration.Builder().setFrequency(mSampleRate)
-            .setAec(true)
-            .setMediaCodec(true)
-            .build()
+        mAudioConfiguration = AudioConfiguration(
+            sampleRate = mSampleRate,
+            aec = true,
+            mediaCodec = true
+        )
         //视频编码参数配置
         mVideoConfiguration = VideoConfiguration.Builder()
             .setSize(mPreviewWidth, mPreviewHeight)

@@ -18,15 +18,14 @@ import java.nio.ByteBuffer
  *     desc    : This is AudioController 音频采集和音频编码的控制
  * </pre>
  */
-
-public class AudioController(audioConfiguration: AudioConfiguration) : IController, AudioProcessor.OnRecordListener,
+class AudioController(audioConfiguration: AudioConfiguration) : IController, AudioProcessor.OnRecordListener,
     OnAudioEncodeListener {
 
 
     /**
      * 音频采集-》编解码 需要用到的默认参数
      */
-    private var mAudioConfiguration = AudioConfiguration.createDefault()
+    private var mAudioConfiguration = AudioConfiguration()
 
     /**
      * 音频编解码用到的实体程序
@@ -50,7 +49,7 @@ public class AudioController(audioConfiguration: AudioConfiguration) : IControll
         mAudioEncoder = AudioEncoder(mAudioConfiguration)
         mAudioProcessor.init(
             mAudioConfiguration.audioSource,
-            mAudioConfiguration.frequency,
+            mAudioConfiguration.sampleRate,
             mAudioConfiguration.channelCount
         )
         mAudioProcessor.addRecordListener(this)
