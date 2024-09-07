@@ -43,7 +43,7 @@ open class CameraView @JvmOverloads constructor(
     /**
      * 相机预览默认配置
      */
-    private var mCameraConfiguration = CameraConfiguration.createDefault()
+    private var mCameraConfiguration = CameraConfiguration()
 
     /**
      * 默认后置摄像头

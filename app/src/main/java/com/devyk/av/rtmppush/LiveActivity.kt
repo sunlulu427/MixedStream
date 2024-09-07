@@ -95,11 +95,10 @@ class LiveActivity : BaseActivity<Int>(), OnConnectListener {
         live.setVideoConfigure(videoConfiguration)
 
         //初始化 camera 参数
-        val cameraConfiguration = CameraConfiguration.Builder()
-            .setFacing(CameraConfiguration.Facing.BACK)
-            .setFps(25)
-            .setPreview(1920, 960)
-            .build()
+        val cameraConfiguration = CameraConfiguration(
+            width = 960,
+            height = 1920
+        )
         live.setCameraConfigure(cameraConfiguration)
 
         //设置预览

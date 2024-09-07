@@ -8,7 +8,6 @@ import com.devyk.av.rtmp.library.camera.exception.CameraHardwareException
 import com.devyk.av.rtmp.library.camera.exception.CameraNotSupportException
 import com.devyk.av.rtmp.library.config.CameraConfiguration
 import java.io.IOException
-import java.util.*
 
 /**
  * <pre>
@@ -19,7 +18,7 @@ import java.util.*
  *     desc    : This is CameraHolder
  * </pre>
  */
-public class CameraHolder {
+class CameraHolder {
     private val TAG = "CameraHolder"
     private val FOCUS_WIDTH = 80
     private val FOCUS_HEIGHT = 80
@@ -35,7 +34,7 @@ public class CameraHolder {
     private var mTexture: SurfaceTexture? = null
     private var isTouchMode = false
     private var isOpenBackFirst = true
-    private var mConfiguration = CameraConfiguration.createDefault()
+    private var mConfiguration = CameraConfiguration()
 
     val numberOfCameras: Int
         get() = Camera.getNumberOfCameras()
@@ -113,7 +112,10 @@ public class CameraHolder {
 //        }
     }
 
-    fun setSurfaceTexture(texture: SurfaceTexture, listener: SurfaceTexture.OnFrameAvailableListener?) {
+    fun setSurfaceTexture(
+        texture: SurfaceTexture,
+        listener: SurfaceTexture.OnFrameAvailableListener?
+    ) {
         mTexture = texture
 //        if (state == State.PREVIEW && mCameraDevice != null && mTexture != null) {
         try {
@@ -213,7 +215,7 @@ public class CameraHolder {
         mCameraDatas = null
         isTouchMode = false
         isOpenBackFirst = false
-        mConfiguration = CameraConfiguration.createDefault()
+        mConfiguration = CameraConfiguration()
     }
 
 
@@ -362,7 +364,7 @@ public class CameraHolder {
     /**
      * 是否后摄像头打开
      */
-    public fun isOpenBackFirst(): Boolean {
+    fun isOpenBackFirst(): Boolean {
         return isOpenBackFirst
     }
 

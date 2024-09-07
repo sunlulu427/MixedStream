@@ -20,7 +20,7 @@ import com.devyk.av.rtmp.library.config.CameraConfiguration
  *     desc    : This is CameraUtils
  * </pre>
  */
-public object CameraUtils {
+object CameraUtils {
 
     private var TAG = this.javaClass.simpleName
 
@@ -47,7 +47,7 @@ public object CameraUtils {
     /**
      * 获取所有的 camera 数据
      */
-   public fun getAllCamerasData(isBackFirst: Boolean): MutableList<CameraData>? {
+   fun getAllCamerasData(isBackFirst: Boolean): MutableList<CameraData>? {
         val cameraDatas = ArrayList<CameraData>()
         val cameraInfo = Camera.CameraInfo()
         val numberOfCameras = Camera.getNumberOfCameras()
