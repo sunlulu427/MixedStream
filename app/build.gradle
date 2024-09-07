@@ -1,7 +1,5 @@
 apply plugin: 'com.android.application'
-
 apply plugin: 'kotlin-android'
-
 apply plugin: 'kotlin-android-extensions'
 
 android {
@@ -44,28 +42,21 @@ android {
     lintOptions {
         abortOnError false
     }
-
-
 }
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     //test
     testImplementation rootProject.ext.testDeps["junit"]
-
     //androidx
     api rootProject.ext.androidx["appcompat"]
-
     //kotlin
     api rootProject.ext.kotlin["core-ktx"]
     api "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-
     //rx
     api rootProject.ext.rxs["rxJava"]
     api rootProject.ext.rxs["rxAndroid"]
     api rootProject.ext.rxs["rxpermissions2"]
-//    implementation project(path: ':library')
-
     api project(path: ':library')
 }
 
