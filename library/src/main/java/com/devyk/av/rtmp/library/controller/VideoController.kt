@@ -21,18 +21,24 @@ import javax.microedition.khronos.egl.EGLContext
  * </pre>
  */
 
-public class VideoController(context: Context,textureId:Int,eglContext: EGLContext?,videoConfiguration: VideoConfiguration) : IController ,OnVideoEncodeListener{
+class VideoController(
+    context: Context,
+    textureId: Int,
+    eglContext: EGLContext?,
+    videoConfiguration: VideoConfiguration
+) : IController, OnVideoEncodeListener {
 
 
     private var mCameraVideoController: CameraRecorder? = null
 
-    private var mListener : IController.OnVideoDataListener?=null
+    private var mListener: IController.OnVideoDataListener? = null
 
     init {
         mCameraVideoController = CameraRecorder(context, textureId, eglContext)
         mCameraVideoController?.prepare(videoConfiguration)
         mCameraVideoController?.setOnVideoEncodeListener(this)
     }
+
     override fun start() {
         mCameraVideoController?.start()
     }
@@ -51,7 +57,7 @@ public class VideoController(context: Context,textureId:Int,eglContext: EGLConte
 
 
     override fun onVideoEncode(bb: ByteBuffer?, bi: MediaCodec.BufferInfo?) {
-        mListener?.onVideoData(bb,bi)
+        mListener?.onVideoData(bb, bi)
     }
 
     override fun onVideoOutformat(outputFormat: MediaFormat?) {

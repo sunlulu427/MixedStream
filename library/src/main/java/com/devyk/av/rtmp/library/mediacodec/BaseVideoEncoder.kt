@@ -1,18 +1,14 @@
 package com.devyk.av.rtmp.library.mediacodec
 
-import android.annotation.TargetApi
+
 import android.media.MediaCodec
 import android.media.MediaFormat
-import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.HandlerThread
-import android.util.Log
 import android.view.Surface
 import com.devyk.av.rtmp.library.config.VideoConfiguration
 import com.devyk.av.rtmp.library.utils.LogHelper
-
-
 import java.util.concurrent.locks.ReentrantLock
 
 /**
@@ -27,27 +23,28 @@ import java.util.concurrent.locks.ReentrantLock
  *     @see https://www.cnblogs.com/tinywan/p/6402007.html H264编码profile & level控制
  * </pre>
  */
-public abstract class BaseVideoEncoder : IVideoCodec {
+abstract class BaseVideoEncoder : IVideoCodec {
 
     private var mMediaCodec: MediaCodec? = null
     private var mPause: Boolean = false
     private var mHandlerThread: HandlerThread? = null
     private var mEncoderHandler: Handler? = null
-    protected var mConfiguration = VideoConfiguration.createDefault()
+    protected var mConfiguration = VideoConfiguration()
     private var mBufferInfo: MediaCodec.BufferInfo? = null
+
     @Volatile
     private var isStarted: Boolean = false
     private val encodeLock = ReentrantLock()
     private lateinit var mSurface: Surface
-    public val TAG = this.javaClass.simpleName
-
+    val TAG = this.javaClass.simpleName
 
     protected var mPts = 0L
+
     /**
      * 准备硬编码工作
      */
     override fun prepare(videoConfiguration: VideoConfiguration) {
-        videoConfiguration?.run {
+        videoConfiguration.run {
             mConfiguration = videoConfiguration
             mMediaCodec = VideoMediaCodec.getVideoMediaCodec(mConfiguration)
             LogHelper.e(TAG, "prepare success!")
@@ -101,7 +98,6 @@ public abstract class BaseVideoEncoder : IVideoCodec {
      */
     private val swapDataRunnable = Runnable { drainEncoder() }
 
-
     /**
      * 停止编码
      */
@@ -127,11 +123,9 @@ public abstract class BaseVideoEncoder : IVideoCodec {
         mMediaCodec = null
     }
 
-
     /**
      * 动态码率设置
      */
-    @TargetApi(Build.VERSION_CODES.KITKAT)
     fun setEncodeBps(bps: Int) {
         if (mMediaCodec == null) {
             return
@@ -197,6 +191,4 @@ public abstract class BaseVideoEncoder : IVideoCodec {
     }
 
     abstract fun onVideoOutformat(outputFormat: MediaFormat?)
-
-
 }

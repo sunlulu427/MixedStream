@@ -84,14 +84,16 @@ class LiveActivity : BaseActivity<Int>(), OnConnectListener {
         live.setAudioConfigure(audioConfiguration)
 
         //初始化视频编码参数
-        val videoConfiguration = VideoConfiguration.Builder()
-            .setBps(400, 800)
-            .setFps(25)
-            .setCodeType(VideoConfiguration.ICODEC.ENCODE)
-            .setSize(1920, 960)
-            .setIfi(5)
-            .setMediaCodec(true)
-            .build()
+        val videoConfiguration = VideoConfiguration(
+            fps=30,
+            maxBps = 800,
+            minBps = 400,
+            codeType = VideoConfiguration.ICODEC.ENCODE,
+            width = 960,
+            height = 1920,
+            ifi = 5,
+            mediaCodec = true
+        )
         live.setVideoConfigure(videoConfiguration)
 
         //初始化 camera 参数

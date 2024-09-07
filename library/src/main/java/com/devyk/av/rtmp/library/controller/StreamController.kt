@@ -23,10 +23,8 @@ import javax.microedition.khronos.egl.EGLContext
  *     desc    : This is StreamController
  * </pre>
  */
-public class StreamController : IController.OnAudioDataListener, IController.OnVideoDataListener,
+class StreamController : IController.OnAudioDataListener, IController.OnVideoDataListener,
     Packer.OnPacketListener {
-
-
     private var TAG = javaClass.simpleName
 
     /**
@@ -38,22 +36,27 @@ public class StreamController : IController.OnAudioDataListener, IController.OnV
      * 音频数据的管理
      */
     private var mAudioController: IController? = null
+
     /**
      * 视频数据的管理
      */
     private var mVideoController: VideoController? = null
+
     /**
      * 音频采集编码默认配置
      */
     private var mAudioConfiguration = AudioConfiguration()
+
     /**
      * 视频编码默认配置
      */
-    private var mVideoConfiguration = VideoConfiguration.createDefault()
+    private var mVideoConfiguration = VideoConfiguration()
+
     /**
      * 打包器
      */
     private var mPacker: Packer? = null
+
     /**
      * 发送器
      */
@@ -109,7 +112,8 @@ public class StreamController : IController.OnAudioDataListener, IController.OnV
     ) {
         mContext?.let { context ->
             mAudioController = AudioController(mAudioConfiguration)
-            mVideoController = VideoController(context, mTextureId, mEGLContext, mVideoConfiguration)
+            mVideoController =
+                VideoController(context, mTextureId, mEGLContext, mVideoConfiguration)
             mPacker?.setPacketListener(this)
             mAudioController?.setAudioDataListener(this)
             mVideoController?.setVideoDataListener(this)
@@ -164,7 +168,6 @@ public class StreamController : IController.OnAudioDataListener, IController.OnV
         mPacker?.onAudioData(bb, bi)
     }
 
-
     /**
      * 音频输出格式
      */
@@ -175,12 +178,12 @@ public class StreamController : IController.OnAudioDataListener, IController.OnV
      * 视频输出格式
      */
     override fun onVideoOutformat(outputFormat: MediaFormat?) {
-        val spsb = outputFormat?.getByteBuffer("csd-0")
-        var sps = ByteArray(spsb!!.remaining())
-        spsb!!.get(sps, 0, sps.size)
-        val ppsb = outputFormat.getByteBuffer("csd-1")
-        var pps = ByteArray(ppsb!!.remaining())
-        ppsb!!.get(pps, 0, pps.size)
+        val spsb = outputFormat?.getByteBuffer("csd-0") ?: return
+        val sps = ByteArray(spsb.remaining())
+        spsb.get(sps, 0, sps.size)
+        val ppsb = outputFormat.getByteBuffer("csd-1") ?: return
+        val pps = ByteArray(ppsb.remaining())
+        ppsb.get(pps, 0, pps.size)
         mPacker?.onVideoSpsPpsData(sps, pps, PacketType.SPS_PPS)
     }
 
@@ -190,7 +193,6 @@ public class StreamController : IController.OnAudioDataListener, IController.OnV
     override fun onVideoData(bb: ByteBuffer?, bi: MediaCodec.BufferInfo?) {
         mPacker?.onVideoData(bb, bi)
     }
-
 
     /**
      * 打包完成的数据，准备发送
@@ -205,8 +207,5 @@ public class StreamController : IController.OnAudioDataListener, IController.OnV
 
     fun setWatermark(watermark: Watermark) {
         mWatermark = watermark
-
     }
-
-
 }

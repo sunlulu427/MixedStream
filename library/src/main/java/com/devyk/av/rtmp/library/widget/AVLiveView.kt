@@ -35,7 +35,7 @@ class AVLiveView @JvmOverloads constructor(
     private var mVideoMinRate = 400
     private var mVideoMaxRate = 1800
 
-    private var mVideoConfiguration = VideoConfiguration.createDefault()
+    private var mVideoConfiguration = VideoConfiguration()
     private var mAudioConfiguration = AudioConfiguration()
     private var mCameraConfiguration = CameraConfiguration()
     private var mStreamController: StreamController? = null
@@ -67,12 +67,14 @@ class AVLiveView @JvmOverloads constructor(
             mediaCodec = true
         )
         //视频编码参数配置
-        mVideoConfiguration = VideoConfiguration.Builder()
-            .setSize(mPreviewWidth, mPreviewHeight)
-            .setBps(mVideoMinRate, mVideoMaxRate)
-            .setFps(mFps)
-            .setMediaCodec(true)
-            .build()
+        mVideoConfiguration = VideoConfiguration(
+            width = mPreviewWidth,
+            height = mPreviewHeight,
+            minBps = mVideoMinRate,
+            maxBps = mVideoMaxRate,
+            fps = mFps,
+            mediaCodec = true
+        )
         //添加 Camera 打开的监听
         addCameraOpenCallback(this)
     }
