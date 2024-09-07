@@ -2,8 +2,8 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 android {
-    compileSdkVersion rootProject.ext.android["compileSdkVersion"]
-    buildToolsVersion rootProject.ext.android["buildToolsVersion"]
+    compileSdkVersion 29
+    buildToolsVersion "29.0.3"
 
     compileOptions {
         targetCompatibility JavaVersion.VERSION_1_8
@@ -12,10 +12,10 @@ android {
 
     defaultConfig {
         ndkVersion "21.1.6352462"
-        minSdkVersion rootProject.ext.android["minSdkVersion"]
-        targetSdkVersion rootProject.ext.android["targetSdkVersion"]
-        versionCode rootProject.ext.android["versionCode"]
-        versionName rootProject.ext.android["versionName"]
+        minSdkVersion 21
+        targetSdkVersion 29
+        versionCode 100
+        versionName "1.0.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         externalNativeBuild {
@@ -48,7 +48,6 @@ android {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     //test
-    testImplementation rootProject.ext.testDeps["junit"]
-    api rootProject.ext.kotlin["core-ktx"]
-    api rootProject.ext.kotlin["kotlin-stdlib-jdk7"]
+    testImplementation "junit:junit:4.12"
+    api "androidx.core:core-ktx:1.1.0"
 }
