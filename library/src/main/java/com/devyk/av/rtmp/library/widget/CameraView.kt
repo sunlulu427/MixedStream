@@ -55,8 +55,10 @@ open class CameraView @JvmOverloads constructor(
         cameraId = cameraConfiguration.facing
         renderer = CameraRenderer(context)
         configure(
-            RendererConfiguration.Builder().setRenderer(renderer)
-                .setRendererMode(RENDERERMODE_CONTINUOUSLY).build()
+            RendererConfiguration(
+                renderer = renderer,
+                rendererMode = RENDERERMODE_CONTINUOUSLY
+            )
         )
         //第一次需要初始化预览角度
         previewAngle(context)

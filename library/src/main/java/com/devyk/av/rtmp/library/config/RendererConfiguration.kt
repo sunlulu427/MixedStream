@@ -2,7 +2,6 @@ package com.devyk.av.rtmp.library.config
 
 import android.view.Surface
 import com.devyk.av.rtmp.library.callback.IRenderer
-import com.devyk.av.rtmp.library.annotation.RendererMode
 import com.devyk.av.rtmp.library.camera.renderer.DefaultRenderer
 import com.devyk.av.rtmp.library.widget.GLSurfaceView
 import javax.microedition.khronos.egl.EGLContext
@@ -16,109 +15,11 @@ import javax.microedition.khronos.egl.EGLContext
  *     desc    : This is RendererConfiguration
  * </pre>
  */
-public class RendererConfiguration private constructor(builder: Builder) {
-
-
-    val renderer: IRenderer
-
-    val rendererMode: Int
-
-    val surface: Surface? = null
-
-    var eglContext: EGLContext? = null
-
-    val width: Int
-
-    val height: Int
-
-
-    init {
-        renderer = builder.renderer
-        rendererMode = builder.rendererMode
-        width = builder.width
-        height = builder.height
-        builder.eglContext?.let {
-            eglContext = it
-        }
-    }
-
-
-    class Builder {
-        var renderer: IRenderer = DEFAULT_RENDERER
-
-        var rendererMode: Int = DEFAULT_RENDERERMODE
-
-        var surface: Surface? = null
-
-        var eglContext: EGLContext? = null
-
-        var width: Int = DEFAULT_WIDTH
-
-        var height: Int = DEFAULT_HEIGHT
-
-
-        /**
-         * 设置渲染器
-         */
-        fun setRenderer(renderer: IRenderer): Builder {
-            this.renderer = renderer;
-            return this
-        }
-
-        /**
-         * 设置渲染模式
-         */
-        fun setRendererMode(@RendererMode mode: Int): Builder {
-            this.rendererMode = mode
-            return this
-        }
-
-        /**
-         * 设置显示的 Surface
-         */
-        fun setSurface(surface: Surface): Builder {
-            this.surface = surface
-            return this
-        }
-
-        /**
-         * 设置 EGL 上下文
-         */
-        fun setEGLContext(context: EGLContext?): Builder {
-            this.eglContext = context
-            return this;
-        }
-
-        /**
-         * 设置窗口大小
-         */
-        fun setSize(width: Int, height: Int): Builder {
-            this.width = width
-            this.height = height
-            return this
-        }
-
-        /**
-         * 构建配置
-         */
-        fun build(): RendererConfiguration {
-            return RendererConfiguration(this)
-        }
-
-
-    }
-
-
-    companion object {
-        val DEFAULT_RENDERER = DefaultRenderer()
-        val DEFAULT_RENDERERMODE = GLSurfaceView.RENDERERMODE_CONTINUOUSLY
-        val DEFAULT_WIDTH = 720
-        val DEFAULT_HEIGHT = 1280
-
-
-        fun createDefault(): RendererConfiguration {
-            return Builder().build()
-        }
-    }
-
-}
+class RendererConfiguration(
+    val renderer: IRenderer = DefaultRenderer(),
+    val rendererMode: Int = GLSurfaceView.RENDERERMODE_CONTINUOUSLY,
+    val surface: Surface? = null,
+    val eglContext: EGLContext? = null,
+    val width: Int = 720,
+    val height: Int = 1280
+)

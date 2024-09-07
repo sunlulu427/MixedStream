@@ -12,7 +12,7 @@ import com.devyk.av.rtmp.library.callback.IRenderer
  *     desc    : This is DefaultRenderer 渲染
  * </pre>
  */
-public class DefaultRenderer : IRenderer {
+class DefaultRenderer : IRenderer {
     override fun onSurfaceCreate(width: Int, height: Int) {
     }
 

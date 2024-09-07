@@ -2,14 +2,14 @@ package com.devyk.av.rtmp.library.widget
 
 import android.content.Context
 import android.util.AttributeSet
+import android.view.Surface
 import android.view.SurfaceHolder
 import android.view.SurfaceView
-import com.devyk.av.rtmp.library.callback.IRenderer
-import java.lang.ref.WeakReference
-import android.view.Surface
 import com.devyk.av.camera_recorder.callback.IGLThreadConfig
+import com.devyk.av.rtmp.library.callback.IRenderer
 import com.devyk.av.rtmp.library.camera.GLThread
 import com.devyk.av.rtmp.library.config.RendererConfiguration
+import java.lang.ref.WeakReference
 import javax.microedition.khronos.egl.EGLContext
 
 
@@ -44,7 +44,7 @@ open class GLSurfaceView : SurfaceView, SurfaceHolder.Callback, IGLThreadConfig 
     /**
      * 渲染配置
      */
-    private lateinit var mRendererConfiguration: RendererConfiguration
+    private var mRendererConfiguration = RendererConfiguration()
 
     /**
      * GLES 渲染线程
@@ -67,10 +67,6 @@ open class GLSurfaceView : SurfaceView, SurfaceHolder.Callback, IGLThreadConfig 
          * 自动渲染
          */
         const val RENDERERMODE_CONTINUOUSLY = 1
-    }
-
-    init {
-        mRendererConfiguration = RendererConfiguration.createDefault()
     }
 
     /**
@@ -159,12 +155,10 @@ open class GLSurfaceView : SurfaceView, SurfaceHolder.Callback, IGLThreadConfig 
      */
     class GLSurfaceThread(weakReference: WeakReference<IGLThreadConfig>) :
         GLThread(weakReference) {
-
         /**
          * 获取 EGL 上下文环境
          */
-        fun getEGLContext(): EGLContext? = mEGLHelper?.getEglContext()
-
+        fun getEGLContext(): EGLContext? = mEGLHelper.getEglContext()
     }
 }
 
