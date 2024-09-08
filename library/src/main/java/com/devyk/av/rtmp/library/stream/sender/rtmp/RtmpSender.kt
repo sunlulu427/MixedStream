@@ -1,11 +1,9 @@
 package com.devyk.av.rtmp.library.stream.sender.rtmp
 
-import android.util.Log
 import com.devyk.av.rtmp.library.Contacts
 import com.devyk.av.rtmp.library.callback.OnConnectListener
 import com.devyk.av.rtmp.library.stream.PacketType
 import com.devyk.av.rtmp.library.stream.sender.Sender
-import java.util.*
 
 /**
  * <pre>
@@ -16,8 +14,7 @@ import java.util.*
  *     desc    : This is RtmpSender
  * </pre>
  */
-public class RtmpSender : Sender {
-    private var TAG = javaClass.simpleName
+class RtmpSender : Sender {
     private var listener: OnConnectListener? = null
     private var mRtmpUrl: String? = null
 

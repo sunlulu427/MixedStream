@@ -2,7 +2,11 @@ package com.devyk.av.rtmp.library.camera
 
 import android.opengl.EGL14
 import android.view.Surface
-import javax.microedition.khronos.egl.*
+import javax.microedition.khronos.egl.EGL10
+import javax.microedition.khronos.egl.EGLConfig
+import javax.microedition.khronos.egl.EGLContext
+import javax.microedition.khronos.egl.EGLDisplay
+import javax.microedition.khronos.egl.EGLSurface
 
 /**
  * <pre>
@@ -83,10 +87,10 @@ class EglHelper {
 
         val attrib_list = intArrayOf(EGL14.EGL_CONTEXT_CLIENT_VERSION, 2, EGL10.EGL_NONE)
 
-        if (eglContext != null) {
-            mEglContext = mEgl!!.eglCreateContext(mEglDisplay, configs[0], eglContext, attrib_list)
+        mEglContext = if (eglContext != null) {
+            mEgl!!.eglCreateContext(mEglDisplay, configs[0], eglContext, attrib_list)
         } else {
-            mEglContext = mEgl!!.eglCreateContext(mEglDisplay, configs[0], EGL10.EGL_NO_CONTEXT, attrib_list)
+            mEgl!!.eglCreateContext(mEglDisplay, configs[0], EGL10.EGL_NO_CONTEXT, attrib_list)
         }
 
         //7、创建渲染的 Surface
@@ -129,5 +133,4 @@ class EglHelper {
             mEgl = null
         }
     }
-
 }

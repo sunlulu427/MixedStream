@@ -26,10 +26,7 @@ import java.nio.ByteBuffer
  * 		ffmpeg -f s16le  -sample_rate 44100  -channels 1 -i record.pcm -acodec pcm_s16le record.wav
  */
 object AudioUtils {
-
-
     private var TAG = javaClass.simpleName;
-
 
     /**
      * 录音对象
@@ -117,7 +114,7 @@ object AudioUtils {
         }
 
         //如果初始化失败那么降低采样率
-        if (mAudioRecord == null || mAudioRecord?.state != AudioRecord.STATE_INITIALIZED) {
+        if (mAudioRecord?.state != AudioRecord.STATE_INITIALIZED) {
             throw RuntimeException("检查音频源是否为占用，或者是否打开录音权限？")
         }
         return true
@@ -180,11 +177,8 @@ object AudioUtils {
         return mAudioRecord?.read(buffer, 0, bufferSize) ?: 0
     }
 
-
     /**
      * 拿到缓冲大小
      */
     fun getBufferSize(): Int = mBufferSizeInBytes
-
-
 }

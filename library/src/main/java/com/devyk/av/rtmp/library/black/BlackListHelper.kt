@@ -2,7 +2,7 @@ package com.devyk.av.rtmp.library.black
 
 import android.os.Build
 import android.text.TextUtils
-import java.util.*
+import java.util.Arrays
 
 /**
  * <pre>
@@ -21,8 +21,7 @@ object BlackListHelper {
 
 
     fun deviceInAecBlacklisted(): Boolean {
-        val blackListedModels = Arrays.asList(*BLACKLISTED_AEC_MODELS)
-        for (blackModel in blackListedModels) {
+        for (blackModel in BLACKLISTED_AEC_MODELS) {
             val model = Build.MODEL
             if (!TextUtils.isEmpty(model) && model.contains(blackModel)) {
                 return true

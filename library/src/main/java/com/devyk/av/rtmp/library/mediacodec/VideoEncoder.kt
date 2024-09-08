@@ -3,8 +3,6 @@ package com.devyk.av.rtmp.library.mediacodec
 import android.media.MediaCodec
 import android.media.MediaFormat
 import com.devyk.av.rtmp.library.callback.OnVideoEncodeListener
-import com.devyk.av.rtmp.library.config.VideoConfiguration
-
 import java.nio.ByteBuffer
 
 /**
@@ -16,17 +14,12 @@ import java.nio.ByteBuffer
  *     desc    : This is H264Encoder
  * </pre>
  */
-public open class VideoEncoder : BaseVideoEncoder() {
+open class VideoEncoder : BaseVideoEncoder() {
 
 
     override fun onVideoOutformat(outputFormat: MediaFormat?) {
         mListener?.onVideoOutformat(outputFormat)
     }
-
-    override fun prepare(videoConfiguration: VideoConfiguration) {
-        super.prepare(videoConfiguration)
-    }
-
 
     private var mListener: OnVideoEncodeListener? = null
 
@@ -43,6 +36,4 @@ public open class VideoEncoder : BaseVideoEncoder() {
     fun setOnVideoEncodeListener(listener: OnVideoEncodeListener) {
         mListener = listener
     }
-
-
 }

@@ -11,7 +11,7 @@ import com.devyk.av.rtmp.library.utils.LogHelper
  *     desc    : This is ThreadImpl
  * </pre>
  */
-public open class ThreadImpl : IThread {
+open class ThreadImpl : IThread {
 
     private var isPause = false
 
@@ -52,10 +52,8 @@ public open class ThreadImpl : IThread {
      */
     override fun isPause(): Boolean = isPause
 
-
     /**
      * 是否执行
      */
     override fun isRunning(): Boolean = isRuning
-
 }

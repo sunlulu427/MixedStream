@@ -13,7 +13,7 @@ import javax.microedition.khronos.egl.EGLContext
  *     desc    : This is IGLThreadConfig ELThread 需要的配置
  * </pre>
  */
-public interface IGLThreadConfig {
+interface IGLThreadConfig {
     /**
      * 拿到渲染器
      */
@@ -33,6 +33,4 @@ public interface IGLThreadConfig {
      * 拿到渲染模式
      */
     fun getRendererMode(): Int
-
-
 }

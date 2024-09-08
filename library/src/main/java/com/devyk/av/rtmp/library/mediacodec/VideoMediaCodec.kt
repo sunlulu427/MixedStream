@@ -89,5 +89,4 @@ object VideoMediaCodec {
         val multiple = Math.ceil(size / 16.0).toInt()
         return multiple * 16
     }
-
 }

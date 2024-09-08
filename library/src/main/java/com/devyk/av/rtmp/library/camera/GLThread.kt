@@ -3,7 +3,6 @@ package com.devyk.av.rtmp.library.camera
 import com.devyk.av.camera_recorder.callback.IGLThreadConfig
 import com.devyk.av.rtmp.library.utils.LogHelper
 import com.devyk.av.rtmp.library.widget.GLSurfaceView
-import java.lang.Exception
 import java.lang.ref.WeakReference
 
 /**
@@ -15,7 +14,7 @@ import java.lang.ref.WeakReference
  *     desc    : This is GLThread 自定义 GLThread 线程类，主要用于 OpenGL 的绘制操作
  * </pre>
  */
-public open class GLThread(weakReference: WeakReference<IGLThreadConfig>) : Thread() {
+open class GLThread(weakReference: WeakReference<IGLThreadConfig>) : Thread() {
 
     private var TAG = this.javaClass.simpleName
 
@@ -79,7 +78,7 @@ public open class GLThread(weakReference: WeakReference<IGLThreadConfig>) : Thre
         //实例化 EGL 环境搭建的帮组类
         mEGLHelper = EglHelper()
         //初始化 EGL
-        mWeakRerence?.get()?.let { thread ->
+        mWeakRerence.get()?.let { thread ->
             mEGLHelper.initEgl(thread.getSurface(), thread.getEGLContext())
 
             while (true) {
@@ -132,7 +131,7 @@ public open class GLThread(weakReference: WeakReference<IGLThreadConfig>) : Thre
     /**
      * 渲染窗口的大小
      */
-    public fun setRendererSize(width: Int, height: Int) {
+    fun setRendererSize(width: Int, height: Int) {
         this.mWidth = width
         this.mHeight = height
     }
@@ -163,17 +162,16 @@ public open class GLThread(weakReference: WeakReference<IGLThreadConfig>) : Thre
     /**
      * 停止渲染
      */
-    public fun setPause() {
+    fun setPause() {
         isPause = true
     }
 
     /**
      * 恢复渲染
      */
-    public fun setResume() {
+    fun setResume() {
         isPause = false
     }
-
 
     /**
      * 渲染器可以开始绘制了
@@ -191,14 +189,12 @@ public open class GLThread(weakReference: WeakReference<IGLThreadConfig>) : Thre
     /**
      * 手动请求刷新
      */
-    public fun requestRenderer() {
-        mLock.let {
-            synchronized(mLock) {
-                try {
-                    mLock.notifyAll()
-                } catch (error: Exception) {
-                    LogHelper.e(TAG, error.message)
-                }
+    fun requestRenderer() {
+        synchronized(mLock) {
+            try {
+                mLock.notifyAll()
+            } catch (error: Exception) {
+                LogHelper.e(TAG, error.message)
             }
         }
     }
@@ -207,7 +203,7 @@ public open class GLThread(weakReference: WeakReference<IGLThreadConfig>) : Thre
     /**
      * 销毁的时候调用
      */
-    public fun onDestory() {
+    fun onDestory() {
         this.isExit = true
         //避免线程睡眠这里重新刷新一次
         requestRenderer()

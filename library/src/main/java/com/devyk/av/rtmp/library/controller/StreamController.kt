@@ -100,16 +100,14 @@ class StreamController : IController.OnAudioDataListener, IController.OnVideoDat
     /**
      *  @see start 之前必须调用 prepare
      */
-    fun prepare(context: Context?, textureId: Int, eglContext: EGLContext?) {
-        this.mContext = context?.applicationContext
+    fun prepare(context: Context, textureId: Int, eglContext: EGLContext?) {
+        this.mContext = context.applicationContext
         this.mTextureId = textureId
         this.mEGLContext = eglContext
         init()
     }
 
-    private fun init(
-
-    ) {
+    private fun init() {
         mContext?.let { context ->
             mAudioController = AudioController(mAudioConfiguration)
             mVideoController =

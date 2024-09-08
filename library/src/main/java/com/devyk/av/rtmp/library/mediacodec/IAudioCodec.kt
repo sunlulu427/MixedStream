@@ -9,9 +9,7 @@ package com.devyk.av.rtmp.library.mediacodec
  *     desc    : This is ICodec
  * </pre>
  */
-public interface IAudioCodec{
-
-
+interface IAudioCodec{
     /**
      * 准备编码
      */

@@ -4,8 +4,8 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.opengl.GLES20
-import com.devyk.av.rtmp.library.callback.IRenderer
 import com.devyk.av.rtmp.library.R
+import com.devyk.av.rtmp.library.callback.IRenderer
 import com.devyk.av.rtmp.library.camera.ShaderHelper
 import com.devyk.av.rtmp.library.camera.Watermark
 import com.devyk.av.rtmp.library.utils.BitmapUtils
@@ -32,10 +32,7 @@ import java.nio.FloatBuffer
  *
  *
  */
-public class FboRenderer(context: Context) : IRenderer {
-
-    private var TAG = this.javaClass.simpleName
-
+class FboRenderer(private val context: Context) : IRenderer {
     /**
      * 顶点坐标
      */
@@ -65,11 +62,6 @@ public class FboRenderer(context: Context) : IRenderer {
         0f, 0f,
         1f, 0f
     )
-
-    /**
-     * 定义一个上下文变量
-     */
-    private lateinit var mContext: Context
 
     /**
      * 执行着色器代码的程序
@@ -108,38 +100,28 @@ public class FboRenderer(context: Context) : IRenderer {
     /**
      * 为顶点坐标分配 native 地址空间
      */
-    private lateinit var mVertexBuffer: FloatBuffer
+    private val mVertexBuffer: FloatBuffer = ByteBuffer.allocateDirect(mVertexData.size * 4)
+        .order(ByteOrder.nativeOrder()) //大内存在前面，字节对齐
+        .asFloatBuffer()
+        .put(mVertexData).also {
+            it.position(0)
+        }
     /**
      * 为片元坐标分配 native 地址空间
      */
-    private lateinit var mFragmentBuffer: FloatBuffer
+    private val mFragmentBuffer: FloatBuffer = ByteBuffer.allocateDirect(mFragmentData.size * 4)
+        .order(ByteOrder.nativeOrder())
+        .asFloatBuffer()
+        .put(mFragmentData).also {
+            it.position(0)
+        }
 
     private var mBitmap: Bitmap? = null
     private var mBitmapTextureId = -1
 
     init {
-
-
-        mContext = context
-
-
         initWatemark()
-
-
-        mVertexBuffer = ByteBuffer.allocateDirect(mVertexData.size * 4)
-            .order(ByteOrder.nativeOrder()) //大内存在前面，字节对齐
-            .asFloatBuffer()
-            .put(mVertexData)
-        //指向第一个索引，相当于 C 里面的第一个内存地址
-        mVertexBuffer.position(0)
-
-        mFragmentBuffer = ByteBuffer.allocateDirect(mFragmentData.size * 4)
-            .order(ByteOrder.nativeOrder())
-            .asFloatBuffer()
-            .put(mFragmentData)
-        mFragmentBuffer.position(0)
     }
-
 
     override fun onSurfaceCreate(width: Int, height: Int) {
         //启用透明
@@ -147,8 +129,8 @@ public class FboRenderer(context: Context) : IRenderer {
         GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA)
 
         //1. 获取顶点/片元源代码资源
-        var vertexSource = ShaderHelper.getRawShaderResource(mContext, R.raw.vertex_shader)
-        var fragmentSource = ShaderHelper.getRawShaderResource(mContext, R.raw.fragment_shader)
+        val vertexSource = ShaderHelper.getRawShaderResource(context, R.raw.vertex_shader)
+        val fragmentSource = ShaderHelper.getRawShaderResource(context, R.raw.fragment_shader)
 
         //2. 为 顶点和片元创建一个执行程序
         program = ShaderHelper.createProgram(vertexSource, fragmentSource)
@@ -159,7 +141,7 @@ public class FboRenderer(context: Context) : IRenderer {
         sampler = GLES20.glGetAttribLocation(program, "sTexture")
 
         //4. 生成一个 VBO
-        var vbo = IntArray(1)
+        val vbo = IntArray(1)
         GLES20.glGenBuffers(1, vbo, 0);
         mVboID = vbo[0]
         //4.1 绑定 VBO
@@ -240,8 +222,7 @@ public class FboRenderer(context: Context) : IRenderer {
 
     private fun initWatemark() {
         if (mBitmap == null)
-            mBitmap = BitmapUtils.creatBitmap("      ", mContext, 20, Color.WHITE, Color.TRANSPARENT)
-
+            mBitmap = BitmapUtils.creatBitmap("      ", context, 20, Color.WHITE, Color.TRANSPARENT)
 
         mWatemarkData?.let { watemark ->
             mVertexData[8] = watemark[0];
@@ -256,43 +237,30 @@ public class FboRenderer(context: Context) : IRenderer {
             mVertexData[14] = watemark[6];
             mVertexData[15] = watemark[7];
         }
-
-
-        mVertexBuffer = ByteBuffer.allocateDirect(mVertexData.size * 4)
-            .order(ByteOrder.nativeOrder()) //大内存在前面，字节对齐
-            .asFloatBuffer()
-            .put(mVertexData)
-        //指向第一个索引，相当于 C 里面的第一个内存地址
-        mVertexBuffer.position(0)
-
-
     }
 
     private fun createWatemark(): Int {
-        var watemarkId = ShaderHelper.loadBitmapTexture(mBitmap!!);
+        val watemarkId = ShaderHelper.loadBitmapTexture(mBitmap!!);
         //解绑纹理
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
         return watemarkId
-
     }
-
 
     fun setWatemark(watermark: Watermark) {
 
-        watermark?.txt?.let {
+        watermark.txt?.let {
             mBitmap =
-                BitmapUtils.creatBitmap(it, mContext, watermark.textSize, watermark.textColor, Color.TRANSPARENT)
-
+                BitmapUtils.creatBitmap(it, context, watermark.textSize, watermark.textColor, Color.TRANSPARENT)
         }
 
-        watermark?.markImg?.let { oldBitmap ->
-            mBitmap = oldBitmap
+        watermark.markImg?.let {
+            mBitmap = it
         }
 
         if (watermark.floatArray == null) {
             mBitmap?.let { bitmap ->
-                var r = 1.0f * bitmap.getWidth() / bitmap.getHeight();
-                var w = r * 0.1f;
+                val r = 1.0f * bitmap.getWidth() / bitmap.getHeight();
+                val w = r * 0.1f;
                 mVertexData[8] =0.7f - w;
                 mVertexData[9] = -0.9f;
                 mVertexData[10] = 0.9f;
@@ -309,9 +277,5 @@ public class FboRenderer(context: Context) : IRenderer {
         }
         initWatemark()
         mBitmapTextureId = createWatemark()
-
-
     }
-
-
 }

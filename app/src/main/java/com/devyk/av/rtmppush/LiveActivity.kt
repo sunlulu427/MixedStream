@@ -65,7 +65,6 @@ class LiveActivity : BaseActivity<Int>(), OnConnectListener {
     }
 
     override fun initData() {
-
         //设置文字水印
         setWatemark()
     }
@@ -109,7 +108,6 @@ class LiveActivity : BaseActivity<Int>(), OnConnectListener {
         mSender.setDataSource(mDataSource)
 
         initRtmpAddressDialog()
-
     }
 
     override fun onContentViewBefore() {

@@ -97,9 +97,7 @@ object CameraUtils {
             setOrientation(cameraData, isLandscape, camera)
             setFocusMode(camera, cameraData, isTouchMode)
         }
-
     }
-
 
     /**
      * 设置预览回调
@@ -111,7 +109,6 @@ object CameraUtils {
             sPreviewCallback!!.onPreviewFrame(data, camera)
         camera.addCallbackBuffer(data)
     }
-
 
     /**
      * 设置预览格式
@@ -129,7 +126,6 @@ object CameraUtils {
         } catch (e: Exception) {
             throw CameraNotSupportException()
         }
-
     }
 
     /**
@@ -157,7 +153,6 @@ object CameraUtils {
         } catch (e: Exception) {
             e.printStackTrace()
         }
-
     }
 
     private fun adaptPreviewFps(expectedFps: Int, fpsRanges: List<IntArray>): IntArray {
@@ -200,16 +195,14 @@ object CameraUtils {
         } catch (e: Exception) {
             e.printStackTrace()
         }
-
     }
-
 
     private fun setOrientation(cameraData: CameraData, isLandscape: Boolean, camera: Camera) {
 
 
         var orientation = getDisplayOrientation(cameraData.cameraID)
         if (isLandscape) {
-            orientation = orientation - 90
+            orientation -= 90
         }
         camera.setDisplayOrientation(orientation)
     }
@@ -256,7 +249,6 @@ object CameraUtils {
                     camera.parameters = parameters
                 }
             }
-
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -344,7 +336,6 @@ object CameraUtils {
         }
     }
 
-
     fun supportFlash(camera: Camera): Boolean {
         val params = camera.parameters
         val flashModes = params.supportedFlashModes ?: return false
@@ -355,7 +346,6 @@ object CameraUtils {
         }
         return false
     }
-
 
     /**
      * 将 YUV 数据旋转
@@ -435,5 +425,4 @@ object CameraUtils {
         sCamera!!.addCallbackBuffer(buffer)
         sCamera!!.setPreviewCallbackWithBuffer(myCallback)
     }
-
 }

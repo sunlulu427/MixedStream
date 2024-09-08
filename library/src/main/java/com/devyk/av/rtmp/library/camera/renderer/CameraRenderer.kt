@@ -1,20 +1,19 @@
 package com.devyk.av.rtmp.library.camera.renderer
 
+
 import android.content.Context
 import android.graphics.SurfaceTexture
+import android.opengl.GLES11Ext
 import android.opengl.GLES20
 import android.opengl.Matrix
-import com.devyk.av.rtmp.library.callback.IRenderer
-
-
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
-import java.nio.FloatBuffer
-import android.opengl.GLES11Ext
 import com.devyk.av.rtmp.library.R
+import com.devyk.av.rtmp.library.callback.IRenderer
 import com.devyk.av.rtmp.library.camera.ShaderHelper
 import com.devyk.av.rtmp.library.camera.Watermark
 import com.devyk.av.rtmp.library.utils.LogHelper
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
+import java.nio.FloatBuffer
 
 
 /**
@@ -363,9 +362,8 @@ class CameraRenderer(private val context: Context) : IRenderer {
      * 设置水印
      */
     fun setWatemark(watermark: Watermark) {
-        mFboRenderer?.setWatemark(watermark)
+        mFboRenderer.setWatemark(watermark)
     }
-
 
     interface OnRendererListener {
         fun onCreate(cameraTextureId: Int, textureID: Int)

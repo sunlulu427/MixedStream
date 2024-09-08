@@ -4,7 +4,6 @@ import android.media.MediaCodec
 import com.devyk.av.rtmp.library.Contacts
 import com.devyk.av.rtmp.library.utils.LogHelper
 import java.nio.ByteBuffer
-import java.util.ArrayList
 import kotlin.experimental.and
 
 /**
@@ -16,7 +15,7 @@ import kotlin.experimental.and
  *     desc    : This is AnnexbHelper
  * </pre>
  */
-public class AnnexbHelper {
+class AnnexbHelper {
 
         private var mListener: AnnexbNaluListener? = null
 

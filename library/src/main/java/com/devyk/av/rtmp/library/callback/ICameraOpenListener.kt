@@ -9,7 +9,6 @@ package com.devyk.av.rtmp.library.callback
  *     desc    : This is ICameraOpenListener
  * </pre>
  */
-
-public interface ICameraOpenListener {
+interface ICameraOpenListener {
     fun onCameraOpen()
 }

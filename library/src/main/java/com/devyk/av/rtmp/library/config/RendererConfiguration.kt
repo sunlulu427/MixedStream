@@ -2,7 +2,6 @@ package com.devyk.av.rtmp.library.config
 
 import android.view.Surface
 import com.devyk.av.rtmp.library.callback.IRenderer
-import com.devyk.av.rtmp.library.camera.renderer.DefaultRenderer
 import com.devyk.av.rtmp.library.widget.GLSurfaceView
 import javax.microedition.khronos.egl.EGLContext
 
@@ -16,7 +15,7 @@ import javax.microedition.khronos.egl.EGLContext
  * </pre>
  */
 class RendererConfiguration(
-    val renderer: IRenderer = DefaultRenderer(),
+    val renderer: IRenderer = object : IRenderer{},
     val rendererMode: Int = GLSurfaceView.RENDERERMODE_CONTINUOUSLY,
     val surface: Surface? = null,
     val eglContext: EGLContext? = null,

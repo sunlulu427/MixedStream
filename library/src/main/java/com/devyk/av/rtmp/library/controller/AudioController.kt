@@ -18,24 +18,19 @@ import java.nio.ByteBuffer
  *     desc    : This is AudioController 音频采集和音频编码的控制
  * </pre>
  */
-class AudioController(audioConfiguration: AudioConfiguration) : IController, AudioProcessor.OnRecordListener,
+class AudioController(private val audioConfiguration: AudioConfiguration) : IController,
+    AudioProcessor.OnRecordListener,
     OnAudioEncodeListener {
-
-
-    /**
-     * 音频采集-》编解码 需要用到的默认参数
-     */
-    private var mAudioConfiguration = AudioConfiguration()
 
     /**
      * 音频编解码用到的实体程序
      */
-    private lateinit var mAudioEncoder: AudioEncoder
+    private val mAudioEncoder: AudioEncoder = AudioEncoder(audioConfiguration)
 
     /**
      * 音频采集用到的实体程序
      */
-    private lateinit var mAudioProcessor: AudioProcessor
+    private val mAudioProcessor: AudioProcessor = AudioProcessor()
 
     /**
      * 音频数据的监听
@@ -44,18 +39,14 @@ class AudioController(audioConfiguration: AudioConfiguration) : IController, Aud
 
 
     init {
-        mAudioConfiguration = audioConfiguration
-        mAudioProcessor = AudioProcessor()
-        mAudioEncoder = AudioEncoder(mAudioConfiguration)
         mAudioProcessor.init(
-            mAudioConfiguration.audioSource,
-            mAudioConfiguration.sampleRate,
-            mAudioConfiguration.channelCount
+            audioConfiguration.audioSource,
+            audioConfiguration.sampleRate,
+            audioConfiguration.channelCount
         )
         mAudioProcessor.addRecordListener(this)
         mAudioEncoder.setOnAudioEncodeListener(this)
     }
-
 
     /**
      * 触发 开始
@@ -89,15 +80,15 @@ class AudioController(audioConfiguration: AudioConfiguration) : IController, Aud
     /**
      * 当采集 PCM 数据的时候返回
      */
-    override fun onPcmData(pcmData: ByteArray) {
-        mAudioEncoder?.enqueueCodec(pcmData)
+    override fun onPcmData(byteArray: ByteArray) {
+        mAudioEncoder.enqueueCodec(byteArray)
     }
 
     /**
      * 当开始采集
      */
     override fun onStart(sampleRate: Int, channels: Int, sampleFormat: Int) {
-        mAudioEncoder?.start()
+        mAudioEncoder.start()
     }
 
     /**
@@ -105,14 +96,12 @@ class AudioController(audioConfiguration: AudioConfiguration) : IController, Aud
      */
     override fun setMute(isMute: Boolean) {
         super.setMute(isMute)
-        mAudioProcessor?.setMute(isMute)
-
-
+        mAudioProcessor.setMute(isMute)
     }
 
     override fun onStop() {
         super.onStop()
-        mAudioEncoder?.stop()
+        mAudioEncoder.stop()
     }
 
     /**
@@ -140,5 +129,4 @@ class AudioController(audioConfiguration: AudioConfiguration) : IController, Aud
         super.setAudioDataListener(audioDataListener)
         mAudioDataListener = audioDataListener
     }
-
 }

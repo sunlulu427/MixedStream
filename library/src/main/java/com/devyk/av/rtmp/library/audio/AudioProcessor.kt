@@ -23,17 +23,15 @@ class AudioProcessor : ThreadImpl() {
      * 读取大小
      */
     private var mReadSize = 1024;
-
     /**
      * 录制监听
      */
     private var mRecordListener: OnRecordListener? = null
 
-
     /**
      * Java 中的锁
      */
-    private val mLock = java.lang.Object()
+    private val mLock = Object()
 
     /**
      * 是否禁言
@@ -105,7 +103,7 @@ class AudioProcessor : ThreadImpl() {
      * 子线程执行的函数入口
      */
     fun main() {
-        var data = ByteArray(mReadSize);
+        val data = ByteArray(mReadSize);
         while (isRunning()) {
             val name = Thread.currentThread().name
             synchronized(mLock) {

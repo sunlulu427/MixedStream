@@ -11,7 +11,7 @@ import com.devyk.av.rtmp.library.stream.PacketType
  *     desc    : This is Sender
  * </pre>
  */
-public interface Sender{
+interface Sender{
     fun onData(data: ByteArray, type: PacketType)
     fun onData(sps: ByteArray,pps: ByteArray, type: PacketType){}
 }

@@ -5,7 +5,10 @@ import com.devyk.av.rtmp.library.stream.AnnexbHelper
 import com.devyk.av.rtmp.library.stream.PacketType
 import com.devyk.av.rtmp.library.stream.packer.Packer
 import com.devyk.av.rtmp.library.stream.packer.flv.FlvPackerHelper
-import com.devyk.av.rtmp.library.stream.packer.flv.FlvPackerHelper.*
+import com.devyk.av.rtmp.library.stream.packer.flv.FlvPackerHelper.AUDIO_HEADER_SIZE
+import com.devyk.av.rtmp.library.stream.packer.flv.FlvPackerHelper.AUDIO_SPECIFIC_CONFIG_SIZE
+import com.devyk.av.rtmp.library.stream.packer.flv.FlvPackerHelper.VIDEO_HEADER_SIZE
+import com.devyk.av.rtmp.library.stream.packer.flv.FlvPackerHelper.VIDEO_SPECIFIC_CONFIG_EXTEND_SIZE
 import java.nio.ByteBuffer
 
 /**
@@ -27,12 +30,7 @@ class RtmpPacker : Packer, AnnexbHelper.AnnexbNaluListener {
     private var mAudioSampleRate: Int = 44100
     private var mAudioSampleSize: Int = 16
     private var mIsStereo: Boolean = false
-
-    private val mAnnexbHelper: AnnexbHelper
-
-    init {
-        mAnnexbHelper = AnnexbHelper()
-    }
+    private val mAnnexbHelper = AnnexbHelper()
 
     override fun setPacketListener(listener: Packer.OnPacketListener) {
         packetListener = listener
@@ -111,5 +109,4 @@ class RtmpPacker : Packer, AnnexbHelper.AnnexbNaluListener {
         FlvPackerHelper.writeFirstAudioTag(buffer, mAudioSampleRate, mIsStereo, mAudioSampleSize)
         packetListener!!.onPacket(buffer.array(), PacketType.FIRST_AUDIO)
     }
-
 }

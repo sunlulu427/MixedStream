@@ -3,6 +3,7 @@ package com.devyk.av.rtmppush;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
+
 import androidx.annotation.NonNull;
 
 import java.util.Collections;
@@ -23,7 +24,7 @@ public final class SPUtils {
 
     private static final Map<String, SPUtils> SP_UTILS_MAP = new HashMap<>();
 
-    private SharedPreferences sp;
+    private final SharedPreferences sp;
 
     /**
      * Return the single {@link SPUtils} instance

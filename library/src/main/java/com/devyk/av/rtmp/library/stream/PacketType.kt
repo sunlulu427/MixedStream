@@ -9,19 +9,11 @@ package com.devyk.av.rtmp.library.stream
  *     desc    : This is PacketType
  * </pre>
  */
-public enum class PacketType {
+enum class PacketType(val type: Int) {
     FIRST_AUDIO(1),
     FIRST_VIDEO(2),
     SPS_PPS(3),
     AUDIO(4),
     KEY_FRAME(5),
     VIDEO(6);
-
-
-    var type = -1;
-    constructor(types: Int){
-        type = types
-    }
-
-
 }

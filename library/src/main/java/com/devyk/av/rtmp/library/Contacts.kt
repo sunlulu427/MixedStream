@@ -9,8 +9,8 @@ package com.devyk.av.rtmp.library
  *     desc    : This is Contacts
  * </pre>
  */
-public object Contacts {
-    public var TAG = "AVRtmpPush"
+object Contacts {
+    var TAG = "AVRtmpPush"
     //rtmp 初始化失败
     var RTMP_INIT_ERROR = -9
     //设置 rtmp url 失败

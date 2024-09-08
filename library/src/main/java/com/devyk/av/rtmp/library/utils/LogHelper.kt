@@ -1,6 +1,5 @@
 package com.devyk.av.rtmp.library.utils
 
-import android.os.Build
 import android.util.Log
 import com.devyk.av.rtmp.library.callback.ILog
 
@@ -13,7 +12,7 @@ import com.devyk.av.rtmp.library.callback.ILog
  *     desc    : This is LogHelper
  * </pre>
  */
-public object LogHelper : ILog {
+object LogHelper : ILog {
 
     var isShowLog = false
 

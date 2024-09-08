@@ -21,10 +21,10 @@ import javax.microedition.khronos.egl.EGLContext
  */
 class CameraRecorder(context: Context, textureId: Int, private val eglContext: EGLContext?) :
     VideoEncoder(), IGLThreadConfig {
-    protected val mRenderer: EncodeRenderer = EncodeRenderer(context, textureId)
-    protected var mRendererMode = GLSurfaceView.RENDERERMODE_CONTINUOUSLY
-    protected var mGLThread: EncodeRendererThread? = null
-    protected var mSurface: Surface? = null
+    private val mRenderer: EncodeRenderer = EncodeRenderer(context, textureId)
+    private var mRendererMode = GLSurfaceView.RENDERERMODE_CONTINUOUSLY
+    private var mGLThread: EncodeRendererThread? = null
+    private var mSurface: Surface? = null
 
     /**
      * surface 创建的时候开始进行 GL 线程渲染
@@ -101,6 +101,4 @@ class CameraRecorder(context: Context, textureId: Int, private val eglContext: E
 //            LogHelper.e(TAG, " 普通帧 " + h264Arrays.size)
 //        }
 //    }
-
-
 }

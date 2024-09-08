@@ -16,13 +16,13 @@ import java.nio.ByteBuffer
  * </pre>
  */
 
-class AudioEncoder(private val mAudioConfiguration: AudioConfiguration?) : BaseAudioCodec(mAudioConfiguration) {
+class AudioEncoder(mAudioConfiguration: AudioConfiguration?) : BaseAudioCodec(mAudioConfiguration) {
 
     override fun onAudioOutformat(outputFormat: MediaFormat?) {
         mListener?.onAudioOutformat(outputFormat)
     }
 
-    public var mListener: OnAudioEncodeListener? = null
+    private var mListener: OnAudioEncodeListener? = null
 
     override fun onAudioData(bb: ByteBuffer, bi: MediaCodec.BufferInfo) {
         mListener?.onAudioEncode(bb, bi)
@@ -30,11 +30,6 @@ class AudioEncoder(private val mAudioConfiguration: AudioConfiguration?) : BaseA
 
     fun setOnAudioEncodeListener(listener: OnAudioEncodeListener?) {
         mListener = listener
-    }
-
-
-    override fun start() {
-        super.start()
     }
 
     override fun stop() {

@@ -58,16 +58,13 @@ abstract class BaseActivity<T> : AppCompatActivity() {
 
 
     protected fun setNotTitleBar() {
-        val window = window
         window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS or WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION)
-        window.getDecorView().setSystemUiVisibility(
-            View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                    or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                    or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-        )
+        window.decorView.systemUiVisibility = (View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                or View.SYSTEM_UI_FLAG_LAYOUT_STABLE)
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
-        window.setStatusBarColor(Color.TRANSPARENT)
-        window.setNavigationBarColor(Color.TRANSPARENT)
+        window.statusBarColor = Color.TRANSPARENT
+        window.navigationBarColor = Color.TRANSPARENT
         //去掉标题栏
         supportRequestWindowFeature(Window.FEATURE_NO_TITLE)
     }
@@ -101,12 +98,12 @@ abstract class BaseActivity<T> : AppCompatActivity() {
 
     fun startTime(timer: Chronometer) {
         val hour = ((SystemClock.elapsedRealtime() - timer.base) / 1000 / 60).toInt()
-        timer.setFormat("0${hour}:%s")
+        timer.format = "0${hour}:%s"
         timer.start()
     }
 
     fun cleanTime(timer: Chronometer) {
-        timer.setBase(SystemClock.elapsedRealtime())
+        timer.base = SystemClock.elapsedRealtime()
         timer.stop()
     }
 }

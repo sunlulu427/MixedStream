@@ -13,7 +13,7 @@ import java.nio.ByteBuffer
  *     desc    : This is IController
  * </pre>
  */
-public interface IController {
+interface IController {
 
     fun start()
 
@@ -30,7 +30,7 @@ public interface IController {
     fun setVideoBps(bps:Int){}
 
 
-    public interface OnAudioDataListener {
+    interface OnAudioDataListener {
         /**
          * 当 Audio 编码数据的时候
          */
@@ -46,7 +46,7 @@ public interface IController {
 
     }
 
-    public interface OnVideoDataListener {
+    interface OnVideoDataListener {
         /**
          * 当 Audio 编码数据的时候
          */

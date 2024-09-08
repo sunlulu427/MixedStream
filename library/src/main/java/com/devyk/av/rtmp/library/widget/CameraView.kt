@@ -183,5 +183,4 @@ open class CameraView @JvmOverloads constructor(
     fun addCameraOpenCallback(listener: ICameraOpenListener) {
         mCameraOpenListener = listener
     }
-
 }
