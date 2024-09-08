@@ -221,8 +221,9 @@ class FboRenderer(private val context: Context) : IRenderer {
     }
 
     private fun initWatemark() {
-        if (mBitmap == null)
-            mBitmap = BitmapUtils.creatBitmap("      ", context, 20, Color.WHITE, Color.TRANSPARENT)
+        if (mBitmap == null) {
+            mBitmap = BitmapUtils.createBitmapByCanvas("       ", 20f, Color.WHITE, Color.TRANSPARENT)
+        }
 
         mWatemarkData?.let { watemark ->
             mVertexData[8] = watemark[0];
@@ -249,8 +250,9 @@ class FboRenderer(private val context: Context) : IRenderer {
     fun setWatemark(watermark: Watermark) {
 
         watermark.txt?.let {
-            mBitmap =
-                BitmapUtils.creatBitmap(it, context, watermark.textSize, watermark.textColor, Color.TRANSPARENT)
+//            mBitmap =
+//                BitmapUtils.creatBitmap(it, context, watermark.textSize, watermark.textColor, Color.TRANSPARENT)
+            mBitmap = BitmapUtils.createBitmapByCanvas(it, watermark.textSize.toFloat(), watermark.textColor)
         }
 
         watermark.markImg?.let {

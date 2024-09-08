@@ -220,7 +220,7 @@ class EncodeRenderer(private val context: Context, private val textureId: Int) :
 
     private fun initWatemark() {
         if (mBitmap == null) {
-            mBitmap = BitmapUtils.creatBitmap("  ", context, 20, Color.WHITE, Color.TRANSPARENT)
+            mBitmap = BitmapUtils.createBitmapByCanvas("  ", 20f, Color.WHITE, Color.TRANSPARENT)
         }
 
         mWatemarkData?.let { watemark ->
@@ -255,10 +255,9 @@ class EncodeRenderer(private val context: Context, private val textureId: Int) :
 
     fun setWatemark(watermark: Watermark) {
         watermark.txt?.let { txt ->
-            mBitmap = BitmapUtils.creatBitmap(
+            mBitmap = BitmapUtils.createBitmapByCanvas(
                 txt,
-                context,
-                watermark.textSize,
+                watermark.textSize.toFloat(),
                 watermark.textColor,
                 Color.TRANSPARENT
             )
@@ -270,7 +269,7 @@ class EncodeRenderer(private val context: Context, private val textureId: Int) :
 
         if (watermark.floatArray == null) {
             mBitmap?.let { bitmap ->
-                val r = 1.0f * bitmap.getWidth() / bitmap.getHeight()
+                val r = 1.0f * bitmap.width / bitmap.height
                 val w = r * 0.1f
                 mVertexData[8] = 0.7f - w
                 mVertexData[9] = -0.9f

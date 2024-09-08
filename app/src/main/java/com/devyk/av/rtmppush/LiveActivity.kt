@@ -213,6 +213,6 @@ class LiveActivity : BaseActivity<Int>(), OnConnectListener {
     private fun setWatemark() {
         //设置 Bitmap 水印 第二个参数如果传 null 那么默认在右下角
 //        live.setWatermark(Watermark(BitmapFactory.decodeResource(resources, R.mipmap.live_logo), null))
-        live.setWatermark(Watermark("DevYK", Color.WHITE, 20, null))
+        live.setWatermark(Watermark("Mato", Color.WHITE, 20, null))
     }
 }
