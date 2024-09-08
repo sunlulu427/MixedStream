@@ -1,10 +1,7 @@
 package com.devyk.av.rtmp.library.stream.packer
 
 import android.media.MediaCodec
-import com.devyk.av.rtmp.library.config.AudioConfiguration
 import com.devyk.av.rtmp.library.stream.PacketType
-import com.devyk.av.rtmp.library.stream.packer.flv.FlvPackerHelper
-import com.devyk.av.rtmp.library.stream.packer.flv.FlvPackerHelper.*
 import java.nio.ByteBuffer
 import kotlin.experimental.and
 
@@ -17,15 +14,13 @@ import kotlin.experimental.and
  *     desc    : This is DefaultPacker 存在 bug
  * </pre>
  */
-public class DefaultPacker : Packer {
+class DefaultPacker : Packer {
     override fun start() {
 
     }
 
     override fun stop() {
     }
-
-    private var TAG = javaClass.simpleName
 
     override fun onVideoSpsPpsData(sps: ByteArray, pps: ByteArray, spsPps: PacketType) {
         mPacketListener?.onPacket(sps, pps, PacketType.SPS_PPS)
@@ -55,19 +50,14 @@ public class DefaultPacker : Packer {
 
 
     override fun onAudioData(bb: ByteBuffer, bi: MediaCodec.BufferInfo) {
-        bb?.let { buffer ->
-            bi?.let { mediaBuffer ->
-                buffer.position(mediaBuffer.offset)
-                buffer.limit(mediaBuffer.offset + mediaBuffer.size)
-                val audio = ByteArray(mediaBuffer.size)
-                buffer.get(audio)
-                mPacketListener?.onPacket(audio, PacketType.AUDIO)
-            }
-        }
+        bb.position(bi.offset)
+        bb.limit(bi.offset + bi.size)
+        val audio = ByteArray(bi.size)
+        bb.get(audio)
+        mPacketListener?.onPacket(audio, PacketType.AUDIO)
     }
 
     override fun setPacketListener(packetListener: Packer.OnPacketListener) {
         mPacketListener = packetListener
     }
-
 }

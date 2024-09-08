@@ -52,7 +52,6 @@ class LiveActivity : BaseActivity<Int>(), OnConnectListener {
         0.9f, -0.7f //第四个点  右上角
     )
 
-
     private var mDataSource = "rtmp://www.devyk.cn:1992/devykLive/live1"
     private var isConncet = false
     private lateinit var mSender: RtmpSender
@@ -68,7 +67,6 @@ class LiveActivity : BaseActivity<Int>(), OnConnectListener {
         //设置文字水印
         setWatemark()
     }
-
 
     override fun init() {
         //初始化 RTMP 发送器
@@ -119,13 +117,11 @@ class LiveActivity : BaseActivity<Int>(), OnConnectListener {
 
     override fun getLayoutId(): Int = R.layout.activity_live
 
-
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
         LogHelper.e(TAG, "方向改变:${newConfig.densityDpi}")
         live.previewAngle(this)
     }
-
 
     fun rtmp_live(view: View) {
         if (isConncet) {
@@ -136,7 +132,7 @@ class LiveActivity : BaseActivity<Int>(), OnConnectListener {
             mPacker.stop()
             return
         }
-        isConncet = !isConncet
+        isConncet = true
         uploadDialog?.show()
     }
 
@@ -189,7 +185,7 @@ class LiveActivity : BaseActivity<Int>(), OnConnectListener {
     fun initRtmpAddressDialog() {
         val inflater = layoutInflater
         val playView = inflater.inflate(R.layout.address_dialog, findViewById(R.id.dialog))
-        var address = playView.findViewById<EditText>(R.id.address)
+        val address = playView.findViewById<EditText>(R.id.address)
         address.setText(mDataSource)
         val okBtn = playView.findViewById<Button>(R.id.ok)
         val cancelBtn = playView.findViewById<Button>(R.id.cancel)

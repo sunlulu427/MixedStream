@@ -134,7 +134,7 @@ open class CameraView @JvmOverloads constructor(
     fun previewAngle(context: Context, isResetMatrix: Boolean) {
         val rotation =
             (context.applicationContext.getSystemService(Context.WINDOW_SERVICE) as WindowManager).defaultDisplay.rotation
-        LogHelper.d(TAG, "旋转角度：" + rotation)
+        LogHelper.d(TAG, "旋转角度：$rotation")
         renderer.resetMatrix()
         when (rotation) {
             Surface.ROTATION_0 -> {

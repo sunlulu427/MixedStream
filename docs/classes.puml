@@ -1,0 +1,31 @@
+@startuml
+
+title Classes
+
+interface IRenderer {
+  + onSurfaceCreate(width: Int, height: Int)
+  + onSurfaceChange(width: Int, height: Int)
+  + onDraw()
+}
+
+class CameraRenderer implements IRenderer
+class EncodeRenderer implements IRenderer
+class FboRenderer implements IRenderer
+
+enum PackageType {
+    FIRST_AUDIO
+    FIRST_VIDEO
+    SPS_PPS
+    AUDIO
+    KEY_FRAME
+    VIDEO
+}
+
+interface Sender {
+    + fun onData(data: ByteArray, type: PacketType)
+    + fun onData(sps: ByteArray, pps: ByteArray, type: PacketType)
+}
+
+class RtmpSender implements Sender
+
+@enduml

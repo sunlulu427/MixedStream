@@ -1,7 +1,7 @@
 package com.devyk.av.rtmp.library.stream.packer
 
-import com.devyk.av.rtmp.library.stream.PacketType
 import android.media.MediaCodec
+import com.devyk.av.rtmp.library.stream.PacketType
 import java.nio.ByteBuffer
 
 
@@ -14,7 +14,7 @@ import java.nio.ByteBuffer
  *     desc    : This is Packer 对音视频数据打包
  * </pre>
  */
-public interface Packer {
+interface Packer {
     interface OnPacketListener {
         fun onPacket(byteArray: ByteArray, packetType: PacketType)
         fun onPacket(sps: ByteArray?,pps: ByteArray?, packetType: PacketType){}

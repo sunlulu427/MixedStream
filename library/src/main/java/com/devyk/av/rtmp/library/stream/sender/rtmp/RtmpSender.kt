@@ -30,7 +30,8 @@ class RtmpSender : Sender {
             //音频数据
             pushAudio(data, data.size, type.type)
         } else if (type == PacketType.FIRST_VIDEO ||
-            type == PacketType.KEY_FRAME ||  type == PacketType.VIDEO) {
+            type == PacketType.KEY_FRAME || type == PacketType.VIDEO
+        ) {
             //视频数据
             pushVideo(data, data.size, type.type)
         }

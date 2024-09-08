@@ -42,9 +42,6 @@ add_library(
 add_library(rtmp STATIC IMPORTED)
 set_target_properties(rtmp PROPERTIES IMPORTED_LOCATION ${LIBRTMP_ROOT_PATH}/libs/${CMAKE_ANDROID_ARCH_ABI}/librtmp.a)
 
-
-
-
 find_library(log-lib log)
 
 target_link_libraries(
