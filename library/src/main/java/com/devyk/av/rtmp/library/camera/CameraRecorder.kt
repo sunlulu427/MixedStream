@@ -72,10 +72,9 @@ class CameraRecorder(context: Context, textureId: Int, private val eglContext: E
     /**
      * 摄像头渲染线程
      */
-    class EncodeRendererThread(weakReference: WeakReference<IGLThreadConfig>) :
-        GLThread(weakReference) {
-
-    }
+    class EncodeRendererThread(
+        weakReference: WeakReference<IGLThreadConfig>
+    ) : GLThread(weakReference)
 
     /**
      * 编码完成的 H264 数据

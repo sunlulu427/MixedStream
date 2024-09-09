@@ -28,33 +28,28 @@ class VideoController(
     videoConfiguration: VideoConfiguration
 ) : IController, OnVideoEncodeListener {
 
-
-    private var mCameraVideoController: CameraRecorder? = null
+    private var recorder = CameraRecorder(context, textureId, eglContext).also {
+        it.prepare(videoConfiguration)
+        it.setOnVideoEncodeListener(this)
+    }
 
     private var mListener: IController.OnVideoDataListener? = null
 
-    init {
-        mCameraVideoController = CameraRecorder(context, textureId, eglContext)
-        mCameraVideoController?.prepare(videoConfiguration)
-        mCameraVideoController?.setOnVideoEncodeListener(this)
-    }
-
     override fun start() {
-        mCameraVideoController?.start()
+        recorder.start()
     }
 
     override fun stop() {
-        mCameraVideoController?.stop()
+        recorder.stop()
     }
 
     override fun pause() {
-        mCameraVideoController?.pause()
+        recorder.pause()
     }
 
     override fun resume() {
-        mCameraVideoController?.resume()
+        recorder.resume()
     }
-
 
     override fun onVideoEncode(bb: ByteBuffer?, bi: MediaCodec.BufferInfo?) {
         mListener?.onVideoData(bb, bi)
@@ -64,9 +59,8 @@ class VideoController(
         mListener?.onVideoOutformat(outputFormat)
     }
 
-
     override fun setVideoBps(bps: Int) {
-        mCameraVideoController?.setEncodeBps(bps)
+        recorder.setEncodeBps(bps)
     }
 
     override fun setVideoDataListener(videoDataListener: IController.OnVideoDataListener) {
@@ -74,6 +68,6 @@ class VideoController(
     }
 
     fun setWatermark(watermark: Watermark) {
-        mCameraVideoController?.setWatermark(watermark)
+        recorder.setWatermark(watermark)
     }
 }

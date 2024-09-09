@@ -18,7 +18,12 @@ class CameraConfiguration(
     val orientation: Orientation = Orientation.PORTRAIT,
     val focusMode: FocusMode = FocusMode.AUTO
 ) {
-    enum class Facing { FRONT, BACK }
+    enum class Facing {
+        FRONT, BACK;
+
+        fun switch(): Facing = if (this == FRONT) BACK else FRONT
+    }
+
     enum class Orientation { LANDSCAPE, PORTRAIT }
     enum class FocusMode { AUTO, TOUCH }
 }

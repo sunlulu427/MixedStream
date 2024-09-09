@@ -1,0 +1,85 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+
+participant AVLiteView
+participant CameraView
+participant StreamController as controller
+participant CameraRenderer
+participant FboRenderer
+participant GLSurfaceThread
+participant EGLHelper
+participant EGLContext
+
+note left of AVLiteView
+AVLiteView extends
+CameraView
+GLSurfaceView
+SurfaceView
+end note
+==init==
+[o->AVLiteView++: new
+AVLiteView -> controller++: new
+controller --> AVLiteView--: return
+AVLiteView--
+
+[o->AVLiteView++: surfaceCreated
+AVLiteView -> GLSurfaceThread++: new
+GLSurfaceThread --> AVLiteView--: return GLSurfaceThread
+AVLiteView -> GLSurfaceThread++: start
+GLSurfaceThread -> AVLiteView--:
+AVLiteView--
+... gl thread run ...
+AVLiteView -> EGLHelper++: new
+EGLHelper --> AVLiteView--: return EGLHelper
+AVLiteView -> EGLHelper++: initEgl
+EGLHelper -> EGLContext++: eglGetDisplay
+EGLContext --> EGLHelper--: return EGLDisplay
+EGLHelper -> EGLContext: eglInitialize
+EGLHelper -> EGLContext: eglChooseConfig
+EGLHelper -> EGLContext++: eglCreateContext
+EGLContext --> EGLHelper--: return EGLContext
+
+EGLHelper -> EGLContext++: eglCreateWindowSurface
+EGLContext --> EGLHelper--: return EGLSurface
+EGLHelper -> EGLContext: eglMakeCurrent
+EGLHelper --> AVLiteView--: return
+loop
+AVLiteView -> GLSurfaceThread++: sleep(1000/fps)
+GLSurfaceThread --> AVLiteView--: return
+
+alt in the fist time
+AVLiteView -> AVLiteView++--: onCreate(width, height)
+end alt
+alt when surfaceChanged
+AVLiteView -> AVLiteView++--: onSurfaceChanged\n(width, height)
+end alt
+
+AVLiteView -> AVLiteView ++: onDraw
+AVLiteView -> CameraRenderer++: onDraw
+note left of FboRenderer
+render to fbo
+end note
+CameraRenderer -> FboRenderer++: onDraw
+FboRenderer --> CameraRenderer--:
+CameraRenderer--> AVLiteView--:
+AVLiteView--
+AVLiteView -> EGLHelper--: swapBuffers
+end loop
+==start preview==
+
+[o->AVLiteView: startPreview
+AVLiteView -> controller: setAudioConfiguration
+AVLiteView -> controller: setVideoConfiguration
+AVLiteView->CameraView++: startPreview\n(cameraConfiguration)
+
+CameraView -> CameraRenderer++: new
+CameraRenderer --> CameraView--: return CameraRenderer
+CameraView -> CameraView++: previewAngle
+CameraView -> CameraRenderer++: resetMatrix
+CameraRenderer --> CameraView--: return
+CameraView --> CameraRenderer++: setAngle
+CameraRenderer --> CameraView--: return
+CameraView--
+CameraView -> CameraView++: setRendererListener
+
+@enduml

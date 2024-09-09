@@ -72,7 +72,6 @@ open class GLThread(weakReference: WeakReference<IGLThreadConfig>) : Thread() {
         mWeakRerence = weakReference
     }
 
-
     override fun run() {
         super.run()
         //实例化 EGL 环境搭建的帮组类
@@ -140,7 +139,9 @@ open class GLThread(weakReference: WeakReference<IGLThreadConfig>) : Thread() {
      * 渲染器可以创建了
      */
     private fun onCreate(width: Int, height: Int) {
-        if (!isCreate) return
+        if (!isCreate) {
+            return
+        }
         mWeakRerence.get()?.let { view ->
             this.isCreate = false
             view.getRenderer()?.onSurfaceCreate(width, height)
@@ -151,7 +152,9 @@ open class GLThread(weakReference: WeakReference<IGLThreadConfig>) : Thread() {
      * 渲染器需要改变窗口大小
      */
     private fun onChange(width: Int, height: Int) {
-        if (!isChange) return
+        if (!isChange) {
+            return
+        }
         mWeakRerence.get()?.let { view ->
             this.isChange = false
             view.getRenderer()?.onSurfaceChange(width, height)

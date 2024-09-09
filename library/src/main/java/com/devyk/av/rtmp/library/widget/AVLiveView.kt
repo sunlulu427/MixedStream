@@ -35,10 +35,26 @@ class AVLiveView @JvmOverloads constructor(
     private var mVideoMinRate = 400
     private var mVideoMaxRate = 1800
 
-    private var mVideoConfiguration = VideoConfiguration()
-    private var mAudioConfiguration = AudioConfiguration()
-    private var mCameraConfiguration = CameraConfiguration()
-    private var mStreamController: StreamController? = null
+    private var mVideoConfiguration = VideoConfiguration(
+        width = mPreviewWidth,
+        height = mPreviewHeight,
+        minBps = mVideoMinRate,
+        maxBps = mVideoMaxRate,
+        fps = mFps,
+        mediaCodec = true
+    )
+    private var mAudioConfiguration = AudioConfiguration(
+        sampleRate = mSampleRate,
+        aec = true,
+        mediaCodec = true
+    )
+    private var mCameraConfiguration = CameraConfiguration(
+        width = mPreviewWidth,
+        height = mPreviewHeight,
+        fps = mFps,
+        facing = if (mBack) CameraConfiguration.Facing.BACK else CameraConfiguration.Facing.FRONT
+    )
+    private val mStreamController = StreamController()
 
     init {
         val typeArray = context.obtainStyledAttributes(attrs, R.styleable.AVLiveView)
@@ -51,30 +67,6 @@ class AVLiveView @JvmOverloads constructor(
         mVideoMaxRate = typeArray.getInteger(R.styleable.AVLiveView_videoMaxRate, mVideoMaxRate)
         typeArray.recycle()
 
-        //实例化数据流的控制器
-        mStreamController = StreamController()
-        // Camera 预览配置
-        mCameraConfiguration = CameraConfiguration(
-            width = mPreviewWidth,
-            height = mPreviewHeight,
-            fps = mFps,
-            facing = if (mBack) CameraConfiguration.Facing.BACK else CameraConfiguration.Facing.FRONT
-        )
-        //配置音频参数
-        mAudioConfiguration = AudioConfiguration(
-            sampleRate = mSampleRate,
-            aec = true,
-            mediaCodec = true
-        )
-        //视频编码参数配置
-        mVideoConfiguration = VideoConfiguration(
-            width = mPreviewWidth,
-            height = mPreviewHeight,
-            minBps = mVideoMinRate,
-            maxBps = mVideoMaxRate,
-            fps = mFps,
-            mediaCodec = true
-        )
         //添加 Camera 打开的监听
         addCameraOpenCallback(this)
     }
@@ -98,15 +90,14 @@ class AVLiveView @JvmOverloads constructor(
      */
     fun setCameraConfigure(cameraConfiguration: CameraConfiguration) {
         this.mCameraConfiguration = cameraConfiguration
-
     }
 
     /**
      * 开始预览
      */
     fun startPreview() {
-        mStreamController?.setAudioConfigure(mAudioConfiguration)
-        mStreamController?.setVideoConfigure(mVideoConfiguration)
+        mStreamController.setAudioConfigure(mAudioConfiguration)
+        mStreamController.setVideoConfigure(mVideoConfiguration)
         //开始预览
         startPreview(mCameraConfiguration)
     }
@@ -114,77 +105,69 @@ class AVLiveView @JvmOverloads constructor(
 
     override fun setWatermark(watermark: Watermark) {
         super.setWatermark(watermark)
-        mStreamController?.setWatermark(watermark)
+        mStreamController.setWatermark(watermark)
     }
 
     /**
      * 设置打包器
      */
     fun setPacker(packer: Packer) {
-        mStreamController?.setPacker(packer)
+        mStreamController.setPacker(packer)
     }
 
     /**
      * 设置发送器
      */
     fun setSender(sender: Sender) {
-        mStreamController?.setSender(sender)
+        mStreamController.setSender(sender)
     }
 
     /**
      * camera 打开可以初始化了
      */
     override fun onCameraOpen() {
-        mStreamController?.prepare(context, getTextureId(), getEGLContext())
+        mStreamController.prepare(context, getTextureId(), getEGLContext())
     }
 
     /**
      * 开始
      */
     fun startLive() {
-        mStreamController?.start()
+        mStreamController.start()
     }
 
     /**
      * 暂停
      */
     fun pause() {
-        mStreamController?.pause()
+        mStreamController.pause()
     }
 
     /**
      * 恢复
      */
     fun resume() {
-        mStreamController?.resume()
+        mStreamController.resume()
     }
 
     /**
      * 停止
      */
     fun stopLive() {
-        mStreamController?.stop()
+        mStreamController.stop()
     }
 
     /**
      * 禁言
      */
     fun setMute(isMute: Boolean) {
-        mStreamController?.setMute(isMute)
+        mStreamController.setMute(isMute)
     }
 
     /**
      * 动态设置视频编码码率
      */
     fun setVideoBps(bps: Int) {
-        mStreamController?.setVideoBps(bps)
-    }
-
-    /**
-     * 释放相机
-     */
-    override fun releaseCamera() {
-        super.releaseCamera()
-        mStreamController = null
+        mStreamController.setVideoBps(bps)
     }
 }

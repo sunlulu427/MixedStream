@@ -100,11 +100,7 @@ open class CameraView @JvmOverloads constructor(
     open fun switchCamera(): Boolean {
         val ret = CameraHolder.instance().switchCamera()
         if (ret) {
-            if (cameraId == CameraConfiguration.Facing.BACK) {
-                cameraId = CameraConfiguration.Facing.FRONT
-            } else {
-                cameraId = CameraConfiguration.Facing.BACK
-            }
+            cameraId = cameraId.switch()
             renderer.switchCamera(object : CameraRenderer.OnSwitchCameraListener {
                 override fun onChange(): Boolean {
                     previewAngle(context)
@@ -131,7 +127,7 @@ open class CameraView @JvmOverloads constructor(
         previewAngle(context, true)
     }
 
-    fun previewAngle(context: Context, isResetMatrix: Boolean) {
+    private fun previewAngle(context: Context, isResetMatrix: Boolean) {
         val rotation =
             (context.applicationContext.getSystemService(Context.WINDOW_SERVICE) as WindowManager).defaultDisplay.rotation
         LogHelper.d(TAG, "旋转角度：$rotation")
@@ -178,7 +174,6 @@ open class CameraView @JvmOverloads constructor(
      * 拿到纹理 ID
      */
     fun getTextureId(): Int = mTextureId
-
 
     fun addCameraOpenCallback(listener: ICameraOpenListener) {
         mCameraOpenListener = listener

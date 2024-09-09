@@ -88,9 +88,7 @@ open class GLSurfaceView : SurfaceView, SurfaceHolder.Callback, IGLThreadConfig 
         if (mSurface == null) {
             mSurface = holder.surface
         }
-        this.mEglThread = GLSurfaceThread(
-            WeakReference<IGLThreadConfig>(this)
-        )
+        this.mEglThread = GLSurfaceThread(WeakReference(this))
         this.mEglThread.isCreate = true
         this.mEglThread.start()
     }

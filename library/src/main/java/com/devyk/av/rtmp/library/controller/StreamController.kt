@@ -126,13 +126,11 @@ class StreamController : IController.OnAudioDataListener, IController.OnVideoDat
             init()
         mAudioController?.start()
         mVideoController?.start()
-
     }
 
     fun pause() {
         mAudioController?.pause()
         mVideoController?.pause()
-
     }
 
     fun resume() {

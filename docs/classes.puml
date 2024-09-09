@@ -28,4 +28,9 @@ interface Sender {
 
 class RtmpSender implements Sender
 
+class SurfaceView
+class GLSurfaceView extends SurfaceView
+class CameraView extends GLSurfaceView
+class AVLiteView extends CameraView
+
 @enduml
