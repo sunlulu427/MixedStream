@@ -69,12 +69,17 @@ open class CameraView @JvmOverloads constructor(
         renderer.setOnRendererListener(object : CameraRenderer.OnRendererListener {
             override fun onCreate(surfaceTexture: SurfaceTexture, textureID: Int) {
                 mTextureId = textureID
-                CameraHolder.instance().setConfiguration(mCameraConfiguration)
-                CameraHolder.instance().openCamera()
-                CameraHolder.instance().setSurfaceTexture(surfaceTexture, this@CameraView);
-                CameraHolder.instance().startPreview();
-                LogHelper.e(TAG, "TextureId:${mTextureId}")
-                mCameraOpenListener?.onCameraOpen()
+                try {
+                    CameraHolder.instance().setConfiguration(mCameraConfiguration)
+                    CameraHolder.instance().openCamera()
+                    CameraHolder.instance().setSurfaceTexture(surfaceTexture, this@CameraView)
+                    CameraHolder.instance().startPreview()
+                    LogHelper.i(TAG, "camera opened, textureId=${mTextureId}")
+                    mCameraOpenListener?.onCameraOpen()
+                } catch (t: Throwable) {
+                    // 关键路径容错：相机服务不可用/无权限/设备无相机时不崩溃，记录错误日志
+                    LogHelper.e(TAG, "open camera failed: ${t.javaClass.simpleName} ${t.message}")
+                }
             }
 
             override fun onCreate(cameraTextureId: Int, textureID: Int) {

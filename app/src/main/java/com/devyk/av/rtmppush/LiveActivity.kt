@@ -1,6 +1,7 @@
 package com.devyk.av.rtmppush
 
 import android.content.res.Configuration
+import android.Manifest
 import android.graphics.Color
 import android.os.Build
 import android.text.TextUtils
@@ -10,6 +11,8 @@ import android.widget.EditText
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
+import androidx.core.content.ContextCompat
+import android.content.pm.PackageManager
 import com.devyk.av.rtmp.library.callback.OnConnectListener
 import com.devyk.av.rtmp.library.camera.Watermark
 import com.devyk.av.rtmp.library.config.AudioConfiguration
@@ -54,13 +57,13 @@ class LiveActivity : BaseActivity<Int>(), OnConnectListener {
 
     private var mDataSource = "rtmp://www.devyk.cn:1992/devykLive/live1"
     private var isConncet = false
-    private lateinit var mSender: RtmpSender
+    private var mSender: RtmpSender? = null
     private lateinit var mPacker: RtmpPacker
     private var uploadDialog: AlertDialog? = null
 
 
     override fun initListener() {
-        mSender.setOnConnectListener(this)
+        // Sender is created lazily; listener will be set when creating sender.
     }
 
     override fun initData() {
@@ -69,12 +72,9 @@ class LiveActivity : BaseActivity<Int>(), OnConnectListener {
     }
 
     override fun init() {
-        //初始化 RTMP 发送器
-        mSender = RtmpSender()
         //初始化包封装器
         mPacker = RtmpPacker()
         live.setPacker(mPacker)
-        live.setSender(mSender)
 
         //初始化音频参数
         val audioConfiguration = AudioConfiguration()
@@ -100,10 +100,10 @@ class LiveActivity : BaseActivity<Int>(), OnConnectListener {
         )
         live.setCameraConfigure(cameraConfiguration)
 
-        //设置预览
-        live.startPreview()
+        //设置预览（权限就绪后再启动，避免无权限时崩溃）
+        tryStartPreview()
 
-        mSender.setDataSource(mDataSource)
+        // 推流地址在真正连接前再设置，避免无效初始化
 
         initRtmpAddressDialog()
     }
@@ -111,6 +111,8 @@ class LiveActivity : BaseActivity<Int>(), OnConnectListener {
     override fun onContentViewBefore() {
         super.onContentViewBefore()
         Utils.init(application)
+        // 打开调试日志，便于通过 logcat 排查问题
+        com.devyk.av.rtmp.library.utils.LogHelper.isShowLog = BuildConfig.DEBUG
         checkPermission()
         setNotTitleBar()
     }
@@ -127,7 +129,7 @@ class LiveActivity : BaseActivity<Int>(), OnConnectListener {
         if (isConncet) {
             progressBar.visibility = View.VISIBLE;
             live.stopLive()
-            mSender.close()
+            mSender?.close()
             isConncet = false
             mPacker.stop()
             return
@@ -143,9 +145,32 @@ class LiveActivity : BaseActivity<Int>(), OnConnectListener {
 
     override fun onDestroy() {
         super.onDestroy()
-        mSender.close()
+        mSender?.close()
         live.stopLive()
         live.releaseCamera()
+    }
+
+    private var previewStarted = false
+
+    private fun hasCameraPermission(): Boolean {
+        return ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
+    }
+
+    private fun tryStartPreview() {
+        if (previewStarted) return
+        if (!hasCameraPermission()) {
+            // 等待权限结果，在 onResume 或权限回调后再次尝试
+            LogHelper.w(TAG, "camera permission not granted, skip startPreview")
+            return
+        }
+        live.startPreview()
+        previewStarted = true
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // 权限可能在运行时被授予，回来后再次尝试
+        tryStartPreview()
     }
 
 
@@ -199,10 +224,16 @@ class LiveActivity : BaseActivity<Int>(), OnConnectListener {
                 Toast.makeText(applicationContext, "Upload address is empty!", Toast.LENGTH_SHORT)
                     .show()
             } else {
-                //设置 rtmp 地址
-                mSender.setDataSource(uploadUrl)
-                //开始连接
-                mSender.connect()
+                // 创建 Sender（延迟加载 native 库，避免在 x86 模拟器上启动崩溃）
+                if (ensureSenderSafely()) {
+                    //设置 rtmp 地址
+                    mSender?.setDataSource(uploadUrl)
+                    //开始连接
+                    mSender?.connect()
+                } else {
+                    // 设备架构不支持或库加载失败
+                    isConncet = false
+                }
             }
             uploadDialog?.dismiss()
         }
@@ -214,5 +245,28 @@ class LiveActivity : BaseActivity<Int>(), OnConnectListener {
         //设置 Bitmap 水印 第二个参数如果传 null 那么默认在右下角
 //        live.setWatermark(Watermark(BitmapFactory.decodeResource(resources, R.mipmap.live_logo), null))
         live.setWatermark(Watermark("Mato", Color.WHITE, 20, null))
+    }
+
+    private fun ensureSenderSafely(): Boolean {
+        if (mSender != null) return true
+        return try {
+            val sender = RtmpSender()
+            sender.setOnConnectListener(this)
+            mSender = sender
+            // 绑定到 Live 组件
+            live.setSender(sender)
+            true
+        } catch (e: UnsatisfiedLinkError) {
+            Toast.makeText(
+                this,
+                "当前设备架构不支持推流组件，请使用 ARM 真机",
+                Toast.LENGTH_LONG
+            ).show()
+            com.devyk.av.rtmp.library.utils.LogHelper.e(TAG, "load native fail: ${e.message}")
+            false
+        } catch (t: Throwable) {
+            com.devyk.av.rtmp.library.utils.LogHelper.e(TAG, "init sender error: ${t.message}")
+            false
+        }
     }
 }

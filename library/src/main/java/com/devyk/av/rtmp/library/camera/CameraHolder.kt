@@ -59,36 +59,53 @@ class CameraHolder {
         if (mCameraDatas == null || mCameraDatas!!.size == 0) {
             mCameraDatas = CameraUtils.getAllCamerasData(isOpenBackFirst)
         }
-        val cameraData = mCameraDatas!![0]
-        if (mCameraDevice != null && this.cameraData === cameraData) {
+        val candidates = mCameraDatas ?: mutableListOf()
+        if (candidates.isEmpty()) {
+            Log.e(TAG, "no cameras available on device")
+            throw CameraNotSupportException()
+        }
+
+        // 若已打开且相同摄像头，直接复用
+        if (mCameraDevice != null && this.cameraData === candidates[0]) {
             return mCameraDevice!!
         }
         if (mCameraDevice != null) {
             releaseCamera()
         }
-        try {
-            Log.d(TAG, "open camera " + cameraData.cameraID)
-            mCameraDevice = Camera.open(cameraData.cameraID)
-        } catch (e: RuntimeException) {
-            Log.e(TAG, "fail to connect Camera")
-            throw CameraHardwareException(e)
+
+        var lastError: RuntimeException? = null
+        for (candidate in candidates) {
+            try {
+                Log.d(TAG, "open camera ${candidate.cameraID}")
+                mCameraDevice = Camera.open(candidate.cameraID)
+                if (mCameraDevice != null) {
+                    // 初始化参数
+                    try {
+                        CameraUtils.initCameraParams(mCameraDevice, candidate, isTouchMode, mConfiguration)
+                    } catch (e: Exception) {
+                        // 初始化失败，释放并尝试下一个候选
+                        Log.e(TAG, "init camera params failed for id=${candidate.cameraID}: ${e.message}")
+                        try { mCameraDevice?.release() } catch (_: Throwable) {}
+                        mCameraDevice = null
+                        continue
+                    }
+                    this.cameraData = candidate
+                    state = State.OPENED
+                    return mCameraDevice!!
+                }
+            } catch (e: RuntimeException) {
+                lastError = e
+                Log.e(TAG, "fail to connect Camera id=${candidate.cameraID}: ${e.message}")
+                // 继续尝试其他摄像头
+            }
         }
 
-        if (mCameraDevice == null) {
+        // 所有候选都失败
+        if (lastError != null) {
+            throw CameraHardwareException(lastError as Throwable)
+        } else {
             throw CameraNotSupportException()
         }
-        try {
-            CameraUtils.initCameraParams(mCameraDevice, cameraData, isTouchMode, mConfiguration)
-        } catch (e: Exception) {
-            e.printStackTrace()
-            mCameraDevice!!.release()
-            mCameraDevice = null
-            throw CameraNotSupportException()
-        }
-
-        this.cameraData = cameraData
-        state = State.OPENED
-        return mCameraDevice!!
     }
 
 
