@@ -1,5 +1,7 @@
 package com.devyk.av.rtmp.library.camera
 
+import android.graphics.ImageFormat
+import android.media.ImageReader
 import android.opengl.EGL14
 import android.view.Surface
 import javax.microedition.khronos.egl.EGL10
