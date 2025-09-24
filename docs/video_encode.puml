@@ -1,0 +1,32 @@
+@startuml
+title 视频编码链路
+
+participant StreamController
+participant VideoController
+participant CameraRecorder
+participant "EncodeRendererThread" as EncodeGL
+participant VideoEncoder
+participant "MediaCodec(H.264)" as MediaCodec
+participant Packer
+
+StreamController -> VideoController: start()
+VideoController -> CameraRecorder: start()
+CameraRecorder -> EncodeGL: start()
+EncodeGL -> VideoEncoder: onSurfaceCreate()/onDraw()
+VideoEncoder -> MediaCodec: configure(Surface, format)
+VideoEncoder -> MediaCodec: start()
+
+loop 每帧
+  EncodeGL -> Surface: glDrawArrays(编码输入纹理)
+  MediaCodec --> VideoEncoder: dequeueOutputBuffer(BufferInfo)
+  VideoEncoder -> VideoController: onVideoEncode(buffer,info)
+  VideoController -> StreamController: onVideoData(buffer,info)
+  StreamController -> Packer: onVideoData(buffer,info)
+end
+
+note over MediaCodec
+输出包含 NALU + BufferInfo;
+StreamController 在 onVideoOutformat 中提取 SPS/PPS。
+end note
+
+@enduml

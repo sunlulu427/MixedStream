@@ -18,6 +18,11 @@
 ## 日志
 - 关键路径日志统一使用 `LogHelper`；Debug 构建开启日志。
 
+## UI
+- 顶部切换摄像头按钮：40dp 半透明圆形背景（`bg_icon_circle`），内边距 8dp。
+- 底部 LIVE 按钮：44dp 高度、16sp 粗体、圆角高亮背景（`bg_button_yellow_round`）。
+- 水印：`Watermark("text", color, textSize, null, scale)` 中 `scale` 控制屏幕占比，示例使用 1.3。
+
 ## 常用场景
 - 动态码率调整：`live.setVideoBps(bps)`。
 - 切换摄像头：`live.switchCamera()`。
@@ -25,3 +30,5 @@
 ## 构建
 - `./gradlew :app:assembleDebug` 生成 APK；安装：`./gradlew :app:installDebug`。
 
+## 自动化诊断
+- 使用根目录脚本 `tools/diagnose_camera.sh` 自动完成 adb 重启与关键日志抓取（不依赖人工点按）。

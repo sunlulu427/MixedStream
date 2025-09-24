@@ -1,8 +1,8 @@
 # Module Guide — library (RTMP SDK)
 
 ## 架构分层
-- 采集/渲染：`camera/*`, `camera/renderer/*`, `widget/*`
-- 编解码：`mediacodec/*`
+- 采集/渲染：`camera/*`, `camera/renderer/*`, `widget/*`（见 `docs/video_capture.puml`, `docs/video_render.puml`）
+- 编解码：`mediacodec/*`（见 `docs/video_encode.puml`）
 - 封包：`stream/packer/*`
 - 发送：`stream/sender/*`（含 `rtmp`）
 - 控制器：`controller/*`
@@ -15,12 +15,13 @@
 - Watermark 设置（启动崩溃修复点）：
   - 现在支持延迟应用：`CameraView.setWatermark()` 在 renderer/GL 未就绪时仅缓存，GL onCreate 回调后自动应用，避免 `lateinit renderer` 空引用崩溃。
   - FBO 渲染在 `FboRenderer`；贴图创建需 GL 上下文，请勿在 EGL 建立前做 GLES 调用。
+  - `Watermark.scale` 控制屏幕占比，默认依据文本位图尺寸，可在应用层调整。
 - 相机管理：
   - `CameraHolder` 统一 open/start/stop/release；异常捕获并降级（硬件占用、无相机、无权限）。
 - 编解码：
   - 视频：`VideoMediaCodec`、`VideoEncoder`；音频同理。输出 SPS/PPS 由 `StreamController` 透传给打包器。
 - 发送（RTMP）：
-  - `RtmpSender` 通过 JNI 调用 native；懒加载 native 库，避免不支持 ABI 的崩溃。
+  - `RtmpSender` 通过 JNI 调用 native；懒加载 native 库，避免不支持 ABI 的崩溃。参考 `docs/video_streaming.puml`。
 
 ## JNI/NDK
 - CMake：`library/src/main/cpp/CMakeLists.txt`
@@ -48,5 +49,6 @@
 - 常见原因与修复：
   - 未就绪调用水印：已支持延迟应用，避免 `lateinit renderer` 崩溃。
   - OES 纹理未绑定/采样器未设置：在 `CameraRenderer` 中绑定 `GL_TEXTURE_EXTERNAL_OES` 并设置 `sTexture` 采样器（已修复）。
-  - 视口尺寸错误：渲染到 FBO 时使用 FBO 尺寸；绘制到屏幕再用屏幕尺寸（已修复）。
-  - SurfaceTexture 缓冲大小不匹配：对 `SurfaceTexture` 调用 `setDefaultBufferSize(width,height)`（已修复）。
+- 视口尺寸错误：渲染到 FBO 时使用 FBO 尺寸；绘制到屏幕再用屏幕尺寸（已修复）。
+- 预览裁剪：`updateAspect()` 根据相机/视图比例调整纹理坐标，保持画面不变形。
+- SurfaceTexture 缓冲大小不匹配：对 `SurfaceTexture` 调用 `setDefaultBufferSize(width,height)`（已修复）。

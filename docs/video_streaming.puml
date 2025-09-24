@@ -1,0 +1,39 @@
+@startuml
+title 推流链路（封包 + RTMP）
+
+participant StreamController
+participant Packer
+participant RtmpPacker
+participant RtmpSender
+participant "JNI Native" as Native
+participant "librtmp" as LibRtmp
+participant "RTMP Server" as Server
+
+StreamController -> Packer: onVideoData / onAudioData
+Packer -> RtmpPacker: assemble(PacketType)
+RtmpPacker -> RtmpPacker: mux to FLV tag
+RtmpPacker -> StreamController: onPacket(byte[],type)
+StreamController -> RtmpSender: onData(byte[],type)
+RtmpSender -> Native: pushVideo()/pushAudio()
+Native -> LibRtmp: RTMP_Write(packet)
+LibRtmp -> Server: send(chunk)
+
+== 建联 ==
+StreamController -> RtmpSender: connect()
+RtmpSender -> Native: NativeRtmpConnect(url)
+Native -> LibRtmp: RTMP_Connect/RTMP_ConnectStream
+LibRtmp --> RtmpSender: success/fail callbacks
+
+note over RtmpPacker
+原始码流封装：
+* Video NALU -> FLV Video Tag (AVCPacket)
+* Audio AAC -> FLV Audio Tag
+* 包头写入时间戳/长度
+end note
+
+note over LibRtmp,Server
+推流过程中按 chunkSize 切片，
+携带控制消息（SetChunkSize、SetBufferLength、Publish 等）。
+end note
+
+@enduml

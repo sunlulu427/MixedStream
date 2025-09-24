@@ -1,0 +1,36 @@
+@startuml
+title 视频采集链路
+
+actor User
+participant LiveActivity
+participant AVLiveView
+participant CameraView
+participant CameraRenderer
+participant CameraHolder
+participant "Android CameraService" as CameraService
+participant SurfaceTexture
+
+User -> LiveActivity: 启动 Activity
+LiveActivity -> AVLiveView: tryStartPreview()
+AVLiveView -> CameraView: startPreview(CameraConfiguration)
+CameraView -> CameraRenderer: configure(RendererConfiguration)
+CameraRenderer -> CameraRenderer: onSurfaceCreate()
+CameraRenderer -> SurfaceTexture: new SurfaceTexture(OES texture)
+CameraRenderer -> AVLiveView: OnRendererListener.onCreate(surfaceTexture)
+AVLiveView -> CameraHolder: setConfiguration()
+AVLiveView -> CameraHolder: openCamera()
+CameraHolder -> CameraService: Camera.open(cameraId)
+CameraService --> CameraHolder: Camera instance
+AVLiveView -> CameraHolder: setSurfaceTexture(surfaceTexture)
+CameraHolder -> SurfaceTexture: setOnFrameAvailableListener()
+AVLiveView -> CameraHolder: startPreview()
+CameraHolder -> CameraService: Camera.startPreview()
+CameraService --> CameraHolder: Preview frames
+CameraHolder -> CameraRenderer: updateTexImage() (via onFrameAvailable)
+
+note over CameraHolder,CameraRenderer
+CameraHolder 在 onFrameAvailable 中调用 updateTexImage，
+以最新纹理更新到 GPU。
+end note
+
+@enduml
