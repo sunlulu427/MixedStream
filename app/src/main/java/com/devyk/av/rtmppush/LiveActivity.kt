@@ -173,6 +173,13 @@ class LiveActivity : BaseActivity<Int>(), OnConnectListener {
         tryStartPreview()
     }
 
+    override fun onPermissionsUpdated(allGranted: Boolean) {
+        if (allGranted) {
+            // 权限到位后立即尝试预览
+            tryStartPreview()
+        }
+    }
+
 
     override fun onFail(message: String) {
         runOnUiThread {

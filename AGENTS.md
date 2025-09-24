@@ -15,6 +15,34 @@
 - 依赖：`app` 仅示例层依赖 `library`；`library` 通过 JNI 调用 `src/main/cpp` 并链接预编译 `librtmp`。
 - 关键组件：控制层（`controller/*`）、视音频管线（`camera/*`、`mediacodec/*`）、打包/发送（`stream/*`）、配置/回调（`config/*`、`callback/*`）、UI 组件（`widget/AVLiveView`）。
 
+### 使用概览（提炼自 README/Core）
+- 预览视图：在布局使用 `com.devyk.av.rtmp.library.widget.AVLiveView`，通过 `setAudioConfigure`、`setVideoConfigure`、`setCameraConfigure` 配置参数。
+- 启动顺序：`startPreview()` →（准备）→ `mSender.connect()` → `mPacker.start()` → `live.startLive()`。
+- 动态码率：`live.setVideoBps(bps)`。
+- 结束：`live.stopLive()` → `mSender.close()` → `mPacker.stop()`。
+
+### 启动稳定性与常见问题
+- 避免崩溃：
+  - 原因：早期在 Activity 初始化阶段创建 `RtmpSender()` 会加载 `libAVRtmpPush.so`，在不支持的 ABI（如 x86 模拟器）上导致 `UnsatisfiedLinkError` 并崩溃。
+  - 处理：`RtmpSender` 采用惰性创建，仅在用户发起推流时实例化，并通过 try/catch 兜底提示。
+- 水印设置时机：
+  - 原因：`CameraView` 中 `renderer` 为 `lateinit`，未开始预览或 GL 尚未就绪时调用 `setWatermark` 会触发 `lateinit` 崩溃。
+  - 处理：支持延迟水印生效。`CameraView.setWatermark()` 会缓存水印，待 GL onCreate 回调后自动应用，避免崩溃。
+- 权限与预览：
+  - 相机权限未授予时不会调用 `startPreview()`，相关操作（如切换相机、设置水印）会延后，日志以 `LogHelper.w` 输出。
+
+## 构建与运行（提炼）
+- 环境：Android SDK 29、NDK 21.1.6352462、CMake 3.10.2、Java 8。
+- 常用命令：
+  - 构建 APK：`./gradlew :app:assembleDebug`；安装：`./gradlew :app:installDebug`
+  - 构建 AAR：`./gradlew :library:assembleRelease`
+  - 测试：`./gradlew test`、`./gradlew connectedAndroidTest`
+  - Lint：`./gradlew :app:lintDebug :library:lint`
+
+## 模块说明
+- 应用（`app/`）：示例入口 `LiveActivity`，演示推流全链路与权限处理；模块内 AGENTS.md 描述 UI、权限与日志。
+- SDK（`library/`）：核心推流能力；模块内 AGENTS.md 描述 OpenGL/相机、编码、打包、发送、JNI/NDK 细节与注意事项。
+
 ## 环境与构建
 - 要求：Android SDK 29、NDK 21.1.6352462、CMake 3.10.2、Java 8。
 - 配置：于本机 `local.properties` 设置 `sdk.dir`/`ndk.dir`（勿提交）。
@@ -28,6 +56,11 @@
 - 分支命名：`feature/<module>-<desc>`、`fix/<module>-<issue>`、`perf/<module>-<desc>`。
 - 本地校验：构建、运行关键用例；必要时在真机验证相机/GL 与推流连通性。
 - 自检清单：无未提交文件、日志开关按构建类型、Lint 无新增告警、回归关键路径。
+
+### 诊断与自动化
+- 原则：自行通过 adb 重启 App 并抓取日志，不依赖人工操作；让流程自动可复用，问题定位更高效、更智能。
+- 建议脚本：`tools/diagnose_camera.sh` 自动执行 `am force-stop` → `am start` → 抓取关键 tag（CameraView/CameraHolder/CameraRenderer/GLSurfaceView/EglHelper/SurfaceTexture/CameraService）。
+- 日志不足时，先在关键路径补齐日志（相机 open/setSurfaceTexture/startPreview、GL onSurfaceCreate/onDraw、updateTexImage），再复测抓取。
 
 ## 代码风格与命名
 - Kotlin/Java：4 空格；类 UpperCamelCase；方法/字段 lowerCamelCase；常量 UPPER_SNAKE_CASE；包名小写；资源与 ID 使用 snake_case（如 `camera_view`）。
@@ -49,3 +82,10 @@
 ## 安全与配置
 - 禁止提交密钥与个人路径；勿提交/修改 `local.properties`。
 - 已跟踪的大型二进制（`library/src/main/cpp/librtmp/libs`）保持稳定，替换需充分论证并先讨论。
+---
+
+附：快速开始（简版）
+- 在布局添加 `AVLiveView` 并按需 XML 配置 `fps`、`preview_width/height`、`videoMinRate/MaxRate`。
+- 代码中配置音视频与相机参数，调用 `live.startPreview()`（需相机权限）。
+- 创建 `RtmpSender` 并 `setDataSource(url)` → `connect()`；收到 `onConnected` 后 `mPacker.start()` + `live.startLive()`。
+- 停止：`live.stopLive()` → `mSender.close()` → `mPacker.stop()`。

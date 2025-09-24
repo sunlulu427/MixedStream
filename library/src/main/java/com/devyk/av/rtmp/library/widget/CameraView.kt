@@ -39,6 +39,8 @@ open class CameraView @JvmOverloads constructor(
     protected var mTextureId = -1;
     protected var mCameraTexture = -1;
     protected var mCameraOpenListener: ICameraOpenListener? = null
+    private var glReady = false
+    private var pendingWatermark: Watermark? = null
 
     /**
      * 相机预览默认配置
@@ -54,6 +56,7 @@ open class CameraView @JvmOverloads constructor(
         this.mCameraConfiguration = cameraConfiguration
         cameraId = cameraConfiguration.facing
         renderer = CameraRenderer(context)
+        LogHelper.d(TAG, "startPreview: configure renderer and GL thread")
         configure(
             RendererConfiguration(
                 renderer = renderer,
@@ -66,8 +69,10 @@ open class CameraView @JvmOverloads constructor(
     }
 
     private fun addRendererListener() {
+        LogHelper.d(TAG, "addRendererListener")
         renderer.setOnRendererListener(object : CameraRenderer.OnRendererListener {
             override fun onCreate(surfaceTexture: SurfaceTexture, textureID: Int) {
+                LogHelper.d(TAG, "onRendererCreate(surfaceTexture) textureID=$textureID")
                 mTextureId = textureID
                 try {
                     CameraHolder.instance().setConfiguration(mCameraConfiguration)
@@ -75,6 +80,15 @@ open class CameraView @JvmOverloads constructor(
                     CameraHolder.instance().setSurfaceTexture(surfaceTexture, this@CameraView)
                     CameraHolder.instance().startPreview()
                     LogHelper.i(TAG, "camera opened, textureId=${mTextureId}")
+                    glReady = true
+                    pendingWatermark?.let {
+                        try {
+                            renderer.setWatemark(it)
+                        } catch (t: Throwable) {
+                            LogHelper.e(TAG, "apply pending watermark failed: ${t.message}")
+                        }
+                        pendingWatermark = null
+                    }
                     mCameraOpenListener?.onCameraOpen()
                 } catch (t: Throwable) {
                     // 关键路径容错：相机服务不可用/无权限/设备无相机时不崩溃，记录错误日志
@@ -83,6 +97,7 @@ open class CameraView @JvmOverloads constructor(
             }
 
             override fun onCreate(cameraTextureId: Int, textureID: Int) {
+                LogHelper.d(TAG, "onRendererCreate(cameraTextureId=$cameraTextureId, textureID=$textureID)")
 
             }
 
@@ -120,11 +135,16 @@ open class CameraView @JvmOverloads constructor(
      * 设置水印
      */
     open fun setWatermark(watermark: Watermark) {
+        // 若 GL/renderer 尚未就绪，则保存待应用
+        if (!this::renderer.isInitialized || !glReady) {
+            pendingWatermark = watermark
+            return
+        }
         renderer.setWatemark(watermark)
     }
 
     override fun onFrameAvailable(surfaceTexture: SurfaceTexture?) {
-        LogHelper.e(TAG, "相机纹理刷新");
+        LogHelper.e(TAG, "onFrameAvailable: 相机纹理刷新");
     }
 
 

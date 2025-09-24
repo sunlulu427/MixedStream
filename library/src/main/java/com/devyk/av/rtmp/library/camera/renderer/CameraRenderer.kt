@@ -74,6 +74,7 @@ class CameraRenderer(private val context: Context) : IRenderer {
      * 绘制的纹理 ID
      */
     private var mTextureID = 0
+    private var samplerOesLocation = 0
 
     /**
      * 使用 VBO
@@ -164,6 +165,7 @@ class CameraRenderer(private val context: Context) : IRenderer {
     private var mRendererListener: OnRendererListener? = null
 
     override fun onSurfaceCreate(width: Int, height: Int) {
+        LogHelper.d(TAG, "onSurfaceCreate w=$width h=$height")
         mScreenWidth = context.resources.displayMetrics.widthPixels
         mScreenHeight = context.resources.displayMetrics.heightPixels
         this.mHeight = height
@@ -182,6 +184,7 @@ class CameraRenderer(private val context: Context) : IRenderer {
         vPosition = GLES20.glGetAttribLocation(program, "v_Position")
         fPosition = GLES20.glGetAttribLocation(program, "f_Position")
         umatrix = GLES20.glGetUniformLocation(program, "u_Matrix")
+        samplerOesLocation = GLES20.glGetUniformLocation(program, "sTexture")
 
         //4. 生成一个 VBO
         val vbo = IntArray(1)
@@ -270,6 +273,10 @@ class CameraRenderer(private val context: Context) : IRenderer {
         mCameraTextureId = genCameraTextureId()
 
         val surfaceTexture = SurfaceTexture(mCameraTextureId)
+        // 将 SurfaceTexture 的默认缓冲区设置为当前渲染尺寸，避免尺寸不匹配导致黑屏
+        try {
+            surfaceTexture.setDefaultBufferSize(mWidth, mHeight)
+        } catch (_: Throwable) {}
         mRendererListener?.onCreate(mCameraTextureId, mTextureID)
         mRendererListener?.onCreate(surfaceTexture, mTextureID)
         GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, 0)
@@ -282,6 +289,8 @@ class CameraRenderer(private val context: Context) : IRenderer {
     }
 
     override fun onDraw() {
+        // 渲染一次
+        // 注意：SurfaceTexture.updateTexImage() 在回调中调用
         if (!isTexture) {
             Thread.sleep(300)
             isTexture = switchCametaListener?.onChange()!!
@@ -296,11 +305,19 @@ class CameraRenderer(private val context: Context) : IRenderer {
 
         //1. 使用顶点和片元创建出来的执行程序
         GLES20.glUseProgram(program)
-        GLES20.glViewport(0, 0, mScreenWidth, mScreenHeight)
+        // 绘制到离屏 FBO，使用 FBO 尺寸
+        GLES20.glViewport(0, 0, mWidth, mHeight)
         GLES20.glUniformMatrix4fv(umatrix, 1, false, mMatrix, 0)
 
         //绑定 fbo
         GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, mFboID)
+
+        // 绑定摄像头 OES 纹理到采样器
+        GLES20.glActiveTexture(GLES20.GL_TEXTURE0)
+        GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, mCameraTextureId)
+        if (samplerOesLocation >= 0) {
+            GLES20.glUniform1i(samplerOesLocation, 0)
+        }
 
         //3. 绑定 VBO
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, mVboID)
@@ -318,6 +335,8 @@ class CameraRenderer(private val context: Context) : IRenderer {
         GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4)
 
         //7. 解绑
+        // 解绑 OES 纹理
+        GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, 0)
         // 解绑 纹理
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0)
         // 解绑 VBO

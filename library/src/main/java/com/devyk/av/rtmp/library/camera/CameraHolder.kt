@@ -114,6 +114,7 @@ class CameraHolder {
      */
     fun setSurfaceTexture(textureId: Int, listener: SurfaceTexture.OnFrameAvailableListener?) {
         mTexture = SurfaceTexture(textureId)
+        Log.d(TAG, "setSurfaceTexture(id) called, textureId=$textureId")
 //        if (state == State.PREVIEW && mCameraDevice != null && mTexture != null) {
         try {
             mCameraDevice?.run {
@@ -132,6 +133,7 @@ class CameraHolder {
         listener: SurfaceTexture.OnFrameAvailableListener?
     ) {
         mTexture = texture
+        Log.d(TAG, "setSurfaceTexture(surfaceTexture) called")
 //        if (state == State.PREVIEW && mCameraDevice != null && mTexture != null) {
         try {
             mCameraDevice?.run {
@@ -160,18 +162,22 @@ class CameraHolder {
     @Synchronized
     fun startPreview() {
         if (state != State.OPENED) {
+            Log.d(TAG, "startPreview ignored: state=$state")
             return
         }
         if (mCameraDevice == null) {
+            Log.d(TAG, "startPreview ignored: mCameraDevice=null")
             return
         }
         if (mTexture == null) {
+            Log.d(TAG, "startPreview ignored: mTexture=null (wait surface)")
             return
         }
         try {
             mCameraDevice!!.setPreviewTexture(mTexture)
             mCameraDevice!!.startPreview()
             state = State.PREVIEW
+            Log.d(TAG, "startPreview success")
         } catch (e: Exception) {
             releaseCamera()
             e.printStackTrace()

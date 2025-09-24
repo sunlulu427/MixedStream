@@ -1,0 +1,601 @@
+--------- beginning of main
+09-24 23:19:51.846 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28347, screenshot (Background for SurfaceView[com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity]#0)
+09-24 23:19:51.846 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28347, screenshot (SurfaceView[com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity](BLAST)#0)
+09-24 23:19:51.846 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28347, screenshot (com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity#0)
+09-24 23:19:51.943 D/ProcessState(30600): Binder ioctl to enable oneway spam detection failed: Invalid argument
+09-24 23:19:51.947 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28348, screenshot (Background for SurfaceView[com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity]#0)
+09-24 23:19:51.947 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28348, screenshot (SurfaceView[com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity](BLAST)#0)
+09-24 23:19:51.948 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28348, screenshot (com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity#0)
+--------- beginning of system
+09-24 23:19:51.952 I/ActivityManager( 1492): Force stopping com.devyk.av.rtmppush appid=10209 user=0: from process:30600
+09-24 23:19:51.957 D/AutoStartManagerService( 1492): prepare force stop p:30406 s: 19
+09-24 23:19:51.958 I/Process ( 1492): Sending signal. PID: 30406 SIG: 19
+09-24 23:19:51.960 I/SmartPower.com.devyk.av.rtmppush/10209(30406)( 1492): visible->died(881217ms) R(process died ) adj=0.
+09-24 23:19:51.961 I/SmartPower( 1492): com.devyk.av.rtmppush/10209 state=foreground adj=0 proc size=1 move to died process died 
+09-24 23:19:51.962 I/MiuiNetworkPolicyTrafficLimit( 1492): updateWhiteListUidForMobileTraffic uid=10209,add=false
+09-24 23:19:51.963 D/MiuiNetworkPolicyTrafficLimit( 1492): updateWhiteListUidForMobileTraffic rst=true
+09-24 23:19:51.963 I/ActivityManager( 1492): Killing 30406:com.devyk.av.rtmppush/u0a209 (adj 0): stop com.devyk.av.rtmppush due to from process:30600
+09-24 23:19:51.964 W/PreloadController( 1492): no need to preload,return in PreloadController.notify
+09-24 23:19:51.969 D/ProcessRecordInjector( 1492): Begin to report kill process events...
+09-24 23:19:51.969 D/ProcessManager( 1492): skip restart com.devyk.av.rtmppush because this device is a lowmemory device!
+09-24 23:19:51.970 D/ProcessRecordInjector( 1492): Finishing reporting clean up app record.
+09-24 23:19:51.971 I/com.xiaomi.xms( 3462): oneway function results for code 3 on binder at 0xb400007f0fb0d020 will be dropped but finished with status UNKNOWN_TRANSACTION
+09-24 23:19:51.972 I/libPowerHal(  738): [perfNotifyAppState] pack:com.devyk.av.rtmppush, act:com.devyk.av.rtmppush, state:3, pid:30406, uid:10209, fps:60
+09-24 23:19:51.972 I/libPowerHal(  738): [perfNotifyAppState] pack:com.devyk.av.rtmppush, pid:30406, STATE_DEAD
+09-24 23:19:51.972 D/RilUtility(  738): notify_rild_crash_pid_set certPid:-1, crash:30406, scn:0x0
+09-24 23:19:51.973 W/ActivityTaskManager( 1492): Force removing ActivityRecord{de85eab u0 com.devyk.av.rtmppush/.LiveActivity t21 f}}: app died, no saved state
+09-24 23:19:51.974 I/libprocessgroup( 1492): Successfully killed process cgroup uid 10209 pid 30406 in 6ms
+09-24 23:19:51.993 W/WindowManager( 1492): Changing focus from Window{d983cb2 u0 com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity} to null displayId=0 Callers=com.android.server.wm.RootWindowContainer.updateFocusedWindowLocked:491 com.android.server.wm.WindowManagerService.updateFocusedWindowLocked:6202 com.android.server.wm.ActivityRecord.commitVisibility:5470 com.android.server.wm.ActivityRecord.onRemovedFromDisplay:4242 
+09-24 23:19:52.000 D/WindowManager( 1492): Input focus has changed to null display=0 updateInputWindows = false
+09-24 23:19:52.010 I/ClientCache(  790): removeProcess: Cache owner=0xb40000752ae838c0
+09-24 23:19:52.012 E/BaseInputMethodService( 8292): onUnbindInput
+09-24 23:19:52.013 I/Zygote  (  701): Process 30406 exited due to signal 9 (Killed)
+09-24 23:19:52.034 W/InputManager-JNI( 1492): Input channel object 'd983cb2 com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity (client)' was disposed without first being removed with the input manager!
+09-24 23:19:52.035 E/ClientCache(  790): failed to get buffer, invalid process token
+09-24 23:19:52.035 D/WindowManager( 1492): setParent old=ActivityRecord{de85eab u0 com.devyk.av.rtmppush/.LiveActivity t21 f}},new=null,this window=Window{d983cb2 u0 com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity},callers=com.android.server.wm.WindowContainer.removeChild:644 com.android.server.wm.ActivityRecord.removeChild:4381 com.android.server.wm.ActivityRecord.removeChild:421 com.android.server.wm.WindowContainer.removeImmediately:695 com.android.server.wm.WindowState.removeImmediately:2531 com.android.server.wm.WindowState.removeIfPossible:2726 
+09-24 23:19:52.054 E/BpTransactionCompletedListener(  790): Failed to transact (-32)
+09-24 23:19:52.054 I/BufferQueueDebug(  790): [com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity#0](this:0xb40000752a7678e0,id:-1,api:0,p:-1,c:790) onDestructor()
+09-24 23:19:52.054 E/BpTransactionCompletedListener(  790): Failed to transact (-32)
+09-24 23:19:52.054 I/BufferQueueDebug(  790): [SurfaceView[com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity](BLAST)#0](this:0xb40000752a9638e0,id:-1,api:0,p:-1,c:790) onDestructor()
+09-24 23:19:52.061 D/WindowManager( 1492): setParent old=Task{c0a9908 #21 type=standard A=10209:com.devyk.av.rtmppush U=0 visible=false mode=fullscreen translucent=true sz=0},new=null,this window=ActivityRecord{de85eab u0 com.devyk.av.rtmppush/.LiveActivity t21 f}},callers=com.android.server.wm.WindowContainer.removeChild:644 com.android.server.wm.TaskFragment.removeChild:2409 com.android.server.wm.Task.removeChild:1655 com.android.server.wm.Task.removeChild:1636 com.android.server.wm.WindowContainer.removeImmediately:695 com.android.server.wm.WindowToken.removeImmediately:363 
+09-24 23:19:52.066 D/WindowManager( 1492): setParent old=DefaultTaskDisplayArea@6597651,new=null,this window=Task{c0a9908 #21 type=standard A=10209:com.devyk.av.rtmppush U=0 visible=true mode=fullscreen translucent=true sz=0},callers=com.android.server.wm.WindowContainer.removeChild:644 com.android.server.wm.TaskDisplayArea.removeChildTask:420 com.android.server.wm.TaskDisplayArea.removeChild:411 com.android.server.wm.WindowContainer.removeImmediately:695 com.android.server.wm.TaskFragment.removeImmediately:2475 com.android.server.wm.Task.removeImmediately:3049 
+09-24 23:19:52.067 I/libPerfCtl(  738): xgfGetFPS pid:2113 fps:-1
+09-24 23:19:52.067 I/libPerfCtl(  738): xgfGetFPS pid:30406 fps:46
+09-24 23:19:52.069 I/mtkpower_client( 1492): perf_lock_acq, hdl:849, dur:400, num:6, tid:3631
+09-24 23:19:52.070 I/mtkpower_client( 1492): ret_hdl:877
+09-24 23:19:52.070 I/libPowerHal(  738): [perfLockAcq] idx:0 hdl:877 hint:-1 pid:1492 duration:400 lock_user:system_server => ret_hdl:877
+09-24 23:19:52.071 W/MiuiBooster( 1012): "cancel opt fail: rc = -1,  tid=30406 "
+09-24 23:19:52.071 I/libPowerHal(  738): system_server: cpu_ctrl set cpu freq: 1800000 -1 2000000 -1
+09-24 23:19:52.072 I/PowerHalWrapper( 1492): amsBoostNotify pid:2122,activity:com.miui.home.launcher.Launcher, package:com.miui.home, mProcessCreatePackcom.devyk.av.rtmppush 
+09-24 23:19:52.073 I/PowerHalWrapper( 1492): state: 1 
+09-24 23:19:52.073 I/PowerHalWrapper( 1492): amsBoostNotify AMS_BOOST_PROCESS_CREATE_BOOST:true 
+09-24 23:19:52.073 I/libPowerHal(  738): [perfNotifyAppState] pack:com.miui.home, act:com.miui.home.launcher.Launcher, state:1, pid:2122, uid:10070, fps:60
+09-24 23:19:52.073 I/libPowerHal(  738): [perfNotifyAppState] foreground:com.miui.home, pid:2122, uid:10070
+09-24 23:19:52.074 E/UxUtility(  738): notifyAppState error = NULL
+09-24 23:19:52.074 I/TouchUtility(  738): notifyAppState error = NULL
+09-24 23:19:52.074 I/SbeHandle(  738): pack:com.miui.home->Common Not Has APPList
+09-24 23:19:52.074 I/libPowerHal(  738): [AppScenarioEnable] pack:com.miui.home launch cold:25000 warm:5000 act:0
+09-24 23:19:52.074 I/libPowerHal(  738): [perfNotifyAppState] scn:313, pack:com.miui.home, act:Common, fps:Common !!!
+09-24 23:19:52.074 I/libPowerHal(  738): [PE] scn:313 pack:com.miui.home
+09-24 23:19:52.074 I/libPowerHal(  738): [PE] com.miui.home update cmd:2020000, param:6
+09-24 23:19:52.074 I/libPowerHal(  738): [PE] com.miui.home update cmd:202c000, param:80
+09-24 23:19:52.074 I/libPowerHal(  738): [PE] com.miui.home update cmd:200c000, param:16666666
+09-24 23:19:52.074 I/libPowerHal(  738): [PE] com.miui.home update cmd:2040000, param:1
+09-24 23:19:52.075 I/mtkpower@impl(  738): [notifyAppState] pc:0, com.devyk.av.rtmppush => com.miui.home
+09-24 23:19:52.075 I/libPowerHal(  738): [perfUserGetCapability] GET_LAUNCH_TIME_WARM cmd:101, time:5000 ms
+09-24 23:19:52.075 I/libPowerHal(  738): [perfLockAcq] idx:1 hdl:878 hint:31 pid:738 duration:5000 lock_user:mtkpower@1.0-se => ret_hdl:878
+09-24 23:19:52.075 I/libPowerHal(  738): [PE] MTKPOWER_HINT_WHITELIST_LAUNCH update cmd:1000000, param:0
+09-24 23:19:52.076 I/libPowerHal(  738): [PE] MTKPOWER_HINT_WHITELIST_LAUNCH update cmd:1408300, param:100
+09-24 23:19:52.076 I/libPowerHal(  738): [PE] MTKPOWER_HINT_WHITELIST_LAUNCH update cmd:1000000 param:0
+09-24 23:19:52.093 W/ActivityTaskManager( 1492): Can't find TaskDisplayArea to determine support for multi window. Task id=21 attached=false
+09-24 23:19:52.094 W/ActivityTaskManager( 1492): Can't find TaskDisplayArea to determine support for multi window. Task id=21 attached=false
+09-24 23:19:52.105 I/MiuiNetworkPolicyTrafficLimit( 1492): updateWhiteListUidForMobileTraffic uid=10070,add=true
+09-24 23:19:52.105 D/MiuiNetworkPolicyTrafficLimit( 1492): updateWhiteListUidForMobileTraffic rst=true
+09-24 23:19:52.106 W/WindowManager( 1492): Failed looking up window session=Session{4400426 30406:u0a10209} callers=com.android.server.wm.WindowManagerService.windowForClientLocked:6077 com.android.server.wm.WindowState$DeathRecipient.binderDied:3255 android.os.IBinder$DeathRecipient.binderDied:314 
+09-24 23:19:52.106 I/WindowManager( 1492): WIN DEATH: null
+09-24 23:19:52.117 D/PerfEngineController( 3019): ForegroundInfo{mForegroundPackageName='com.miui.home', mForegroundUid=10070, mForegroundPid=2122, mLastForegroundPackageName='com.devyk.av.rtmppush', mLastForegroundUid=10209, mLastForegroundPid=30406, mMultiWindowForegroundPackageName='com.miui.home', mMultiWindowForegroundUid=10070, mFlags=0}
+09-24 23:19:52.117 I/ThermalInfoCollector( 3019): collectForgroundAppsInfo: com.devyk.av.rtmppush
+09-24 23:19:52.117 D/AppObserver( 2122): ForegroundInfo{mForegroundPackageName='com.miui.home', mForegroundUid=10070, mForegroundPid=2122, mLastForegroundPackageName='com.devyk.av.rtmppush', mLastForegroundUid=10209, mLastForegroundPid=30406, mMultiWindowForegroundPackageName='com.miui.home', mMultiWindowForegroundUid=10070, mFlags=0}
+09-24 23:19:52.118 D/LS-ForegroundStatusManager( 3019): handleMessage ForegroundInfoChanged. pkg = com.miui.home, uid = 10070, mCurrentForegroundUid = 10209
+09-24 23:19:52.118 D/LS-ForegroundStatusManager( 3019): onForegroundChanged mCurrentForegroundUid = 10209, new uid = 10070
+09-24 23:19:52.135 I/WindowManagerService( 1492): Physical orientation applied, rotation=0 sfOrientation=ORIENTATION_0
+09-24 23:19:52.137 D/Launcher.Lifecycle( 2122): onStart:UserHandle{0},8132508,false
+09-24 23:19:52.140 D/Launcher.Lifecycle( 2122): onResume:UserHandle{0},8132508,false
+09-24 23:19:52.140 D/MiBridge( 2122): requestCpuHighFreq---- uid: 10070 level: 1 timeoutms:500
+09-24 23:19:52.140 W/Settings( 2122): Setting device_provisioned has moved from android.provider.Settings.Secure to android.provider.Settings.Global.
+09-24 23:19:52.140 W/MiuiBooster( 1012): "MiuiBoosterService requestCpuHighFreq: 10070, 1, 500"
+09-24 23:19:52.140 W/MiuiBooster( 1012): "requestCpuHighFreq,final level:1,final timeoutms:500"
+09-24 23:19:52.140 W/MiuiBooster( 1012): "perf_hint_hc start"
+09-24 23:19:52.136 W/mtkPowerService(  738): type=1400 audit(0.0:8762): avc: denied { getattr } for path="/proc/1012" dev="proc" ino=3137617 scontext=u:r:mtk_hal_power:s0 tcontext=u:r:miuibooster:s0 tclass=dir permissive=0
+09-24 23:19:52.136 W/mtkPowerService(  738): type=1400 audit(0.0:8763): avc: denied { search } for name="1012" dev="proc" ino=3137617 scontext=u:r:mtk_hal_power:s0 tcontext=u:r:miuibooster:s0 tclass=dir permissive=0
+09-24 23:19:52.141 E/libPowerHal(  738): Could not open '/proc/1012/comm'
+09-24 23:19:52.141 I/libPowerHal(  738): [perfLockAcq] idx:2 hdl:879 hint:-1 pid:1012 duration:500 lock_user: => ret_hdl:879
+09-24 23:19:52.142 W/MiuiBooster( 1012): "perf_handle:879"
+09-24 23:19:52.142 D/MiBridge( 2122): requestCpuHighFreq handle: 1
+09-24 23:19:52.142 D/Launcher_CPUBooster( 2122): boostCpuToMax:0
+09-24 23:19:52.142 D/Launcher.FullbackHome( 2122): FallbackHomeCompat::needKillSelf::needKillSelf = false
+09-24 23:19:52.142 E/PhoneInterfaceManager( 2098): [PhoneIntfMgr] getCarrierPackageNamesForIntentAndPhone: No UICC
+09-24 23:19:52.142 D/CarrierSvcBindHelper( 2098): No carrier app for: 0
+09-24 23:19:52.146 W/ActivityManager( 1492): Sending non-protected broadcast thermalManagerCurrentActivity from system 3019:com.miui.powerkeeper/1000 pkg com.miui.powerkeeper. Callers=
+09-24 23:19:52.146 W/ActivityManager( 1492): Sending non-protected broadcast thermalManagerCurrentActivity from system 3019:com.miui.powerkeeper/1000 pkg com.miui.powerkeeper. Callers=
+09-24 23:19:52.146 W/Looper  ( 1492): Slow dispatch took 183ms main h=com.android.server.job.JobSchedulerService$JobHandler c=null m=7
+09-24 23:19:52.147 D/ThermalIECHandler( 3019): IECAll48Allowed: false; IECMonitorAllowed: false; IECTestState: false
+09-24 23:19:52.148 D/CarrierSvcBindHelper( 2098): No carrier app for: 1
+09-24 23:19:52.154 E/PowerKeeper.Sensor( 3019): setAppSensorsControlPolicyjava.lang.UnsupportedOperationException
+09-24 23:19:52.156 E/PowerKeeper.Sensor( 3019): setAppSensorsControlPolicyjava.lang.UnsupportedOperationException
+09-24 23:19:52.157 E/BufferQueueDebug(  790): [com.miui.home/com.miui.home.launcher.Launcher#0](this:0xb40000752a90f8e0,id:-1,api:0,p:-1,c:-1) id info cannot be read from 'com.miui.home/com.miui.home.launcher.Launcher#0'
+09-24 23:19:52.158 I/BufferQueueDebug(  790): [com.miui.home/com.miui.home.launcher.Launcher#0](this:0xb40000752a90f8e0,id:-1,api:0,p:-1,c:-1) BufferQueue core=(790:/system/bin/surfaceflinger)
+09-24 23:19:52.163 D/ThermalIECHandler( 3019): storeDataStyle: thermal_iec_monitor_persistence_data_style_iec_state; startIECTime: -1; IECScreenOffOverPeriodTime: 261797531
+09-24 23:19:52.163 D/ThermalIECHandler( 3019): storeDataStyle: thermal_iec_monitor_persistence_data_style_iec_state; startIECTime: -1; IECScreenOffOverPeriodTime: 261797531
+09-24 23:19:52.183 D/ProcessState(30607): Binder ioctl to enable oneway spam detection failed: Invalid argument
+09-24 23:19:52.186 W/WindowManager( 1492): Changing focus from null to Window{319d65a u0 com.miui.home/com.miui.home.launcher.Launcher} displayId=0 Callers=com.android.server.wm.RootWindowContainer.updateFocusedWindowLocked:491 com.android.server.wm.WindowManagerService.updateFocusedWindowLocked:6202 com.android.server.wm.WindowManagerService.relayoutWindow:2724 com.android.server.wm.Session.relayout:241 
+09-24 23:19:52.191 D/WindowManager( 1492): Input focus has changed to Window{319d65a u0 com.miui.home/com.miui.home.launcher.Launcher} display=0 updateInputWindows = true
+09-24 23:19:52.193 I/WindowManagerService( 1492): Physical orientation applied, rotation=0 sfOrientation=ORIENTATION_0
+09-24 23:19:52.194 I/WindowManager( 1492): Relayout Window{319d65a u0 com.miui.home/com.miui.home.launcher.Launcher}: oldVis=4 newVis=0 focusMayChange = true requestedWidth = 720 requestedHeight = 1650 outFrames = ClientWindowFrames{frame=[0,0][720,1650] display=[0,0][720,1650] backdrop=[0,0][720,1650]} outSurfaceControl = Surface(name=com.miui.home/com.miui.home.launcher.Launcher)/@0x216d510
+09-24 23:19:52.195 I/BufferQueueConsumer( 2122): [](id:84a00000019,api:0,p:-1,c:2122) connect: controlledByApp=false
+09-24 23:19:52.195 I/BLASTBufferQueue( 2122): [ViewRootImpl[Launcher]#25] constructor()
+09-24 23:19:52.196 I/BufferQueueProducer( 2122): [ViewRootImpl[Launcher]#25(BLAST Consumer)25](id:84a00000019,api:1,p:2122,c:2122) connect: api=1 producerControlledByApp=true
+09-24 23:19:52.198 W/ActivityManager( 1492): setHasOverlayUi called on unknown pid: 30406
+09-24 23:19:52.222 I/ActivityTaskManager( 1492): START u0 {act=android.intent.action.MAIN cat=[android.intent.category.LAUNCHER] flg=0x10000000 cmp=com.devyk.av.rtmppush/.LiveActivity} from uid 2000 from pid 30607 callingPackage com.android.shell
+09-24 23:19:52.231 D/RecentsImpl( 2122): mActivityStateObserver com.miui.home.launcher.Launcher
+09-24 23:19:52.231 W/RecentsImpl( 2122): onResumed className=com.miui.home.launcher.Launcher   mIsInAnotherPro=false   isKeyguardLocked=false
+09-24 23:19:52.231 D/Launcher( 2122): notifyBackGestureStatus
+09-24 23:19:52.231 E/Launcher( 2122): notifyBackGestureStatus:run usingFsGesture=true   show=true   focus=false   pause=false
+09-24 23:19:52.231 D/Launcher( 2122): notifyFsGestureHomeStatus    enableBackGesture=false   isSupportRecentsAndFsGesture=true
+09-24 23:19:52.234 W/ActivityTaskManager( 1492): Can't find TaskDisplayArea to determine support for multi window. Task id=22 attached=false
+09-24 23:19:52.235 W/RecentsImpl( 2122): updateFsgWindowVisibilityState   isEnter=false   typeFrom=typefrom_home   isOpen=true   mIsInAnotherPro=false   mIsStatusBarExpansion=false
+09-24 23:19:52.235 W/RecentsImpl( 2122): getTopActivity from observer.   cn=ComponentInfo{com.miui.home/com.miui.home.launcher.Launcher}
+09-24 23:19:52.235 D/RecentsImpl( 2122): showNavStubView
+09-24 23:19:52.235 D/NavStubView_Touch( 2122): setKeepHidden    old=false   new=false
+09-24 23:19:52.236 D/RecentsImpl( 2122): hideBackStubWindow
+09-24 23:19:52.247 D/CompatibilityChangeReporter( 1492): Compat change id reported: 174042980; UID 10209; state: DISABLED
+09-24 23:19:52.248 D/CompatibilityChangeReporter( 1492): Compat change id reported: 184838306; UID 10209; state: DISABLED
+09-24 23:19:52.249 D/CompatibilityChangeReporter( 1492): Compat change id reported: 185004937; UID 10209; state: DISABLED
+09-24 23:19:52.249 D/CompatibilityChangeReporter( 1492): Compat change id reported: 181136395; UID 10209; state: DISABLED
+09-24 23:19:52.250 D/CompatibilityChangeReporter( 1492): Compat change id reported: 174042936; UID 10209; state: DISABLED
+09-24 23:19:52.259 I/mtkpower@impl(  738): [setMode] type:5, enabled:1
+09-24 23:19:52.260 I/libPowerHal(  738): [perfLockAcq] idx:3 hdl:880 hint:11 pid:738 duration:30000 lock_user:mtkpower@1.0-se => ret_hdl:880
+09-24 23:19:52.264 D/CompatibilityChangeReporter( 1492): Compat change id reported: 168419799; UID 10209; state: DISABLED
+09-24 23:19:52.268 I/PowerHalWrapper( 1492): PowerHalWrapper.getInstance 
+09-24 23:19:52.271 I/PowerHalWrapper( 1492): <amsBoostResume> last:com.miui.home, next:com.devyk.av.rtmppush 
+09-24 23:19:52.272 I/libPowerHal(  738): [perfLockRel] hdl:871, idx:-1
+09-24 23:19:52.272 I/libPowerHal(  738): [perfLockAcq] idx:4 hdl:881 hint:22 pid:738 duration:10000 lock_user:mtkpower@1.0-se => ret_hdl:881
+09-24 23:19:52.272 I/libPowerHal(  738): [perfLockRel] hdl:869, idx:-1
+09-24 23:19:52.274 E/ndroid.systemu( 2113): Invalid ID 0x00000000.
+09-24 23:19:52.274 D/TaskSnapshot_Helper( 2113): app is not pre-defined.
+09-24 23:19:52.277 I/SurfaceFlinger(  790): [SF client] NEW(0xb4000075dabfb9c0) for (2113:com.android.systemui)
+09-24 23:19:52.279 D/ViewRootImpl[rtmppush]( 2113): hardware acceleration = true, sRendererEnabled = true, forceHwAccelerated = false
+09-24 23:19:52.294 D/WindowManager( 1492): finishDrawingLocked: mDrawState=COMMIT_DRAW_PENDING Window{319d65a u0 com.miui.home/com.miui.home.launcher.Launcher} in Surface(name=com.miui.home/com.miui.home.launcher.Launcher)/@0xbfc323c
+09-24 23:19:52.295 D/OneHandedController( 2113): stopOneHanded state isTransitioning or STATE_NONE
+09-24 23:19:52.295 W/ActivityManager( 1492): Unable to start service Intent { act=com.miui.launcher.WINDOW_OVERLAY dat=app://com.miui.home:10070?sv=6&cv=3 pkg=com.miui.personalassistant } U=0: not found
+09-24 23:19:52.295 D/LauncherClient.Service( 2122): bind service :false
+09-24 23:19:52.297 D/StatusBarController( 2122): handleMessage: flag 800000  disable false
+09-24 23:19:52.302 I/hwcomposer(  719): [HWCDisplay] [Display_0 (type:1)] fps:43.431015,dur:1013.10,max:64.91,min:11.01  
+09-24 23:19:52.304 I/PowerHalWrapper( 1492): amsBoostStop AMS_BOOST_PACK_SWITCH:true, AMS_BOOST_ACT_SWITCH:false, AMS_BOOST_PROCESS_CREATE:false 
+09-24 23:19:52.304 I/mtkpower@impl(  738): [mtkPowerHint] hint:22, hold:500, ext:0, ext_hold:0
+09-24 23:19:52.305 I/libPowerHal(  738): [perfLockAcq] idx:5 hdl:882 hint:22 pid:738 duration:500 lock_user:mtkpower@1.0-se => ret_hdl:882
+09-24 23:19:52.305 D/Launcher.Lifecycle( 2122): onPause:UserHandle{0},8132508,false
+09-24 23:19:52.305 I/libPowerHal(  738): [perfLockRel] hdl:881, idx:4
+09-24 23:19:52.305 D/Launcher_UnlockAnimationStateMachine( 2122): setState:PAUSE_WAIT
+09-24 23:19:52.309 D/TaskStackChangeListeners( 2122): onTaskDisplayChanged =  taskId = 22 newDisplayId = 0
+09-24 23:19:52.309 D/OneHandedController( 2113): stopOneHanded state isTransitioning or STATE_NONE
+09-24 23:19:52.310 D/OneHandedController( 2113): stopOneHanded state isTransitioning or STATE_NONE
+09-24 23:19:52.328 V/AS.AudioDeviceBroker( 1492): requestedCommunicationDevice, device: null mode owner pid: 0
+09-24 23:19:52.328 V/AS.AudioDeviceBroker( 1492): requestedCommunicationDevice, device: null mode owner pid: 0
+09-24 23:19:52.343 I/PowerHalWrapper( 1492): amsBoostNotify pid:2122,activity:com.miui.home.launcher.Launcher, package:com.miui.home, mProcessCreatePackcom.devyk.av.rtmppush 
+09-24 23:19:52.344 I/PowerHalWrapper( 1492): state: 0 
+09-24 23:19:52.344 I/PowerHalWrapper( 1492): amsBoostNotify AMS_BOOST_PROCESS_CREATE_BOOST:false 
+09-24 23:19:52.344 I/libPowerHal(  738): [perfNotifyAppState] pack:com.miui.home, act:com.miui.home.launcher.Launcher, state:0, pid:2122, uid:10070, fps:60
+09-24 23:19:52.344 I/libPowerHal(  738): [PD] scn:313 pack:com.miui.home
+09-24 23:19:52.344 I/libPowerHal(  738): [PD] com.miui.home update cmd:2020000 param:1
+09-24 23:19:52.345 I/libPowerHal(  738): [PD] com.miui.home update cmd:202c000 param:100
+09-24 23:19:52.345 I/libPowerHal(  738): [PD] com.miui.home update cmd:200c000 param:0
+09-24 23:19:52.345 I/libPowerHal(  738): [PD] com.miui.home update cmd:2040000 param:1
+09-24 23:19:52.345 D/Launcher_WallpaperUtils( 2122): changeStatusBarMode:true
+09-24 23:19:52.346 E/BufferQueueDebug(  790): [Splash Screen com.devyk.av.rtmppush#0](this:0xb4000075244888e0,id:-1,api:0,p:-1,c:-1) id info cannot be read from 'Splash Screen com.devyk.av.rtmppush#0'
+09-24 23:19:52.346 I/BufferQueueDebug(  790): [Splash Screen com.devyk.av.rtmppush#0](this:0xb4000075244888e0,id:-1,api:0,p:-1,c:-1) BufferQueue core=(790:/system/bin/surfaceflinger)
+09-24 23:19:52.375 W/WindowManager( 1492): Changing focus from Window{319d65a u0 com.miui.home/com.miui.home.launcher.Launcher} to null displayId=0 Callers=com.android.server.wm.RootWindowContainer.updateFocusedWindowLocked:491 com.android.server.wm.WindowManagerService.updateFocusedWindowLocked:6202 com.android.server.wm.WindowManagerService.relayoutWindow:2724 com.android.server.wm.Session.relayout:241 
+09-24 23:19:52.376 D/WindowManager( 1492): Input focus has changed to null display=0 updateInputWindows = true
+09-24 23:19:52.377 I/WindowManagerService( 1492): Physical orientation applied, rotation=0 sfOrientation=ORIENTATION_0
+09-24 23:19:52.379 I/BufferQueueConsumer( 2113): [](id:84100000019,api:0,p:-1,c:2113) connect: controlledByApp=false
+09-24 23:19:52.380 I/BLASTBufferQueue( 2113): [ViewRootImpl[rtmppush]#25] constructor()
+09-24 23:19:52.381 I/BufferQueueProducer( 2113): [ViewRootImpl[rtmppush]#25(BLAST Consumer)25](id:84100000019,api:1,p:2113,c:2113) connect: api=1 producerControlledByApp=true
+09-24 23:19:52.390 W/ProcessCpuTracker( 1492): Failed to stat(/proc/30605): android.system.ErrnoException: stat failed: ENOENT (No such file or directory)
+09-24 23:19:52.390 W/ProcessCpuTracker( 1492): Skipping unknown process pid 30605
+09-24 23:19:52.390 W/ProcessCpuTracker( 1492): Failed to stat(/proc/30607): android.system.ErrnoException: stat failed: ENOENT (No such file or directory)
+09-24 23:19:52.390 W/ProcessCpuTracker( 1492): Skipping unknown process pid 30607
+09-24 23:19:52.398 W/ActivityManager( 1492): Slow operation: 89ms so far, now at startProcess: done creating new process record
+09-24 23:19:52.398 W/ActivityManager( 1492): Slow operation: 89ms so far, now at startProcess: stepping in to startProcess
+09-24 23:19:52.398 I/PowerHalWrapper( 1492): amsBoostProcessCreate package:com.devyk.av.rtmppush 
+09-24 23:19:52.399 D/SBE-LaunchIdentify( 1492): SBE boost:com.devyk.av.rtmppush begin
+09-24 23:19:52.399 I/libPowerHal(  738): [perfLockAcq] idx:4 hdl:883 hint:21 pid:738 duration:10000 lock_user:mtkpower@1.0-se => ret_hdl:883
+09-24 23:19:52.399 I/libPowerHal(  738): [PE] MTKPOWER_HINT_PROCESS_CREATE update cmd:2020000, param:15
+09-24 23:19:52.399 I/libPowerHal(  738): [PE] MTKPOWER_HINT_PROCESS_CREATE update cmd:1410000, param:1
+09-24 23:19:52.400 I/libPowerHal(  738): [perfLockRel] hdl:870, idx:-1
+09-24 23:19:52.411 W/SmartPower.com.devyk.av.rtmppush/10209(0)( 1492): ActivityRecord{f851a0e u0 com.devyk.av.rtmppush/.LiveActivity t22}
+09-24 23:19:52.412 I/SmartPower.com.devyk.av.rtmppush/10209(0)( 1492): died->visible(453ms) R(become visible) adj=-10000.
+09-24 23:19:52.412 I/SmartPower( 1492): com.devyk.av.rtmppush/10209 state=died adj=0 proc size=1 move to foreground become visible
+09-24 23:19:52.430 D/CompatibilityChangeReporter( 1492): Compat change id reported: 135634846; UID 10209; state: DISABLED
+09-24 23:19:52.430 D/CompatibilityChangeReporter( 1492): Compat change id reported: 177438394; UID 10209; state: DISABLED
+09-24 23:19:52.430 D/CompatibilityChangeReporter( 1492): Compat change id reported: 135772972; UID 10209; state: DISABLED
+09-24 23:19:52.431 D/CompatibilityChangeReporter( 1492): Compat change id reported: 135754954; UID 10209; state: DISABLED
+09-24 23:19:52.431 W/ActivityManager( 1492): Slow operation: 122ms so far, now at startProcess: done starting proc!
+09-24 23:19:52.431 D/CompatibilityChangeReporter( 1492): Compat change id reported: 143937733; UID 10209; state: DISABLED
+09-24 23:19:52.434 I/Layer   (  790): ~Layer: layerId=1073742156, name=Surface(name=d6e83ea StatusBar)/@0x7c3dd0 - animation-leash of insets_animation#0
+09-24 23:19:52.438 D/Zygote  (  701): Forked child process 30614
+09-24 23:19:52.440 I/ActivityManager( 1492): Start proc 30614:com.devyk.av.rtmppush/u0a209 for pre-top-activity {com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity} caller=com.android.shell
+09-24 23:19:52.446 I/PowerHalWrapper( 1492): amsBoostNotify pid:2122,activity:com.miui.home.launcher.Launcher, package:com.miui.home, mProcessCreatePackcom.devyk.av.rtmppush 
+09-24 23:19:52.446 I/PowerHalWrapper( 1492): state: 0 
+09-24 23:19:52.447 I/PowerHalWrapper( 1492): amsBoostNotify AMS_BOOST_PROCESS_CREATE_BOOST:true 
+09-24 23:19:52.447 I/libPowerHal(  738): [perfNotifyAppState] pack:com.miui.home, act:com.miui.home.launcher.Launcher, state:0, pid:2122, uid:10070, fps:60
+09-24 23:19:52.448 E/OpenGLRenderer( 2122): EglManager::makeCurrent mED = 0xb400007f0f968580, surface = 0x0, mEC = 0xb400007e55dd5e00, error = EGL_SUCCESS
+09-24 23:19:52.449 D/RecentsModel( 2122): onTaskStackChangedBackground
+09-24 23:19:52.449 D/RecentsModel( 2122): onTaskStackChangedBackground    MSG_TASK_STACK_CHANGE
+09-24 23:19:52.449 D/RecentsModel( 2122): preloadRecents
+09-24 23:19:52.449 W/RecentsModel( 2122): getRunningTask
+09-24 23:19:52.450 I/libc    (30614): SetHeapTaggingLevel: tag level set to 0
+09-24 23:19:52.450 I/MultiScreenObserver( 3019): onTaskStackChanged, splitScreenMode: false isCameraFloat: false isSmallScreen: false
+09-24 23:19:52.451 D/Launcher.Lifecycle( 2122): onStop:UserHandle{0},8132508,false
+09-24 23:19:52.452 D/LauncherClient.Service( 2122): service already disconnected:com.miui.personalassistant
+09-24 23:19:52.452 D/LauncherClient.Service( 2122): service already disconnected:com.miui.newhome
+09-24 23:19:52.453 W/Launcher.Workspace( 2122): MiuiHome:onSaveInstanceState
+09-24 23:19:52.453 W/ScreenView_Workspace( 2122): MiuiHome:onSaveInstanceState
+09-24 23:19:52.453 W/RecentsModel( 2122): getRunningTask   taskInfo=TaskInfo{userId=0 taskId=22 displayId=0 isRunning=true baseIntent=Intent { act=android.intent.action.MAIN cat=[android.intent.category.LAUNCHER] flg=0x10000000 cmp=com.devyk.av.rtmppush/.LiveActivity } baseActivity=ComponentInfo{com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity} topActivity=ComponentInfo{com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity} origActivity=null realActivity=ComponentInfo{com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity} numActivities=1 lastActiveTime=263299086 supportsSplitScreenMultiWindow=true supportsMultiWindow=true resizeMode=1 isResizeable=true token=WCT{android.window.IWindowContainerToken$Stub$Proxy@f71cbad} topActivityType=1 pictureInPictureParams=PictureInPictureParams( aspectRatio=null sourceRectHint=null hasSetActions=false isAutoPipEnabled=false isSeamlessResizeEnabled=true) displayCutoutSafeInsets=Rect(0, 49 - 0, 0) topActivityInfo=ActivityInfo{4509ee2 com.devyk.av.rtmppush.LiveActivity} launchCookies=[] positionInParent=Point(0, 0) parentTaskId=-1 isFocused=false isVisible=true topActivityInSizeCompat=false locusId= null windowMode=0}
+09-24 23:19:52.453 W/RecentsModel( 2122): getTaskInfoIgnoreHomeAndFreeform   taskInfo=ComponentInfo{com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity}
+09-24 23:19:52.453 W/ScreenView_HotSeats( 2122): MiuiHome:onSaveInstanceState
+09-24 23:19:52.454 W/ScreenView_RecommendAppsThumbnailView( 2122): MiuiHome:onSaveInstanceState
+09-24 23:19:52.454 W/ScreenView_WorkspaceThumbnailView( 2122): MiuiHome:onSaveInstanceState
+09-24 23:19:52.454 W/ScreenView_EditingEntryThumbnailView( 2122): MiuiHome:onSaveInstanceState
+09-24 23:19:52.454 W/ViewPager( 2122): MiuiHome:onSaveInstanceState
+09-24 23:19:52.454 W/ScreenView_DeleteIconContainer( 2122): MiuiHome:onSaveInstanceState
+09-24 23:19:52.454 W/ProcessStats( 1492): Tracking association SourceState{bc8afb9 com.miui.analytics/10083 BTopFgs #31870} whose proc state 2 is better than process ProcessState{c135ffe com.miui.securitycenter.remote/1000 pkg=com.miui.securitycenter} proc state 3 (42 skipped)
+09-24 23:19:52.455 I/MiuiNetworkPolicyTrafficLimit( 1492): updateWhiteListUidForMobileTraffic uid=10070,add=false
+09-24 23:19:52.455 E/ActivityManagerWrapper( 2122): get all recent tasks force including 22
+09-24 23:19:52.455 D/MiuiNetworkPolicyTrafficLimit( 1492): updateWhiteListUidForMobileTraffic rst=true
+09-24 23:19:52.457 E/ActivityManagerWrapper( 2122): getRecentTasks: size=1
+09-24 23:19:52.457 E/ActivityManagerWrapper( 2122): getRecentTasks: taskId=22   userId=0   baseIntent=Intent { act=android.intent.action.MAIN cat=[android.intent.category.LAUNCHER] flg=0x10000000 cmp=com.devyk.av.rtmppush/.LiveActivity }
+09-24 23:19:52.457 I/BufferQueueProducer(  790): [FramebufferSurface](this:0xb4000075dac566e0,id:-1,api:1,p:790,c:790) queueBuffer: fps=0.03 dur=881665.22 max=881300.28 min=14.44
+09-24 23:19:52.457 I/vyk.av.rtmppus(30614): Late-enabling -Xcheck:jni
+09-24 23:19:52.458 D/StatusBarController( 2122): handleMessage: flag 800000  disable false
+09-24 23:19:52.459 D/AutoStartManagerService( 1492): prepare force stop p:30406 s: 18
+09-24 23:19:52.459 I/Process ( 1492): Sending signal. PID: 30406 SIG: 18
+09-24 23:19:52.459 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28353, screenshot (colorBackgroundLayer#0)
+09-24 23:19:52.459 W/Process ( 1492): Unable to open /proc/30406/status
+09-24 23:19:52.465 I/BufferQueueProducer( 2122): [ViewRootImpl[Launcher]#25(BLAST Consumer)25](id:84a00000019,api:1,p:2122,c:2122) disconnect: api 1
+09-24 23:19:52.466 I/BLASTBufferQueue( 2122): [ViewRootImpl[Launcher]#25] destructor()
+09-24 23:19:52.467 I/BufferQueueConsumer( 2122): [ViewRootImpl[Launcher]#25(BLAST Consumer)25](id:84a00000019,api:0,p:-1,c:2122) disconnect
+09-24 23:19:52.471 I/mtkpower@impl(  738): [powerd_req] TIMER_MSG_PERF_LOCK_TIMEOUT hdl:877
+09-24 23:19:52.471 I/libPowerHal(  738): [perfLockRel] hdl:877, idx:0
+09-24 23:19:52.488 I/adbd    ( 1097): jdwp connection from 30614
+09-24 23:19:52.488 D/ProcessState(30614): Binder ioctl to enable oneway spam detection failed: Invalid argument
+09-24 23:19:52.497 I/WindowManagerService( 1492): Physical orientation applied, rotation=0 sfOrientation=ORIENTATION_0
+09-24 23:19:52.499 D/Launcher_WallpaperUtils( 2122): changeStatusBarMode:true
+09-24 23:19:52.505 D/Aurogon ( 1492):  uid = 10070 switch to BG
+09-24 23:19:52.505 E/Launcher.Transfer( 2122): transfer is closed
+09-24 23:19:52.518 I/BufferQueueDebug(  790): [com.miui.home/com.miui.home.launcher.Launcher#0](this:0xb40000752a90f8e0,id:-1,api:0,p:-1,c:790) onDestructor()
+09-24 23:19:52.518 I/BLASTBufferQueue( 2122): releaseBufferCallbackThunk bufferId:9113920602272 framenumber:2 blastBufferQueue is dead
+09-24 23:19:52.525 I/MessageMonitor(30614): Load libmiui_runtime
+09-24 23:19:52.529 D/SymlinkUtils( 1492): attachApplication file op go pass: 1 ms
+09-24 23:19:52.536 D/GestureStubView_Touch( 2122): setKeepHidden    old=false   new=true
+09-24 23:19:52.536 D/GestureStubView_Touch( 2122): updateTouchable    old=false   new=true
+09-24 23:19:52.536 D/GestureStubView_Touch( 2122):   updateTouchable---requestApplyInsets
+09-24 23:19:52.536 D/GestureStubView_Touch( 2122): disableTouch    old=false   new=true
+09-24 23:19:52.536 D/GestureStubView_Touch( 2122): updateTouchable    old=true   new=true
+09-24 23:19:52.536 D/GestureStubView( 2122): hideGestureStub
+09-24 23:19:52.536 D/GestureStubView_Touch( 2122): setKeepHidden    old=false   new=true
+09-24 23:19:52.536 D/GestureStubView_Touch( 2122): updateTouchable    old=false   new=true
+09-24 23:19:52.536 D/GestureStubView_Touch( 2122):   updateTouchable---requestApplyInsets
+09-24 23:19:52.536 D/GestureStubView_Touch( 2122): disableTouch    old=false   new=true
+09-24 23:19:52.536 D/GestureStubView_Touch( 2122): updateTouchable    old=true   new=true
+09-24 23:19:52.536 D/GestureStubView( 2122): hideGestureStub
+09-24 23:19:52.541 I/WindowManagerService( 1492): Physical orientation applied, rotation=0 sfOrientation=ORIENTATION_0
+09-24 23:19:52.559 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28354, screenshot (colorBackgroundLayer#0)
+09-24 23:19:52.567 I/BufferQueueProducer(  790): [GestureStubRight#0](this:0xb40000752ade58e0,id:-1,api:0,p:-1,c:790) queueBuffer: fps=0.00 dur=1484361.46 max=1484361.46 min=1484361.46
+09-24 23:19:52.596 W/ActivityManager( 1492): Slow operation: 68ms so far, now at attachApplicationLocked: immediately after bindApplication
+09-24 23:19:52.596 W/ActivityManager( 1492): Slow operation: 68ms so far, now at attachApplicationLocked: after updateLruProcessLocked
+09-24 23:19:52.605 D/Launcher_UnlockAnimationStateMachine( 2122): mResetIdleStateRunnable
+09-24 23:19:52.605 I/PowerHalWrapper( 1492): amsBoostNotify pid:30614,activity:com.devyk.av.rtmppush.LiveActivity, package:com.devyk.av.rtmppush, mProcessCreatePackcom.devyk.av.rtmppush 
+09-24 23:19:52.605 I/PowerHalWrapper( 1492): state: 1 
+09-24 23:19:52.605 I/PowerHalWrapper( 1492): amsBoostNotify AMS_BOOST_PROCESS_CREATE_BOOST:true 
+09-24 23:19:52.606 I/libPowerHal(  738): [perfNotifyAppState] pack:com.devyk.av.rtmppush, act:com.devyk.av.rtmppush.LiveActivity, state:1, pid:30614, uid:10209, fps:60
+09-24 23:19:52.606 I/libPowerHal(  738): [perfNotifyAppState] foreground:com.devyk.av.rtmppush, pid:30614, uid:10209
+09-24 23:19:52.606 E/UxUtility(  738): notifyAppState error = NULL
+09-24 23:19:52.606 I/TouchUtility(  738): notifyAppState error = NULL
+09-24 23:19:52.606 I/mtkpower@impl(  738): [notifyAppState] pc:1, com.miui.home => com.devyk.av.rtmppush
+09-24 23:19:52.607 I/libPowerHal(  738): [perfLockRel] hdl:878, idx:1
+09-24 23:19:52.609 W/ActivityManager( 1492): Slow operation: 81ms so far, now at attachApplicationLocked: after mServices.attachApplicationLocked
+09-24 23:19:52.610 W/ActivityManager( 1492): Sending non-protected broadcast thermalManagerCurrentActivity from system 3019:com.miui.powerkeeper/1000 pkg com.miui.powerkeeper. Callers=
+09-24 23:19:52.610 W/ActivityManager( 1492): Sending non-protected broadcast thermalManagerCurrentActivity from system 3019:com.miui.powerkeeper/1000 pkg com.miui.powerkeeper. Callers=
+09-24 23:19:52.611 D/AppObserver( 2122): ForegroundInfo{mForegroundPackageName='com.devyk.av.rtmppush', mForegroundUid=10209, mForegroundPid=30614, mLastForegroundPackageName='com.miui.home', mLastForegroundUid=10070, mLastForegroundPid=2122, mMultiWindowForegroundPackageName='com.devyk.av.rtmppush', mMultiWindowForegroundUid=10209, mFlags=1}
+09-24 23:19:52.611 D/PerfEngineController( 3019): ForegroundInfo{mForegroundPackageName='com.devyk.av.rtmppush', mForegroundUid=10209, mForegroundPid=30614, mLastForegroundPackageName='com.miui.home', mLastForegroundUid=10070, mLastForegroundPid=2122, mMultiWindowForegroundPackageName='com.devyk.av.rtmppush', mMultiWindowForegroundUid=10209, mFlags=1}
+09-24 23:19:52.611 D/ThermalIECHandler( 3019): IECAll48Allowed: false; IECMonitorAllowed: false; IECTestState: false
+09-24 23:19:52.611 D/LS-ForegroundStatusManager( 3019): handleMessage ForegroundInfoChanged. pkg = com.devyk.av.rtmppush, uid = 10209, mCurrentForegroundUid = 10070
+09-24 23:19:52.611 D/LS-ForegroundStatusManager( 3019): onForegroundChanged mCurrentForegroundUid = 10070, new uid = 10209
+09-24 23:19:52.611 I/ThermalInfoCollector( 3019): collectForgroundAppsInfo: com.miui.home
+09-24 23:19:52.611 I/MiuiNetworkPolicyTrafficLimit( 1492): updateWhiteListUidForMobileTraffic uid=10209,add=true
+09-24 23:19:52.613 D/MiuiNetworkPolicyTrafficLimit( 1492): updateWhiteListUidForMobileTraffic rst=true
+09-24 23:19:52.613 D/Aurogon ( 1492):  uid = 10209 switch to FG
+09-24 23:19:52.617 W/MQSService( 2775): CallerName:com.devyk.av.rtmppush,calling Uid:10209
+09-24 23:19:52.617 D/MQSService( 2775): registerApplicationScoutThread pid = 30614, packageName = com.devyk.av.rtmppush
+09-24 23:19:52.618 D/AppScoutStateMachine(30614): 30614-ScoutStateMachinecreated
+09-24 23:19:52.626 D/ThermalIECHandler( 3019): storeDataStyle: thermal_iec_monitor_persistence_data_style_iec_state; startIECTime: -1; IECScreenOffOverPeriodTime: 261797531
+09-24 23:19:52.626 D/ThermalIECHandler( 3019): storeDataStyle: thermal_iec_monitor_persistence_data_style_iec_state; startIECTime: -1; IECScreenOffOverPeriodTime: 261797531
+09-24 23:19:52.632 W/re-initialized>(30614): type=1400 audit(0.0:8764): avc: granted { execute } for path="/data/user/0/com.devyk.av.rtmppush/code_cache/startup_agents/65318d08-agent.so" dev="dm-8" ino=178137 scontext=u:r:untrusted_app_29:s0:c209,c256,c512,c768 tcontext=u:object_r:app_data_file:s0:c209,c256,c512,c768 tclass=file app=com.devyk.av.rtmppush
+09-24 23:19:52.638 V/studio.deploy(30614): Startup agent attached to VM
+09-24 23:19:52.638 V/studio.deploy(30614): No existing instrumentation found. Loading instrumentation from instruments-873176f2.jar
+09-24 23:19:52.641 I/mtkpower@impl(  738): [powerd_req] TIMER_MSG_PERF_LOCK_TIMEOUT hdl:879
+09-24 23:19:52.642 I/libPowerHal(  738): [perfLockRel] hdl:879, idx:2
+09-24 23:19:52.646 W/vyk.av.rtmppus(30614): DexFile /data/data/com.devyk.av.rtmppush/code_cache/.studio/instruments-873176f2.jar is in boot class path but is not in a known location
+09-24 23:19:52.647 V/studio.deploy(30614): Applying transforms with cached classes
+09-24 23:19:52.657 W/vyk.av.rtmppus(30614): Redefining intrinsic method java.lang.Thread java.lang.Thread.currentThread(). This may cause the unexpected use of the original definition of java.lang.Thread java.lang.Thread.currentThread()in methods that have already been compiled.
+09-24 23:19:52.657 W/vyk.av.rtmppus(30614): Redefining intrinsic method boolean java.lang.Thread.interrupted(). This may cause the unexpected use of the original definition of boolean java.lang.Thread.interrupted()in methods that have already been compiled.
+09-24 23:19:52.658 I/studio.deploy(30614): Registering DispatchJNI
+09-24 23:19:52.658 I/studio.deploy(30614): Found com/android/tools/deploy/interpreter/JNI
+09-24 23:19:52.660 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28355, screenshot (colorBackgroundLayer#0)
+09-24 23:19:52.660 I/ActivityThread(30614): Relaunch all activities: onCoreSettingsChange
+09-24 23:19:52.661 D/CompatibilityChangeReporter(30614): Compat change id reported: 171979766; UID 10209; state: DISABLED
+09-24 23:19:52.673 D/ULogGuard( 1028): Monitoring: 4 threads, 0 requests, 0 time-bombs; 2 guards. ResetFlags = 0x7
+09-24 23:19:52.690 D/ApplicationLoaders(30614): Returning zygote-cached class loader: /system/framework/android.test.base.jar
+09-24 23:19:52.717 I/BufferQueueProducer(  790): [NavigationBar0#0](this:0xb40000752a9048e0,id:-1,api:0,p:-1,c:790) queueBuffer: fps=0.02 dur=880700.14 max=880350.31 min=15.36
+09-24 23:19:52.734 I/BufferQueueProducer(  790): [StatusBar#0](this:0xb40000752adf78e0,id:-1,api:0,p:-1,c:790) queueBuffer: fps=0.59 dur=1681.24 max=1681.24 min=1681.24
+09-24 23:19:52.755 E/AAL     ( 1049): [ERROR] Kernel does not support AAL, please enable CONFIG_MTK_AAL_SUPPORT in kconfig.
+09-24 23:19:52.760 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28356, screenshot (colorBackgroundLayer#0)
+09-24 23:19:52.760 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28356, screenshot (Splash Screen com.devyk.av.rtmppush#0)
+09-24 23:19:52.794 D/AALLightSensor( 1049): get SensorManager SUCCESS!
+09-24 23:19:52.795 E/SensorService( 1492): CL_L  VirtualAlspscanAccess packet:hidl_client_pid_1049 use Sensorname:camera_light_Sensor 
+09-24 23:19:52.796 D/AALLightSensor( 1049): enable Sensor FAIL!
+09-24 23:19:52.805 I/mtkpower@impl(  738): [powerd_req] TIMER_MSG_PERF_LOCK_TIMEOUT hdl:882
+09-24 23:19:52.805 I/libPowerHal(  738): [perfLockRel] hdl:882, idx:5
+09-24 23:19:52.814 V/GraphicsEnvironment(30614): ANGLE Developer option for 'com.devyk.av.rtmppush' set to: 'default'
+09-24 23:19:52.815 V/GraphicsEnvironment(30614): Neither updatable production driver nor prerelease driver is supported.
+09-24 23:19:52.821 I/ForceDarkHelperStubImpl(30614): initialize for com.devyk.av.rtmppush , ForceDarkOrigin
+09-24 23:19:52.824 D/OpenGLRenderer(30614): JNI_OnLoad success
+09-24 23:19:52.824 I/MiuiForceDarkConfig(30614): setConfig density:2.000000, mainRule:0, secondaryRule:0, tertiaryRule:0
+09-24 23:19:52.831 D/NetworkSecurityConfig(30614): No Network Security Config specified, using platform default
+09-24 23:19:52.832 D/NetworkSecurityConfig(30614): No Network Security Config specified, using platform default
+09-24 23:19:52.835 D/FiveGDataOptimize( 2098): TxRx: 0, Tx: 0, Rx: 0, Hit: 0
+09-24 23:19:52.849 D/libMEOW (30614): meow new tls: 0x7e53eaeac0
+09-24 23:19:52.849 D/MiuiMultiWindowAdapter( 1492): MiuiMultiWindowAdapter::getFreeformVideoWhiteList::sSmallWindowWhiteList = [com.hunantv.imgo.activity, com.tencent.qqlive, com.qiyi.video, com.hunantv.imgo.activity.inter, com.tencent.qqlivei18n, com.iqiyi.i18n, tv.danmaku.bili]
+09-24 23:19:52.849 D/libMEOW (30614): meow reload base cfg path: na
+09-24 23:19:52.849 D/libMEOW (30614): meow reload overlay cfg path: na
+09-24 23:19:52.850 D/MiuiMultiWindowAdapter(30614): MiuiMultiWindowAdapter::getFreeformVideoWhiteListInSystem::LIST_ABOUT_SUPPORT_LANDSCAPE_VIDEO = [com.hunantv.imgo.activity, com.tencent.qqlive, com.qiyi.video, com.hunantv.imgo.activity.inter, com.tencent.qqlivei18n, com.iqiyi.i18n, tv.danmaku.bili]
+09-24 23:19:52.851 E/QT      (30614): [QT]file does not exist
+09-24 23:19:52.851 D/libMEOW (30614): applied 1 plugins for [com.devyk.av.rtmppush]:
+09-24 23:19:52.851 D/libMEOW (30614):   plugin 1: [libMEOW_gift.so]: 0xb400007e44ef0700
+09-24 23:19:52.852 D/libMEOW (30614): rebuild call chain: 0x7e53ecc240
+09-24 23:19:52.852 D/libMEOW (30614): meow delete tls: 0x7e53eaeac0
+09-24 23:19:52.860 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28357, screenshot (colorBackgroundLayer#0)
+09-24 23:19:52.860 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28357, screenshot (Splash Screen com.devyk.av.rtmppush#0)
+09-24 23:19:52.931 D/ViewScrollStubImpl(30614): the value of mScrollFrictionRes is: 0.015
+09-24 23:19:52.935 E/vyk.av.rtmppus(30614): Invalid ID 0x00000000.
+09-24 23:19:52.945 D/MiuiMultiWindowUtils(30614): freeform resolution args raw data:{  "yunluo": {    "freeform_args": {      "vertical_portrait":{"aspect_ratio":0.5625, "original_ratio":0.375,"original_scale":0.785,"top_margin":0.049,"left_margin":0.2775},      "horizontal_portrait":{"aspect_ratio":0.5625, "original_ratio":0.375,"original_scale":0.785,"top_margin":-1,"left_margin":0.6525},      "vertical_landscape":{"aspect_ratio":-1, "original_ratio":1,"original_scale":0.468,"top_margin":0.049,"left_margin":-1},      "horizontal_landscape":{"aspect_ratio":-1, "original_ratio":1,"original_scale":0.468,"top_margin":-1,"left_margin":0.4976}    },    "mini_freeform_args":{      "vertical_portrait":{"aspect_ratio":0.5625, "original_ratio":0.144},      "horizontal_portrait":{"aspect_ratio":0.5625, "original_ratio":0.144},      "vertical_landscape":{"aspect_ratio":-1, "original_ratio":0.2},      "horizontal_landscape":{"aspect_ratio":-1, "original_ratio":0.2}    }  },  "zizhan":{    "freeform_args": {      "inner":{        "vertical_portrait":{"aspect_ratio":0.626, "original_ratio":0.5643,"original_scale":0.74,"top_margin":0.168,"left_margin":0.484},        "horizontal_portrait":{"aspect_ratio":0.626, "original_ratio":0.5643,"original_scale":0.74,"top_margin":0.1222,"left_margin":0.59745},        "vertical_landscape":{"aspect_ratio":1.6, "original_ratio":1,"original_scale":0.604,"top_margin":0.2596,"left_margin":0.2624},        "horizontal_landscape":{"aspect_ratio":1.6, "original_ratio":1,"original_scale":0.604,"top_margin":0.213,"left_margin":0.3758}      },      "outer":{        "vertical_portrait":{"aspect_ratio":0.626, "original_ratio":1,"original_scale":0.74,"top_margin":0.0753,"left_margin":-1},        "horizontal_portrait":{"aspect_ratio":0.626, "original_ratio":1,"original_scale":0.5756,"top_margin":-1,"left_margin":0.0753},        "vertical_landscape":{"aspect_ratio":1.6, "original_ratio":0.6847,"original_scale":0.587,"top_margin":0.0753,"left_margin":-1},        "horizontal_landscape":{"aspect_ratio":1.6, "original_ratio":0.6847,"original_scale":0.587,"top_margin":-1,"left_margin":0.0753}}    },    "mini_freeform_args":{      "inner":{        "vertical_portrait":{"aspect_ratio":0.626, "original_ratio":0.147},        "horizontal_portrait":{"aspect_ratio":0.626, "original_ratio":0.147},        "vertical_landscape":{"aspect_ratio":1.6, "original_ratio":0.165},        "horizontal_landscape":{"aspect_ratio":1.6, "original_ratio":0.165}      },      "outer":{        "vertical_portrait":{"aspect_ratio":0.626, "original_ratio":0.26},        "horizontal_portrait":{"aspect_ratio":0.626, "original_ratio":0.26},        "vertical_landscape":{"aspect_ratio":1.6, "original_ratio":0.293},        "horizontal_landscape":{"aspect_ratio":1.6, "original_ratio":0.293}}    }  },  "wide_default":{    "freeform_args": {        "vertical_portrait":{"aspect_ratio":0.625, "original_ratio":0.5806,"original_scale":0.7574,"top_margin":0.125,"left_margin":0.392},        "horizontal_portrait":{"aspect_ratio":0.625, "original_ratio":0.5806,"original_scale":0.7574,"top_margin":-1,"left_margin":0.6415},        "vertical_landscape":{"aspect_ratio":1.6, "original_ratio":1,"original_scale":0.5153,"top_margin":0.125,"left_margin":0.206},        "horizontal_landscape":{"aspect_ratio":1.6, "original_ratio":1,"original_scale":0.5153,"top_margin":-1,"left_margin":0.456}    },    "mini_freeform_args":{        "vertical_portrait":{"aspect_ratio":0.5625, "original_ratio":0.144},        "horizontal_portrait":{"aspect_ratio":0.5625, "original_ratio":0.144},        "vertical_landscape":{"aspect_ratio":-1, "original_ratio":0.144},        "horizontal_landscape":{"aspect_ratio":-1, "original_ratio":0.144}    }  },  "narrow_default": {    "freeform_args": {        "vertical_portrait":{"aspect_ratio":0.5625, "original_ratio":1,"original_scale":0.7182,"top_margin":0.142,"left_margin":-1},        "horizontal_portrait":{"aspect_ratio":0.8, "original_ratio":1,"original_scale":0.7182,"top_margin":-1,"left_margin":0.05},        "vertical_landscape":{"aspect_ratio":1.6, "ori
+09-24 23:19:52.953 E/MiuiMultiWindowUtils(30614): initFreeFormResolutionArgs failed, device is earth
+09-24 23:19:52.956 D/IS_CTS_MODE(30614): true
+09-24 23:19:52.956 D/MULTI_WINDOW_SWITCH_ENABLED(30614): false
+09-24 23:19:52.958 D/IS_CTS_MODE(30614): true
+09-24 23:19:52.958 D/MULTI_WINDOW_SWITCH_ENABLED(30614): false
+09-24 23:19:52.960 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28358, screenshot (colorBackgroundLayer#0)
+09-24 23:19:52.960 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28358, screenshot (Splash Screen com.devyk.av.rtmppush#0)
+09-24 23:19:52.963 D/DecorView[](30614): getWindowModeFromSystem  windowmode is 1
+09-24 23:19:52.973 D/ViewContentFactory(30614): initViewContentFetcherClass
+09-24 23:19:52.973 D/ViewContentFactory(30614): getInterceptorPackageInfo
+09-24 23:19:52.974 D/ViewContentFactory(30614): getInitialApplication took 1ms
+09-24 23:19:52.974 D/ViewContentFactory(30614): packageInfo.packageName: com.miui.catcherpatch
+09-24 23:19:52.986 D/ViewContentFactory(30614): initViewContentFetcherClass took 13ms
+09-24 23:19:52.986 I/ContentCatcher(30614): ViewContentFetcher : ViewContentFetcher
+09-24 23:19:52.986 D/ViewContentFactory(30614): createInterceptor took 14ms
+09-24 23:19:53.001 W/vyk.av.rtmppus(30614): Accessing hidden method Landroid/view/View;->computeFitSystemWindows(Landroid/graphics/Rect;Landroid/graphics/Rect;)Z (unsupported, reflection, allowed)
+09-24 23:19:53.003 W/vyk.av.rtmppus(30614): Accessing hidden method Landroid/view/ViewGroup;->makeOptionalFitsSystemWindows()V (unsupported, reflection, allowed)
+09-24 23:19:53.011 I/SurfaceFactory(30614): [static] sSurfaceFactory = com.mediatek.view.impl.SurfaceFactoryImpl@1514ebc
+09-24 23:19:53.011 I/SurfaceFlinger(  790): [SF client] NEW(0xb40000752ae81640) for (30614:com.devyk.av.rtmppush)
+09-24 23:19:53.038 W/LiveActivity(30614): camera permission not granted, skip startPreview
+09-24 23:19:53.061 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28359, screenshot (colorBackgroundLayer#0)
+09-24 23:19:53.061 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28359, screenshot (Splash Screen com.devyk.av.rtmppush#0)
+09-24 23:19:53.067 I/libPerfCtl(  738): xgfGetFPS pid:2113 fps:61
+09-24 23:19:53.067 I/libPerfCtl(  738): xgfGetFPS pid:2122 fps:-1
+09-24 23:19:53.067 I/libPerfCtl(  738): xgfGetFPS pid:30406 fps:-1
+09-24 23:19:53.105 W/LiveActivity(30614): camera permission not granted, skip startPreview
+09-24 23:19:53.113 I/SurfaceFlinger(  790): [SF client] NEW(0xb40000752ae80ec0) for (30614:com.devyk.av.rtmppush)
+09-24 23:19:53.114 I/MsyncFactory(30614): [static] sMsyncFactory = com.mediatek.view.impl.MsyncFactoryImpl@6db726b
+09-24 23:19:53.115 D/OpenMsyncAppList(30614): loadTunerAppList + 
+09-24 23:19:53.118 D/OpenMsyncAppList(30614): loadTunerAppList - 
+09-24 23:19:53.127 D/ViewRootImpl[LiveActivity](30614): hardware acceleration = true, sRendererEnabled = true, forceHwAccelerated = false
+09-24 23:19:53.130 D/DecorView[](30614): getWindowModeFromSystem  windowmode is 1
+09-24 23:19:53.130 D/DecorView[](30614): updateDecorCaptionStatus displayWindowDecor is false
+09-24 23:19:53.132 I/SurfaceFlinger(  790): [SF client] NEW(0xb40000752ae835c0) for (1492:system_server)
+09-24 23:19:53.138 D/libMEOW (30614): meow new tls: 0x7e55b5a2c0
+09-24 23:19:53.138 D/libMEOW (30614): applied 1 plugins for [com.devyk.av.rtmppush]:
+09-24 23:19:53.138 D/libMEOW (30614):   plugin 1: [libMEOW_gift.so]: 0xb400007e44ef0700
+09-24 23:19:53.138 D/libMEOW (30614): rebuild call chain: 0x7e55b69d80
+09-24 23:19:53.142 D/RecentsImpl( 2122): mActivityStateObserver com.devyk.av.rtmppush.LiveActivity
+09-24 23:19:53.142 W/RecentsImpl( 2122): onResumed className=com.devyk.av.rtmppush.LiveActivity   mIsInAnotherPro=false   isKeyguardLocked=false
+09-24 23:19:53.142 W/RecentsImpl( 2122): disableTouchBySwipeStatusBar    disable=false
+09-24 23:19:53.142 D/RecentsImpl( 2122): showNavStubView
+09-24 23:19:53.142 D/GestureStubView_Touch( 2122): disableTouchBySwipeStatusBar    old=false   new=false
+09-24 23:19:53.143 D/NavStubView_Touch( 2122): setKeepHidden    old=false   new=false
+09-24 23:19:53.143 D/GestureStubView_Touch( 2122): disableTouchBySwipeStatusBar    old=false   new=false
+09-24 23:19:53.143 W/RecentsImpl( 2122): disableBackStubWindow    disableTouch=false
+09-24 23:19:53.143 D/GestureStubView_Touch( 2122): disableTouch    old=true   new=false
+09-24 23:19:53.143 D/GestureStubView_Touch( 2122): updateTouchable    old=true   new=true
+09-24 23:19:53.143 D/GestureStubView_Touch( 2122): disableTouch    old=true   new=false
+09-24 23:19:53.143 D/GestureStubView_Touch( 2122): updateTouchable    old=true   new=true
+09-24 23:19:53.143 D/RecentsImpl( 2122): showBackStubWindow  hasNavigationBar=true
+09-24 23:19:53.143 D/GestureStubView_Touch( 2122): setKeepHidden    old=true   new=false
+09-24 23:19:53.143 D/GestureStubView_Touch( 2122): updateTouchable    old=true   new=false
+09-24 23:19:53.143 D/GestureStubView_Touch( 2122):   updateTouchable---requestApplyInsets
+09-24 23:19:53.143 W/GestureStubView( 2122): adaptRotation   currentRotation=0   mRotation=0
+09-24 23:19:53.143 D/GestureStubView( 2122): resetRenderProperty: showGestureStub   isLayoutParamChanged=false
+09-24 23:19:53.143 D/GestureStubView_Touch( 2122): disableTouch    old=false   new=false
+09-24 23:19:53.143 D/GestureStubView( 2122): showGestureStub
+09-24 23:19:53.143 D/GestureStubView_Touch( 2122): setKeepHidden    old=true   new=false
+09-24 23:19:53.143 D/GestureStubView_Touch( 2122): updateTouchable    old=true   new=false
+09-24 23:19:53.143 D/GestureStubView_Touch( 2122):   updateTouchable---requestApplyInsets
+09-24 23:19:53.143 W/GestureStubView( 2122): adaptRotation   currentRotation=0   mRotation=0
+09-24 23:19:53.143 D/GestureStubView( 2122): resetRenderProperty: showGestureStub   isLayoutParamChanged=false
+09-24 23:19:53.143 D/GestureStubView_Touch( 2122): disableTouch    old=false   new=false
+09-24 23:19:53.143 D/GestureStubView( 2122): showGestureStub
+09-24 23:19:53.144 I/PowerHalWrapper(30614): PowerHalWrapper.getInstance 
+09-24 23:19:53.145 W/Looper  (30614): PerfMonitor looperActivity : package=com.devyk.av.rtmppush/.LiveActivity time=0ms latency=530ms running=0ms  procState=-1  historyMsgCount=4 (msgIndex=3 wall=183ms seq=3 late=74ms h=android.app.ActivityThread$H w=110) (msgIndex=4 wall=297ms seq=4 late=230ms h=android.app.ActivityThread$H w=159)
+09-24 23:19:53.147 D/GestureStubView( 2122): gatherTransparentRegion: need render w:40  h:990
+09-24 23:19:53.147 D/GestureStubView( 2122): gatherTransparentRegion: need render w:40  h:990
+09-24 23:19:53.161 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28360, screenshot (colorBackgroundLayer#0)
+09-24 23:19:53.161 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28360, screenshot (Splash Screen com.devyk.av.rtmppush#0)
+09-24 23:19:53.173 E/BufferQueueDebug(  790): [com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity#0](this:0xb40000752a9168e0,id:-1,api:0,p:-1,c:-1) id info cannot be read from 'com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity#0'
+09-24 23:19:53.173 I/BufferQueueDebug(  790): [com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity#0](this:0xb40000752a9168e0,id:-1,api:0,p:-1,c:-1) BufferQueue core=(790:/system/bin/surfaceflinger)
+09-24 23:19:53.184 W/WindowManager( 1492): Changing focus from null to Window{cfe4646 u0 com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity} displayId=0 Callers=com.android.server.wm.RootWindowContainer.updateFocusedWindowLocked:491 com.android.server.wm.WindowManagerService.updateFocusedWindowLocked:6202 com.android.server.wm.WindowManagerService.relayoutWindow:2724 com.android.server.wm.Session.relayout:241 
+09-24 23:19:53.188 D/WindowManager( 1492): Input focus has changed to Window{cfe4646 u0 com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity} display=0 updateInputWindows = true
+09-24 23:19:53.189 I/WindowManagerService( 1492): Physical orientation applied, rotation=0 sfOrientation=ORIENTATION_0
+09-24 23:19:53.189 I/WindowManager( 1492): Relayout Window{cfe4646 u0 com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity}: oldVis=4 newVis=0 focusMayChange = true requestedWidth = 720 requestedHeight = 1650 outFrames = ClientWindowFrames{frame=[0,0][720,1650] display=[0,0][720,1650] backdrop=[0,0][720,1650]} outSurfaceControl = Surface(name=com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity)/@0x57b40a0
+09-24 23:19:53.191 I/BufferQueueConsumer(30614): [](id:779600000000,api:0,p:-1,c:30614) connect: controlledByApp=false
+09-24 23:19:53.193 I/BLASTBufferQueue(30614): [ViewRootImpl[LiveActivity]#0] constructor()
+09-24 23:19:53.197 D/libMEOW (30614): meow new tls: 0x7e55b89ec0
+09-24 23:19:53.197 D/libMEOW (30614): applied 1 plugins for [com.devyk.av.rtmppush]:
+09-24 23:19:53.197 D/libMEOW (30614):   plugin 1: [libMEOW_gift.so]: 0xb400007e44ef0700
+09-24 23:19:53.197 D/libMEOW (30614): rebuild call chain: 0x7e55b98200
+09-24 23:19:53.202 D/hw-ProcessState(30614): Binder ioctl to enable oneway spam detection failed: Invalid argument
+09-24 23:19:53.203 I/hwservicemanager(  432): getTransport: Cannot find entry android.hardware.configstore@1.0::ISurfaceFlingerConfigs/default in either framework or device VINTF manifest.
+09-24 23:19:53.204 D/SurfaceView(30614): UPDATE null, mIsCastMode = false
+09-24 23:19:53.205 E/OpenGLRenderer(30614): EglManager::makeCurrent mED = 0xb400007f0f968580, surface = 0x0, mEC = 0x7f0faf3a00, error = EGL_SUCCESS
+09-24 23:19:53.208 E/BufferQueueDebug(  790): [SurfaceView[com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity](BLAST)#0](this:0xb4000075244f68e0,id:-1,api:0,p:-1,c:-1) id info cannot be read from 'SurfaceView[com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity](BLAST)#0'
+09-24 23:19:53.208 I/BufferQueueDebug(  790): [SurfaceView[com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity](BLAST)#0](this:0xb4000075244f68e0,id:-1,api:0,p:-1,c:-1) BufferQueue core=(790:/system/bin/surfaceflinger)
+09-24 23:19:53.209 E/libEGL  (30614): pre_cache appList: com.sina.weibo,com.smile.gifmaker,com.ss.android.article.news,com.ss.android.ugc.aweme,com.taobao.taobao,com.tencent.mm,tv.danmaku.bili,
+09-24 23:19:53.210 I/BufferQueueConsumer(30614): [](id:779600000001,api:0,p:-1,c:30614) connect: controlledByApp=false
+09-24 23:19:53.210 I/BLASTBufferQueue(30614): [SurfaceView[com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity]#1] constructor()
+09-24 23:19:53.210 E/HWComposer(  790): getSupportedContentTypes: getSupportedContentTypes failed for display 0: Unsupported (8)
+09-24 23:19:53.211 I/BufferQueueProducer(30614): [ViewRootImpl[LiveActivity]#0(BLAST Consumer)0](id:779600000000,api:1,p:30614,c:30614) connect: api=1 producerControlledByApp=true
+09-24 23:19:53.215 D/libMEOW (30614): meow new tls: 0x7e53f46140
+09-24 23:19:53.215 D/libMEOW (30614): applied 1 plugins for [com.devyk.av.rtmppush]:
+09-24 23:19:53.215 D/libMEOW (30614):   plugin 1: [libMEOW_gift.so]: 0xb400007e44ef0700
+09-24 23:19:53.215 D/libMEOW (30614): rebuild call chain: 0x7e53f556c0
+09-24 23:19:53.217 I/BufferQueueProducer(30614): [SurfaceView[com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity]#1(BLAST Consumer)1](id:779600000001,api:1,p:30614,c:30614) connect: api=1 producerControlledByApp=true
+09-24 23:19:53.221 D/vyk.av.rtmppus(30614): MiuiProcessManagerServiceStub setSchedFifo
+09-24 23:19:53.221 I/MiuiProcessManagerImpl(30614): setSchedFifo pid:30614, mode:3
+09-24 23:19:53.221 D/ProcessManager( 1492): beginSchedThreads is not Enabled
+09-24 23:19:53.222 D/hw-ProcessState(30614): Binder ioctl to enable oneway spam detection failed: Invalid argument
+09-24 23:19:53.233 I/ClientCache(  790): add: Cache owner=0xb40000752ae81880
+09-24 23:19:53.243 E/OpenGLRenderer(30614): fbcNotifyFrameComplete error: undefined symbol: fbcNotifyFrameComplete
+09-24 23:19:53.243 E/OpenGLRenderer(30614): fbcNotifyNoRender error: undefined symbol: fbcNotifyNoRender
+09-24 23:19:53.251 D/SurfaceView(30614): UPDATE Surface(name=SurfaceView[com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity])/@0x66df274, mIsProjectionMode = false
+09-24 23:19:53.256 D/WindowManager( 1492): finishDrawingLocked: mDrawState=COMMIT_DRAW_PENDING Window{cfe4646 u0 com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity} in Surface(name=com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity)/@0xd89d81e
+09-24 23:19:53.257 I/mtkpower@impl(  738): [setMode] type:5, enabled:0
+09-24 23:19:53.258 I/PowerHalWrapper( 1492): amsBoostStop AMS_BOOST_PACK_SWITCH:false, AMS_BOOST_ACT_SWITCH:false, AMS_BOOST_PROCESS_CREATE:true 
+09-24 23:19:53.259 I/mtkpower@impl(  738): [mtkPowerHint] hint:21, hold:6000, ext:30, ext_hold:35000
+09-24 23:19:53.259 I/libPowerHal(  738): [perfLockRel] hdl:880, idx:3
+09-24 23:19:53.260 I/libPowerHal(  738): [perfLockAcq] idx:0 hdl:884 hint:21 pid:738 duration:6000 lock_user:mtkpower@1.0-se => ret_hdl:884
+09-24 23:19:53.260 I/libPowerHal(  738): [perfLockRel] hdl:883, idx:4
+09-24 23:19:53.261 I/libPowerHal(  738): [perfLockAcq] idx:1 hdl:885 hint:30 pid:738 duration:35000 lock_user:mtkpower@1.0-se => ret_hdl:885
+09-24 23:19:53.261 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28361, screenshot (Splash Screen com.devyk.av.rtmppush#0)
+09-24 23:19:53.284 D/TaskSnapshot_Helper( 1492): shouldDelay()... Not launched by home, no delay needed.
+09-24 23:19:53.287 I/ActivityTaskManager( 1492): Displayed com.devyk.av.rtmppush/.LiveActivity: +1s80ms
+09-24 23:19:53.302 D/DecorView[](30614): onWindowFocusChanged hasWindowFocus true
+09-24 23:19:53.304 I/hwcomposer(  719): [HWCDisplay] [Display_0 (type:1)] fps:57.895290,dur:1001.81,max:33.44,min:13.40  
+09-24 23:19:53.315 E/BaseInputMethodService( 8292): onBindInput
+09-24 23:19:53.315 E/BaseInputMethodService( 8292): onFinishInput
+09-24 23:19:53.316 E/BaseInputMethodService( 8292): onStartInput
+09-24 23:19:53.330 V/AS.AudioDeviceBroker( 1492): requestedCommunicationDevice, device: null mode owner pid: 0
+09-24 23:19:53.330 V/AS.AudioDeviceBroker( 1492): requestedCommunicationDevice, device: null mode owner pid: 0
+09-24 23:19:53.361 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28362, screenshot (Background for SurfaceView[com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity]#0)
+09-24 23:19:53.362 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28362, screenshot (SurfaceView[com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity](BLAST)#0)
+09-24 23:19:53.362 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28362, screenshot (com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity#0)
+09-24 23:19:53.362 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28362, screenshot (Splash Screen com.devyk.av.rtmppush#0)
+09-24 23:19:53.416 I/BufferQueueProducer(  790): [Splash Screen com.devyk.av.rtmppush#0](this:0xb4000075244888e0,id:-1,api:0,p:-1,c:790) queueBuffer: fps=5.91 dur=1015.79 max=932.79 min=16.46
+09-24 23:19:53.462 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28363, screenshot (Background for SurfaceView[com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity]#0)
+09-24 23:19:53.462 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28363, screenshot (SurfaceView[com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity](BLAST)#0)
+09-24 23:19:53.462 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28363, screenshot (com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity#0)
+09-24 23:19:53.462 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28363, screenshot (Splash Screen com.devyk.av.rtmppush#0)
+09-24 23:19:53.562 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28364, screenshot (Background for SurfaceView[com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity]#0)
+09-24 23:19:53.562 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28364, screenshot (SurfaceView[com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity](BLAST)#0)
+09-24 23:19:53.562 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28364, screenshot (com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity#0)
+09-24 23:19:53.562 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28364, screenshot (Splash Screen com.devyk.av.rtmppush#0)
+09-24 23:19:53.581 E/OpenGLRenderer( 2113): EglManager::makeCurrent mED = 0xb400007f0f968580, surface = 0x0, mEC = 0xb400007dbaef3480, error = EGL_SUCCESS
+09-24 23:19:53.581 I/BufferQueueProducer( 2113): [ViewRootImpl[rtmppush]#25(BLAST Consumer)25](id:84100000019,api:1,p:2113,c:2113) disconnect: api 1
+09-24 23:19:53.582 D/View    ( 2113): [Warning] assignParent to null: this = android.widget.FrameLayout{d6cff89 G.E...... ......ID 0,0-720,1650}
+09-24 23:19:53.593 I/WindowManagerService( 1492): Physical orientation applied, rotation=0 sfOrientation=ORIENTATION_0
+09-24 23:19:53.594 I/BLASTBufferQueue( 2113): [ViewRootImpl[rtmppush]#25] destructor()
+09-24 23:19:53.594 I/BufferQueueConsumer( 2113): [ViewRootImpl[rtmppush]#25(BLAST Consumer)25](id:84100000019,api:0,p:-1,c:2113) disconnect
+09-24 23:19:53.597 W/InputManager-JNI( 1492): Input channel object '67cc91a Splash Screen com.devyk.av.rtmppush (client)' was disposed without first being removed with the input manager!
+09-24 23:19:53.662 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28365, screenshot (Background for SurfaceView[com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity]#0)
+09-24 23:19:53.662 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28365, screenshot (SurfaceView[com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity](BLAST)#0)
+09-24 23:19:53.662 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28365, screenshot (com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity#0)
+09-24 23:19:53.662 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28365, screenshot (Splash Screen com.devyk.av.rtmppush#0)
+09-24 23:19:53.733 I/BufferQueueProducer(  790): [NavigationBar0#0](this:0xb40000752a9048e0,id:-1,api:0,p:-1,c:790) queueBuffer: fps=14.76 dur=1016.00 max=782.62 min=16.42
+09-24 23:19:53.763 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28366, screenshot (Background for SurfaceView[com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity]#0)
+09-24 23:19:53.763 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28366, screenshot (SurfaceView[com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity](BLAST)#0)
+09-24 23:19:53.763 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28366, screenshot (com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity#0)
+09-24 23:19:53.763 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28366, screenshot (Splash Screen com.devyk.av.rtmppush#0)
+09-24 23:19:53.768 D/WindowManager( 1492): setParent old=ActivityRecord{f851a0e u0 com.devyk.av.rtmppush/.LiveActivity t22},new=null,this window=Window{67cc91a u0 Splash Screen com.devyk.av.rtmppush},callers=com.android.server.wm.WindowContainer.removeChild:644 com.android.server.wm.ActivityRecord.removeChild:4381 com.android.server.wm.ActivityRecord.removeChild:421 com.android.server.wm.WindowContainer.removeImmediately:695 com.android.server.wm.WindowState.removeImmediately:2531 com.android.server.wm.WindowState.destroySurface:3736 
+09-24 23:19:53.786 I/BufferQueueDebug(  790): [Splash Screen com.devyk.av.rtmppush#0](this:0xb4000075244888e0,id:-1,api:0,p:-1,c:790) onDestructor()
+09-24 23:19:53.786 I/BLASTBufferQueue( 2113): releaseBufferCallbackThunk bufferId:9075265896621 framenumber:17 blastBufferQueue is dead
+09-24 23:19:53.797 D/AALLightSensor( 1049): get SensorManager SUCCESS!
+09-24 23:19:53.798 E/SensorService( 1492): CL_L  VirtualAlspscanAccess packet:hidl_client_pid_1049 use Sensorname:camera_light_Sensor 
+09-24 23:19:53.798 D/AALLightSensor( 1049): enable Sensor FAIL!
+09-24 23:19:53.799 I/BufferQueueProducer(  790): [StatusBar#0](this:0xb40000752adf78e0,id:-1,api:0,p:-1,c:790) queueBuffer: fps=7.51 dur=1065.93 max=949.42 min=16.50
+09-24 23:19:53.863 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28367, screenshot (Background for SurfaceView[com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity]#0)
+09-24 23:19:53.863 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28367, screenshot (SurfaceView[com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity](BLAST)#0)
+09-24 23:19:53.863 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28367, screenshot (com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity#0)
+09-24 23:19:53.963 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28368, screenshot (Background for SurfaceView[com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity]#0)
+09-24 23:19:53.963 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28368, screenshot (SurfaceView[com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity](BLAST)#0)
+09-24 23:19:53.963 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28368, screenshot (com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity#0)
+09-24 23:19:54.030 I/WifiHAL ( 1865): Get link layer stats
+09-24 23:19:54.030 I/WifiHAL ( 1865): GetLinkStatsCommand::create
+09-24 23:19:54.030 D/android.hardware.wifi@1.0-service-lazy( 1865): WifiRequest::create vendor command to iface 33, vendor_id=0x1a11, subcmd=0x1200, res=0
+09-24 23:19:54.030 I/android.hardware.wifi@1.0-service-lazy( 1865): WifiCommand::requestResponse err=-14
+09-24 23:19:54.030 I/WifiHAL ( 1865): wifi_get_link_stats: result=-1
+09-24 23:19:54.030 E/WifiVendorHal( 1492): getWifiLinkLayerStats_1_5_Internal(l.1198) failed {.code = ERROR_UNKNOWN, .description = unknown}
+09-24 23:19:54.067 I/libPerfCtl(  738): xgfGetFPS pid:2113 fps:61
+09-24 23:19:54.067 I/libPerfCtl(  738): xgfGetFPS pid:2122 fps:-1
+09-24 23:19:54.067 I/libPerfCtl(  738): xgfGetFPS pid:30406 fps:-1
+09-24 23:19:54.067 I/libPerfCtl(  738): xgfGetFPS pid:30614 fps:57
+09-24 23:19:54.068 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28369, screenshot (Background for SurfaceView[com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity]#0)
+09-24 23:19:54.068 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28369, screenshot (SurfaceView[com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity](BLAST)#0)
+09-24 23:19:54.068 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28369, screenshot (com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity#0)
+09-24 23:19:54.169 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28370, screenshot (Background for SurfaceView[com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity]#0)
+09-24 23:19:54.169 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28370, screenshot (SurfaceView[com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity](BLAST)#0)
+09-24 23:19:54.169 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28370, screenshot (com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity#0)
+09-24 23:19:54.249 I/BufferQueueProducer(  790): [SurfaceView[com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity](BLAST)#0](this:0xb4000075244f68e0,id:-1,api:0,p:-1,c:790) queueBuffer: fps=57.10 dur=1015.74 max=33.37 min=14.99
+09-24 23:19:54.260 D/SBE-LaunchIdentify( 1492): SBE boost:com.devyk.av.rtmppush end
+09-24 23:19:54.260 I/mtkpower_client( 1492): perf_lock_acq, hdl:872, dur:3000, num:2, tid:1730
+09-24 23:19:54.261 I/mtkpower_client( 1492): ret_hdl:886
+09-24 23:19:54.261 I/libPowerHal(  738): [perfLockAcq] idx:2 hdl:886 hint:-1 pid:1492 duration:3000 lock_user:system_server => ret_hdl:886
+09-24 23:19:54.261 I/SbeHandle(  738): end_default_hold_time HindID : 21
+09-24 23:19:54.261 I/mtkpower_client( 1492): perf_lock_rel, hdl:886, tid:1730
+09-24 23:19:54.261 I/libPowerHal(  738): [disableScenarioByHintId] Disable HindID : 21
+09-24 23:19:54.261 I/libPowerHal(  738): [disableScenarioByHintId] disableScenarioByHintId: HindID : 21
+09-24 23:19:54.261 I/libPowerHal(  738): MTKPOWER_HINT_PROCESS_CREATE: cpu_ctrl set cpu freq: -1 -1 -1 -1
+09-24 23:19:54.261 I/libPowerHal(  738): [PD] MTKPOWER_HINT_PROCESS_CREATE update cmd:1000000, param:1
+09-24 23:19:54.261 I/libPowerHal(  738): [PD] MTKPOWER_HINT_PROCESS_CREATE update cmd:1410000 param:0
+09-24 23:19:54.261 I/libPowerHal(  738): [PD] MTKPOWER_HINT_PROCESS_CREATE update cmd:1408300 param:40
+09-24 23:19:54.261 I/libPowerHal(  738): [PD] MTKPOWER_HINT_PROCESS_CREATE update cmd:1000000 param:1
+09-24 23:19:54.261 I/libPowerHal(  738): [PE] system_server update cmd:3410300 param:21
+09-24 23:19:54.262 I/libPowerHal(  738): [perfLockRel] hdl:886, idx:2
+09-24 23:19:54.262 I/SbeHandle(  738): end_default_hold_time HindID : 21
+09-24 23:19:54.262 I/libPowerHal(  738): [disableScenarioByHintId] Disable HindID : 21
+09-24 23:19:54.262 I/libPowerHal(  738): [PD] system_server update ONESHOT cmd:3410300 param:21
+09-24 23:19:54.272 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28371, screenshot (Background for SurfaceView[com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity]#0)
+09-24 23:19:54.272 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28371, screenshot (SurfaceView[com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity](BLAST)#0)
+09-24 23:19:54.272 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28371, screenshot (com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity#0)
+09-24 23:19:54.318 I/hwcomposer(  719): [HWCDisplay] [Display_0 (type:1)] fps:59.141182,dur:1014.52,max:33.21,min:12.68  
+09-24 23:19:54.332 V/AS.AudioDeviceBroker( 1492): requestedCommunicationDevice, device: null mode owner pid: 0
+09-24 23:19:54.332 V/AS.AudioDeviceBroker( 1492): requestedCommunicationDevice, device: null mode owner pid: 0
+09-24 23:19:54.372 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28372, screenshot (Background for SurfaceView[com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity]#0)
+09-24 23:19:54.372 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28372, screenshot (SurfaceView[com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity](BLAST)#0)
+09-24 23:19:54.373 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28372, screenshot (com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity#0)
+09-24 23:19:54.473 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28373, screenshot (Background for SurfaceView[com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity]#0)
+09-24 23:19:54.473 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28373, screenshot (SurfaceView[com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity](BLAST)#0)
+09-24 23:19:54.473 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28373, screenshot (com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity#0)
+09-24 23:19:54.515 W/System  (30614): A resource failed to call close. 
+09-24 23:19:54.573 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28374, screenshot (Background for SurfaceView[com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity]#0)
+09-24 23:19:54.573 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28374, screenshot (SurfaceView[com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity](BLAST)#0)
+09-24 23:19:54.574 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28374, screenshot (com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity#0)
+09-24 23:19:54.674 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28375, screenshot (Background for SurfaceView[com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity]#0)
+09-24 23:19:54.674 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28375, screenshot (SurfaceView[com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity](BLAST)#0)
+09-24 23:19:54.674 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28375, screenshot (com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity#0)
+09-24 23:19:54.774 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28376, screenshot (Background for SurfaceView[com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity]#0)
+09-24 23:19:54.775 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28376, screenshot (SurfaceView[com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity](BLAST)#0)
+09-24 23:19:54.775 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28376, screenshot (com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity#0)
+09-24 23:19:54.802 D/AALLightSensor( 1049): get SensorManager SUCCESS!
+09-24 23:19:54.804 E/SensorService( 1492): CL_L  VirtualAlspscanAccess packet:hidl_client_pid_1049 use Sensorname:camera_light_Sensor 
+09-24 23:19:54.804 D/AALLightSensor( 1049): enable Sensor FAIL!
+09-24 23:19:54.875 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28377, screenshot (Background for SurfaceView[com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity]#0)
+09-24 23:19:54.875 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28377, screenshot (SurfaceView[com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity](BLAST)#0)
+09-24 23:19:54.875 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28377, screenshot (com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity#0)
+09-24 23:19:54.975 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28378, screenshot (Background for SurfaceView[com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity]#0)
+09-24 23:19:54.975 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28378, screenshot (SurfaceView[com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity](BLAST)#0)
+09-24 23:19:54.975 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28378, screenshot (com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity#0)
+09-24 23:19:55.068 I/libPerfCtl(  738): xgfGetFPS pid:2113 fps:-1
+09-24 23:19:55.068 I/libPerfCtl(  738): xgfGetFPS pid:2122 fps:-1
+09-24 23:19:55.068 I/libPerfCtl(  738): xgfGetFPS pid:30406 fps:-1
+09-24 23:19:55.068 I/libPerfCtl(  738): xgfGetFPS pid:30614 fps:53
+09-24 23:19:55.076 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28379, screenshot (Background for SurfaceView[com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity]#0)
+09-24 23:19:55.076 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28379, screenshot (SurfaceView[com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity](BLAST)#0)
+09-24 23:19:55.076 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28379, screenshot (com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity#0)
+09-24 23:19:55.177 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28380, screenshot (Background for SurfaceView[com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity]#0)
+09-24 23:19:55.177 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28380, screenshot (SurfaceView[com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity](BLAST)#0)
+09-24 23:19:55.177 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28380, screenshot (com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity#0)
+09-24 23:19:55.249 I/BufferQueueProducer(  790): [SurfaceView[com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity](BLAST)#0](this:0xb4000075244f68e0,id:-1,api:0,p:-1,c:790) queueBuffer: fps=52.99 dur=1000.17 max=34.07 min=15.78
+09-24 23:19:55.277 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28381, screenshot (Background for SurfaceView[com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity]#0)
+09-24 23:19:55.277 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28381, screenshot (SurfaceView[com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity](BLAST)#0)
+09-24 23:19:55.277 I/SurfaceFlinger(  790): operator()(), mtkRenderCntDebug 28381, screenshot (com.devyk.av.rtmppush/com.devyk.av.rtmppush.LiveActivity#0)
+09-24 23:19:55.334 I/hwcomposer(  719): [HWCDisplay] [Display_0 (type:1)] fps:52.168228,dur:1015.94,max:34.16,min:15.55  
+09-24 23:19:55.337 V/AS.AudioDeviceBroker( 1492): requestedCommunicationDevice, device: null mode owner pid: 0
+09-24 23:19:55.338 V/AS.AudioDeviceBroker( 1492): requestedCommunicationDevice, device: null mode owner pid: 0

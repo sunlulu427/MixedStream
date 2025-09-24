@@ -74,27 +74,31 @@ abstract class BaseActivity<T> : AppCompatActivity() {
      */
     @SuppressLint("CheckResult")
     protected fun checkPermission() {
-        if (SPUtils.getInstance().getBoolean(getString(R.string.OPEN_PERMISSIONS))) {
-            return
-        }
+        val key = getString(R.string.OPEN_PERMISSIONS)
+        if (SPUtils.getInstance().getBoolean(key)) return
         val rxPermissions = RxPermissions(this)
-        rxPermissions.requestEach(
-            android.Manifest.permission.READ_EXTERNAL_STORAGE,
-            android.Manifest.permission.RECORD_AUDIO,
-            android.Manifest.permission.CAMERA,
-            android.Manifest.permission.WRITE_EXTERNAL_STORAGE
-        ).subscribe {
-            if (it.granted) {
-                SPUtils.getInstance().put(getString(R.string.OPEN_PERMISSIONS), true)
-                Toast.makeText(this, getString(R.string.GET_PERMISSION_ERROR), Toast.LENGTH_SHORT)
-                    .show()
-            } else if (it.shouldShowRequestPermissionRationale) {
-                Toast.makeText(this, getString(R.string.GET_PERMISSION_ERROR), Toast.LENGTH_SHORT)
-                    .show()
-                SPUtils.getInstance().put(getString(R.string.OPEN_PERMISSIONS), false)
+        rxPermissions
+            .request(
+                android.Manifest.permission.READ_EXTERNAL_STORAGE,
+                android.Manifest.permission.RECORD_AUDIO,
+                android.Manifest.permission.CAMERA,
+                android.Manifest.permission.WRITE_EXTERNAL_STORAGE
+            )
+            .subscribe { allGranted ->
+                if (allGranted) {
+                    SPUtils.getInstance().put(key, true)
+                    Toast.makeText(this, getString(R.string.GET_PERMISSION_ERROR), Toast.LENGTH_SHORT).show()
+                } else {
+                    SPUtils.getInstance().put(key, false)
+                }
+                onPermissionsUpdated(allGranted)
             }
-        }
     }
+
+    /**
+     * 权限授予结果回调（全量）
+     */
+    protected open fun onPermissionsUpdated(allGranted: Boolean) {}
 
     fun startTime(timer: Chronometer) {
         val hour = ((SystemClock.elapsedRealtime() - timer.base) / 1000 / 60).toInt()
