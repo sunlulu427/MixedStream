@@ -1,18 +1,20 @@
 package com.devyk.av.rtmppush
 
-import android.content.res.Configuration
 import android.Manifest
+import android.content.pm.PackageManager
+import android.content.res.Configuration
 import android.graphics.Color
 import android.os.Build
 import android.text.TextUtils
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageView
+import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
-import android.content.pm.PackageManager
 import com.devyk.av.rtmp.library.callback.OnConnectListener
 import com.devyk.av.rtmp.library.camera.Watermark
 import com.devyk.av.rtmp.library.config.AudioConfiguration
@@ -21,10 +23,8 @@ import com.devyk.av.rtmp.library.config.VideoConfiguration
 import com.devyk.av.rtmp.library.stream.packer.rtmp.RtmpPacker
 import com.devyk.av.rtmp.library.stream.sender.rtmp.RtmpSender
 import com.devyk.av.rtmp.library.utils.LogHelper
+import com.devyk.av.rtmp.library.widget.AVLiveView
 import com.devyk.av.rtmppush.base.BaseActivity
-import kotlinx.android.synthetic.main.activity_live.live
-import kotlinx.android.synthetic.main.activity_live.live_icon
-import kotlinx.android.synthetic.main.activity_live.progressBar
 
 class LiveActivity : BaseActivity<Int>(), OnConnectListener {
     /**
@@ -61,6 +61,10 @@ class LiveActivity : BaseActivity<Int>(), OnConnectListener {
     private lateinit var mPacker: RtmpPacker
     private var uploadDialog: AlertDialog? = null
 
+    private lateinit var liveView: AVLiveView
+    private lateinit var liveIcon: ImageView
+    private lateinit var liveProgressBar: ProgressBar
+
 
     override fun initListener() {
         // Sender is created lazily; listener will be set when creating sender.
@@ -72,13 +76,17 @@ class LiveActivity : BaseActivity<Int>(), OnConnectListener {
     }
 
     override fun init() {
+        liveView = findViewById(R.id.live)
+        liveIcon = findViewById(R.id.live_icon)
+        liveProgressBar = findViewById(R.id.progressBar)
+
         //初始化包封装器
         mPacker = RtmpPacker()
-        live.setPacker(mPacker)
+        liveView.setPacker(mPacker)
 
         //初始化音频参数
         val audioConfiguration = AudioConfiguration()
-        live.setAudioConfigure(audioConfiguration)
+        liveView.setAudioConfigure(audioConfiguration)
 
         //初始化视频编码参数
         val videoConfiguration = VideoConfiguration(
@@ -91,14 +99,14 @@ class LiveActivity : BaseActivity<Int>(), OnConnectListener {
             ifi = 5,
             mediaCodec = true
         )
-        live.setVideoConfigure(videoConfiguration)
+        liveView.setVideoConfigure(videoConfiguration)
 
         //初始化 camera 参数
         val cameraConfiguration = CameraConfiguration(
             width = 960,
             height = 1920
         )
-        live.setCameraConfigure(cameraConfiguration)
+        liveView.setCameraConfigure(cameraConfiguration)
 
         //设置预览（权限就绪后再启动，避免无权限时崩溃）
         tryStartPreview()
@@ -122,13 +130,13 @@ class LiveActivity : BaseActivity<Int>(), OnConnectListener {
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
         LogHelper.e(TAG, "方向改变:${newConfig.densityDpi}")
-        live.previewAngle(this)
+        liveView.previewAngle(this)
     }
 
     fun rtmp_live(view: View) {
         if (isConncet) {
-            progressBar.visibility = View.VISIBLE;
-            live.stopLive()
+            liveProgressBar.visibility = View.VISIBLE;
+            liveView.stopLive()
             mSender?.close()
             isConncet = false
             mPacker.stop()
@@ -139,15 +147,15 @@ class LiveActivity : BaseActivity<Int>(), OnConnectListener {
     }
 
     fun camera_change(view: View) {
-        live.switchCamera()
+        liveView.switchCamera()
     }
 
 
     override fun onDestroy() {
         super.onDestroy()
         mSender?.close()
-        live.stopLive()
-        live.releaseCamera()
+        liveView.stopLive()
+        liveView.releaseCamera()
     }
 
     private var previewStarted = false
@@ -163,7 +171,7 @@ class LiveActivity : BaseActivity<Int>(), OnConnectListener {
             LogHelper.w(TAG, "camera permission not granted, skip startPreview")
             return
         }
-        live.startPreview()
+        liveView.startPreview()
         previewStarted = true
     }
 
@@ -184,33 +192,33 @@ class LiveActivity : BaseActivity<Int>(), OnConnectListener {
     override fun onFail(message: String) {
         runOnUiThread {
             Toast.makeText(applicationContext, message, Toast.LENGTH_LONG).show()
-            progressBar.visibility = View.GONE;
-            live_icon.setImageDrawable(getDrawable(R.mipmap.live))
+            liveProgressBar.visibility = View.GONE;
+            liveIcon.setImageDrawable(getDrawable(R.mipmap.live))
         }
     }
 
     @RequiresApi(Build.VERSION_CODES.N)
     override fun onConnecting() {
         runOnUiThread {
-            progressBar.visibility = View.VISIBLE;
+            liveProgressBar.visibility = View.VISIBLE;
         }
     }
 
     override fun onConnected() {
         mPacker.start()
-        live.startLive()
+        liveView.startLive()
         //传输的过程中可以动态设置码率
-        live.setVideoBps(300)
+        liveView.setVideoBps(300)
         runOnUiThread {
-            live_icon.setImageDrawable(getDrawable(R.mipmap.stop))
-            progressBar.visibility = View.GONE;
+            liveIcon.setImageDrawable(getDrawable(R.mipmap.stop))
+            liveProgressBar.visibility = View.GONE;
         }
     }
 
     override fun onClose() {
         runOnUiThread {
-            progressBar.visibility = View.GONE
-            live_icon.setImageDrawable(getDrawable(R.mipmap.live))
+            liveProgressBar.visibility = View.GONE
+            liveIcon.setImageDrawable(getDrawable(R.mipmap.live))
         }
     }
 
@@ -250,8 +258,8 @@ class LiveActivity : BaseActivity<Int>(), OnConnectListener {
 
     private fun setWatemark() {
         //设置 Bitmap 水印 第二个参数如果传 null 那么默认在右下角
-//        live.setWatermark(Watermark(BitmapFactory.decodeResource(resources, R.mipmap.live_logo), null))
-        live.setWatermark(Watermark("Mato", Color.WHITE, 20, null))
+//        liveView.setWatermark(Watermark(BitmapFactory.decodeResource(resources, R.mipmap.live_logo), null))
+        liveView.setWatermark(Watermark("Mato", Color.WHITE, 20, null))
     }
 
     private fun ensureSenderSafely(): Boolean {
@@ -261,7 +269,7 @@ class LiveActivity : BaseActivity<Int>(), OnConnectListener {
             sender.setOnConnectListener(this)
             mSender = sender
             // 绑定到 Live 组件
-            live.setSender(sender)
+            liveView.setSender(sender)
             true
         } catch (e: UnsatisfiedLinkError) {
             Toast.makeText(
