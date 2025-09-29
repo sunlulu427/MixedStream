@@ -14,6 +14,7 @@ cmake.dir=/Users/bytedance/Library/Android/sdk/cmake/3.22.1
 
 - document Clean Architecture principles & expose `LiveStreamSession` 抽象，`AVLiveView` 支持注入自定义推流会话
 - add GitHub Actions workflow to run Gradle builds on every push/PR
+- add PlantUML rendering step in CI + `tools/render_docs.sh`
 
 - update default preview resolution and push resolution
 - change camera facing to back (for emulator)

@@ -34,6 +34,12 @@
   - 视频编码：`docs/video_encode.puml`
   - 推流封包：`docs/video_streaming.puml`
 
+### 文档生成规范
+- 所有架构图统一存放于 `docs/*.puml`。
+- CI 通过 `tools/render_docs.sh` 使用 PlantUML 生成 `docs/generated/<name>.png` 与同名 Markdown。
+- Markdown 格式：一级标题（文件名转为 Title Case）、内嵌 `![Title](./name.png)`、并罗列 `Source` 与 `Generated` 元数据。
+- 本地更新图表前请手动运行脚本，确保生成物与 CI 一致，提交时勿包含 `docs/generated/`（由 CI 产出并以 artifact 形式提供）。
+
 ### 启动稳定性与常见问题
 - 避免崩溃：
   - 原因：早期在 Activity 初始化阶段创建 `RtmpSender()` 会加载 `libAVRtmpPush.so`，在不支持的 ABI（如 x86 模拟器）上导致 `UnsatisfiedLinkError` 并崩溃。

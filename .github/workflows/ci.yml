@@ -22,6 +22,11 @@ jobs:
           distribution: temurin
           java-version: 17
 
+      - name: Install PlantUML dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y plantuml graphviz
+
       - name: Install Android SDK components
         uses: android-actions/setup-android@v3
         with:
@@ -40,3 +45,12 @@ jobs:
 
       - name: Build modules
         run: ./gradlew :app:assembleDebug :library:assembleRelease --stacktrace
+
+      - name: Render PlantUML diagrams
+        run: bash tools/render_docs.sh
+
+      - name: Upload diagram artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: docs-diagrams
+          path: docs/generated
