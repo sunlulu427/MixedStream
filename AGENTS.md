@@ -15,6 +15,13 @@
 - 依赖：`app` 仅示例层依赖 `library`；`library` 通过 JNI 调用 `src/main/cpp` 并链接预编译 `librtmp`。
 - 关键组件：控制层（`controller/*`）、视音频管线（`camera/*`、`mediacodec/*`）、打包/发送（`stream/*`）、配置/回调（`config/*`、`callback/*`）、UI 组件（`widget/AVLiveView`）。
 
+### Clean Architecture 基本原则
+- **依赖内向**：高层策略（Controller/配置接口）不依赖底层实现，所有实现向内依赖接口/抽象。
+- **分层职责**：UI（`app`/`widget`）→ 用例协调层（`controller`）→ 数据/设备实现（`camera`、`mediacodec`、`stream`、`sender`）。跨层交互必须通过接口或数据模型。
+- **接口驱动**：任何跨层能力（相机、推流、打包、日志）先定义接口后实现，便于替换与测试。
+- **边界明确**：JNI/NDK、网络、硬件调用隔离在基础设施层，不向上暴露具体依赖；上层仅接触抽象能力。
+- **可测试性**：控制层以接口注入依赖，便于替换假实现（Fake）进行用例测试。
+
 ### 使用概览（提炼自 README/Core）
 - 预览视图：在布局使用 `com.devyk.av.rtmp.library.widget.AVLiveView`，通过 `setAudioConfigure`、`setVideoConfigure`、`setCameraConfigure` 配置参数。
 - 启动顺序：`startPreview()` →（准备）→ `mSender.connect()` → `mPacker.start()` → `live.startLive()`。

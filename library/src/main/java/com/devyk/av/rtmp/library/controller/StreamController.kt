@@ -23,9 +23,9 @@ import javax.microedition.khronos.egl.EGLContext
  *     desc    : This is StreamController
  * </pre>
  */
-class StreamController : IController.OnAudioDataListener, IController.OnVideoDataListener,
-    Packer.OnPacketListener {
-    private var TAG = javaClass.simpleName
+class StreamController : LiveStreamSession, IController.OnAudioDataListener,
+    IController.OnVideoDataListener, Packer.OnPacketListener {
+    private val TAG = javaClass.simpleName
 
     /**
      * 水印
@@ -70,14 +70,14 @@ class StreamController : IController.OnAudioDataListener, IController.OnVideoDat
     /**
      * 设置音频编码和采集的参数
      */
-    fun setAudioConfigure(audioConfiguration: AudioConfiguration) {
+    override fun setAudioConfigure(audioConfiguration: AudioConfiguration) {
         this.mAudioConfiguration = audioConfiguration
     }
 
     /**
      * 设置视频的编码参数
      */
-    fun setVideoConfigure(videoConfiguration: VideoConfiguration) {
+    override fun setVideoConfigure(videoConfiguration: VideoConfiguration) {
         this.mVideoConfiguration = videoConfiguration
     }
 
@@ -85,14 +85,14 @@ class StreamController : IController.OnAudioDataListener, IController.OnVideoDat
     /**
      * 设置打包器
      */
-    fun setPacker(packer: Packer) {
+    override fun setPacker(packer: Packer) {
         this.mPacker = packer
     }
 
     /**
      * 设置发送器
      */
-    fun setSender(sender: Sender) {
+    override fun setSender(sender: Sender) {
         this.mSender = sender
     }
 
@@ -100,7 +100,7 @@ class StreamController : IController.OnAudioDataListener, IController.OnVideoDat
     /**
      *  @see start 之前必须调用 prepare
      */
-    fun prepare(context: Context, textureId: Int, eglContext: EGLContext?) {
+    override fun prepare(context: Context, textureId: Int, eglContext: EGLContext?) {
         this.mContext = context.applicationContext
         this.mTextureId = textureId
         this.mEGLContext = eglContext
@@ -121,35 +121,39 @@ class StreamController : IController.OnAudioDataListener, IController.OnVideoDat
         }
     }
 
-    fun start() {
+    override fun start() {
+        if (mPacker == null || mSender == null) {
+            LogHelper.w(TAG, "start ignored: packer or sender not ready")
+            return
+        }
         if (mAudioController == null || mVideoController == null)
             init()
         mAudioController?.start()
         mVideoController?.start()
     }
 
-    fun pause() {
+    override fun pause() {
         mAudioController?.pause()
         mVideoController?.pause()
     }
 
-    fun resume() {
+    override fun resume() {
         mAudioController?.resume()
         mVideoController?.resume()
     }
 
-    fun stop() {
+    override fun stop() {
         mAudioController?.stop()
         mVideoController?.stop()
         mAudioController = null
         mVideoController = null
     }
 
-    fun setMute(isMute: Boolean) {
+    override fun setMute(isMute: Boolean) {
         mAudioController?.setMute(isMute)
     }
 
-    fun setVideoBps(bps: Int) {
+    override fun setVideoBps(bps: Int) {
         mVideoController?.setVideoBps(bps)
     }
 
@@ -198,10 +202,15 @@ class StreamController : IController.OnAudioDataListener, IController.OnVideoDat
     }
 
     override fun onPacket(sps: ByteArray?, pps: ByteArray?, packetType: PacketType) {
-        mSender?.onData(sps!!, pps!!, packetType)
+        if (sps == null || pps == null) {
+            LogHelper.w(TAG, "drop video config packet: missing sps/pps")
+            return
+        }
+        mSender?.onData(sps, pps, packetType)
     }
 
-    fun setWatermark(watermark: Watermark) {
+    override fun setWatermark(watermark: Watermark) {
         mWatermark = watermark
+        mVideoController?.setWatermark(watermark)
     }
 }

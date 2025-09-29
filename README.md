@@ -287,5 +287,17 @@ mPacker.stop()
 
 
 
+#### 14、自定义推流会话
+
+`AVLiveView` 默认使用 `StreamController`。若需要插入自定义打包/发送策略，可实现 `LiveStreamSession` 接口并注入：
+
+```kotlin
+val customSession: LiveStreamSession = CustomStreamController()
+live.attachStreamSession(customSession)
+```
+
+接口屏蔽了底层实现细节，更容易做单元测试或根据业务切换不同推流方案。
+
+
 
  

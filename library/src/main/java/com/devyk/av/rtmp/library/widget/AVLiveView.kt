@@ -8,6 +8,7 @@ import com.devyk.av.rtmp.library.camera.Watermark
 import com.devyk.av.rtmp.library.config.AudioConfiguration
 import com.devyk.av.rtmp.library.config.CameraConfiguration
 import com.devyk.av.rtmp.library.config.VideoConfiguration
+import com.devyk.av.rtmp.library.controller.LiveStreamSession
 import com.devyk.av.rtmp.library.controller.StreamController
 import com.devyk.av.rtmp.library.stream.packer.Packer
 import com.devyk.av.rtmp.library.stream.sender.Sender
@@ -34,6 +35,9 @@ class AVLiveView @JvmOverloads constructor(
     private var mSampleRate = 44100
     private var mVideoMinRate = 400
     private var mVideoMaxRate = 1800
+    private var currentWatermark: Watermark? = null
+    private var currentPacker: Packer? = null
+    private var currentSender: Sender? = null
 
     private var mVideoConfiguration = VideoConfiguration(
         width = mPreviewWidth,
@@ -54,7 +58,7 @@ class AVLiveView @JvmOverloads constructor(
         fps = mFps,
         facing = if (mBack) CameraConfiguration.Facing.BACK else CameraConfiguration.Facing.FRONT
     )
-    private val mStreamController = StreamController()
+    private var streamSession: LiveStreamSession = StreamController()
 
     init {
         val typeArray = context.obtainStyledAttributes(attrs, R.styleable.AVLiveView)
@@ -96,8 +100,8 @@ class AVLiveView @JvmOverloads constructor(
      * 开始预览
      */
     fun startPreview() {
-        mStreamController.setAudioConfigure(mAudioConfiguration)
-        mStreamController.setVideoConfigure(mVideoConfiguration)
+        streamSession.setAudioConfigure(mAudioConfiguration)
+        streamSession.setVideoConfigure(mVideoConfiguration)
         //开始预览
         startPreview(mCameraConfiguration)
     }
@@ -105,69 +109,84 @@ class AVLiveView @JvmOverloads constructor(
 
     override fun setWatermark(watermark: Watermark) {
         super.setWatermark(watermark)
-        mStreamController.setWatermark(watermark)
+        currentWatermark = watermark
+        streamSession.setWatermark(watermark)
     }
 
     /**
      * 设置打包器
      */
     fun setPacker(packer: Packer) {
-        mStreamController.setPacker(packer)
+        currentPacker = packer
+        streamSession.setPacker(packer)
     }
 
     /**
      * 设置发送器
      */
     fun setSender(sender: Sender) {
-        mStreamController.setSender(sender)
+        currentSender = sender
+        streamSession.setSender(sender)
     }
 
     /**
      * camera 打开可以初始化了
      */
     override fun onCameraOpen() {
-        mStreamController.prepare(context, getTextureId(), getEGLContext())
+        streamSession.prepare(context, getTextureId(), getEGLContext())
     }
 
     /**
      * 开始
      */
     fun startLive() {
-        mStreamController.start()
+        streamSession.start()
     }
 
     /**
      * 暂停
      */
     fun pause() {
-        mStreamController.pause()
+        streamSession.pause()
     }
 
     /**
      * 恢复
      */
     fun resume() {
-        mStreamController.resume()
+        streamSession.resume()
     }
 
     /**
      * 停止
      */
     fun stopLive() {
-        mStreamController.stop()
+        streamSession.stop()
     }
 
     /**
      * 禁言
      */
     fun setMute(isMute: Boolean) {
-        mStreamController.setMute(isMute)
+        streamSession.setMute(isMute)
     }
 
     /**
      * 动态设置视频编码码率
      */
     fun setVideoBps(bps: Int) {
-        mStreamController.setVideoBps(bps)
+        streamSession.setVideoBps(bps)
+    }
+
+    /**
+     * 注入自定义推流会话，便于测试或扩展不同策略实现。
+     */
+    fun attachStreamSession(session: LiveStreamSession) {
+        streamSession = session
+        streamSession.setAudioConfigure(mAudioConfiguration)
+        streamSession.setVideoConfigure(mVideoConfiguration)
+        currentPacker?.let { streamSession.setPacker(it) }
+        currentSender?.let { streamSession.setSender(it) }
+        currentWatermark?.let { streamSession.setWatermark(it) }
     }
 }
