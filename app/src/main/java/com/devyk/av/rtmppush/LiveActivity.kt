@@ -120,7 +120,7 @@ class LiveActivity : BaseActivity<Int>(), OnConnectListener {
         super.onContentViewBefore()
         Utils.init(application)
         // 打开调试日志，便于通过 logcat 排查问题
-        com.devyk.av.rtmp.library.utils.LogHelper.isShowLog = BuildConfig.DEBUG
+        LogHelper.isShowLog = true
         checkPermission()
         setNotTitleBar()
     }

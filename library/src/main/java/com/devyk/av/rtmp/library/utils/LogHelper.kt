@@ -19,22 +19,22 @@ object LogHelper : ILog {
 
     override fun i(tag: String, info: String?) {
         if (isShowLog)
-            Log.i(tag, info)
+            Log.i(tag, info.orEmpty())
 
     }
 
     override fun e(tag: String, info: String?) {
         if (isShowLog)
-            Log.e(tag, info)
+            Log.e(tag, info.orEmpty())
     }
 
     override fun w(tag: String, info: String?) {
         if (isShowLog)
-            Log.w(tag, info)
+            Log.w(tag, info.orEmpty())
     }
 
     override fun d(tag: String, info: String?) {
         if (isShowLog)
-            Log.d(tag, info)
+            Log.d(tag, info.orEmpty())
     }
 }

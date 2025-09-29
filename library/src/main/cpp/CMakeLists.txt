@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.4.1)
+cmake_minimum_required(VERSION 3.22.1)
 
 #配置 librtmp 库的路径
 set(LIBRTMP_ROOT_PATH ${CMAKE_SOURCE_DIR}/librtmp)

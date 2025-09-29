@@ -143,8 +143,8 @@ open class CameraView @JvmOverloads constructor(
         renderer.setWatemark(watermark)
     }
 
-    override fun onFrameAvailable(surfaceTexture: SurfaceTexture?) {
-        LogHelper.e(TAG, "onFrameAvailable: 相机纹理刷新");
+    override fun onFrameAvailable(surfaceTexture: SurfaceTexture) {
+        LogHelper.e(TAG, "onFrameAvailable: 相机纹理刷新")
     }
 
 

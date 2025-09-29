@@ -1,19 +1,18 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-android-extensions'
 android {
-    compileSdkVersion 29
-    buildToolsVersion "29.0.3"
+    namespace 'com.devyk.av.rtmp.library'
+    compileSdk 34
 
     compileOptions {
-        targetCompatibility JavaVersion.VERSION_1_8
-        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_17
+        sourceCompatibility JavaVersion.VERSION_17
     }
 
     defaultConfig {
-        ndkVersion "21.1.6352462"
-        minSdkVersion 21
-        targetSdkVersion 29
+        ndkVersion "27.1.12297006"
+        minSdk 21
+        targetSdk 34
         versionCode 100
         versionName "1.0.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -40,8 +39,13 @@ android {
     }
     externalNativeBuild {
         cmake {
+            version "3.22.1"
             path file('src/main/cpp/CMakeLists.txt')
         }
+    }
+
+    kotlinOptions {
+        jvmTarget = '17'
     }
 }
 

@@ -1,14 +1,15 @@
 # Updates
 
 - assigned ndk version in build.gradle
+- bump Gradle 8.6 / AGP 8.4.2 / Kotlin 1.9.24 / JDK 17
 - removed bintray-release plugin
 - use mavenCentral instead of jcenter
 - use source code mode instead of binary mode
 - add property in local.properties
 ```properties
 sdk.dir=/Users/bytedance/Library/Android/sdk
-ndk.dir=/Users/bytedance/Library/Android/sdk/ndk/21.1.6352462
-cmake.dir=/Users/bytedance/Library/Android/sdk/cmake/3.10.2.4988404
+ndk.dir=/Users/bytedance/Library/Android/sdk/ndk/27.1.12297006
+cmake.dir=/Users/bytedance/Library/Android/sdk/cmake/3.22.1
 ```
 
 - update default preview resolution and push resolution

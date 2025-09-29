@@ -1,20 +1,19 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-android-extensions'
 
 android {
-    compileSdkVersion 29
-    buildToolsVersion "29.0.3"
+    namespace 'com.devyk.av.rtmppush'
+    compileSdk 34
 
     compileOptions {
-        targetCompatibility JavaVersion.VERSION_1_8
-        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_17
+        sourceCompatibility JavaVersion.VERSION_17
     }
 
     defaultConfig {
         applicationId "com.devyk.av.rtmppush"
-        minSdkVersion 21
-        targetSdkVersion 29
+        minSdk 21
+        targetSdk 34
         versionCode 100
         versionName "1.0.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -32,14 +31,12 @@ android {
         }
     }
 
-    // 在Android代码块中添加如下配置：（可优化最上图中transformClassDexBuilderForDebug的时间）
-    dexOptions {
-        preDexLibraries true
-        maxProcessCount 8
+    kotlinOptions {
+        jvmTarget = '17'
     }
 
-    lintOptions {
-        abortOnError false
+    lint {
+        abortOnError = false
     }
 }
 

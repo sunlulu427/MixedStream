@@ -27,7 +27,12 @@
 
 ###要求
 
->Android SDK 版本 18+
+>构建环境
+>- Gradle 8.6 / Android Gradle Plugin 8.4.2 / Kotlin 1.9.24
+>- JDK 17
+>- Android SDK 34（compileSdk/targetSdk 34，minSdk 21）
+>- NDK 27.1.12297006
+>- CMake 3.22.1
 
 
 
@@ -284,4 +289,3 @@ mPacker.stop()
 
 
  
-

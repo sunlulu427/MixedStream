@@ -94,14 +94,14 @@ open class GLSurfaceView : SurfaceView, SurfaceHolder.Callback, IGLThreadConfig 
     }
 
 
-    override fun surfaceChanged(holder: SurfaceHolder?, format: Int, width: Int, height: Int) {
+    override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
         mEglThread.let { eglThread ->
             eglThread.setRendererSize(width, height)
             eglThread.isChange = true
         }
     }
 
-    override fun surfaceDestroyed(holder: SurfaceHolder?) {
+    override fun surfaceDestroyed(holder: SurfaceHolder) {
         mEglThread.let {
             mEglThread.onDestory()
         }
@@ -159,5 +159,4 @@ open class GLSurfaceView : SurfaceView, SurfaceHolder.Callback, IGLThreadConfig 
         fun getEGLContext(): EGLContext? = mEGLHelper.getEglContext()
     }
 }
-
 

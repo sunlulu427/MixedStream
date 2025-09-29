@@ -37,7 +37,7 @@
   - 相机权限未授予时不会调用 `startPreview()`，相关操作（如切换相机、设置水印）会延后，日志以 `LogHelper.w` 输出。
 
 ## 构建与运行（提炼）
-- 环境：Android SDK 29、NDK 21.1.6352462、CMake 3.10.2、Java 8。
+- 环境：Android SDK 34、NDK 27.1.12297006、CMake 3.22.1、Java 17。
 - 常用命令：
   - 构建 APK：`./gradlew :app:assembleDebug`；安装：`./gradlew :app:installDebug`
   - 构建 AAR：`./gradlew :library:assembleRelease`
@@ -45,11 +45,11 @@
   - Lint：`./gradlew :app:lintDebug :library:lint`
 
 ## 模块说明
-- 应用（`app/`）：示例入口 `LiveActivity`，演示推流全链路与权限处理；模块内 AGENTS.md 描述 UI、权限与日志。
+- 应用（`app/`）：示例入口 `LiveActivity`，演示推流全链路与权限处理；模ysave00块内 AGENTS.md 描述 UI、权限与日志。
 - SDK（`library/`）：核心推流能力；模块内 AGENTS.md 描述 OpenGL/相机、编码、打包、发送、JNI/NDK 细节与注意事项。
 
 ## 环境与构建
-- 要求：Android SDK 29、NDK 21.1.6352462、CMake 3.10.2、Java 8。
+- 要求：Android SDK 34、NDK 27.1.12297006、CMake 3.22.1、Java 17。
 - 配置：于本机 `local.properties` 设置 `sdk.dir`/`ndk.dir`（勿提交）。
 - 常用命令：
   - 构建 APK：`./gradlew :app:assembleDebug`；安装：`./gradlew :app:installDebug`
