@@ -24,6 +24,15 @@
 >- 支持 Live 模式下横竖屏动态切换
 
 
+### 核心链路图
+
+- [音视频数据流](docs/av_dataflow.puml)
+- [视频采集流程](docs/video_capture.puml)
+- [视频渲染流程](docs/video_render.puml)
+- [视频编码流程](docs/video_encode.puml)
+- [推流封包流程](docs/video_streaming.puml)
+
+
 
 ###要求
 

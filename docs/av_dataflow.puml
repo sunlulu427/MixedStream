@@ -1,0 +1,61 @@
+@startuml
+title 音视频处理数据流
+
+left to right direction
+skinparam rectangle {
+  BackgroundColor #1d1d1d
+  BorderColor #999999
+  FontColor #f0f0f0
+}
+skinparam note {
+  BackgroundColor #2b2b2b
+  BorderColor #999999
+  FontColor #f0f0f0
+}
+skinparam ArrowColor #c0c0c0
+skinparam defaultFontName "JetBrains Mono"
+skinparam defaultTextAlignment center
+
+rectangle "Audio Pipeline" as Audio {
+  [Mic Capture\n(AudioRecord)] --> [AEC/AGC\nPreprocess]
+  [AEC/AGC\nPreprocess] --> [PCM Queue]
+  [PCM Queue] --> [AAC Encoder\n(MediaCodec)]
+}
+
+rectangle "Video Pipeline" as Video {
+  [Camera Sensor\n(Camera2)] --> [SurfaceTexture]
+  [SurfaceTexture] --> [GL Thread\n(CameraRenderer)]
+  [GL Thread\n(CameraRenderer)] --> [FBO & Watermark]
+  [FBO & Watermark] --> [YUV/EGL Frame Queue]
+  [YUV/EGL Frame Queue] --> [H.264 Encoder\n(MediaCodec)]
+}
+
+[AAC Encoder\n(MediaCodec)] --> [FLV Muxer\n(Packer)]
+[H.264 Encoder\n(MediaCodec)] --> [FLV Muxer\n(Packer)]
+
+[FLV Muxer\n(Packer)] --> [StreamController]
+[StreamController] --> [RTMP Sender]
+[RTMP Sender] --> [JNI Bridge]
+[JNI Bridge] --> [librtmp]
+[librtmp] --> [RTMP Server]
+
+note right of [FBO & Watermark]
+GL 合成：
+* 纹理裁剪/预览适配
+* 叠加文字/图片水印
+end note
+
+note bottom of [FLV Muxer\n(Packer)]
+封装流程：
+* SPS/PPS + Video Tag
+* Audio Header + Audio Tag
+* 时间戳对齐
+end note
+
+note bottom of [RTMP Sender]
+发送策略：
+* 重试/心跳
+* 队列监控
+end note
+
+@enduml

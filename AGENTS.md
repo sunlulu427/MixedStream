@@ -28,6 +28,7 @@
 - 动态码率：`live.setVideoBps(bps)`。
 - 结束：`live.stopLive()` → `mSender.close()` → `mPacker.stop()`。
 - 核心流程图：
+  - 音视频数据流：`docs/av_dataflow.puml`
   - 视频采集：`docs/video_capture.puml`
   - 视频渲染：`docs/video_render.puml`
   - 视频编码：`docs/video_encode.puml`
