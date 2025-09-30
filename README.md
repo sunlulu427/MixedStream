@@ -61,49 +61,49 @@ cd AVRtmpPushSDK
 ./gradlew :app:assembleDebug :library:assembleRelease
 ```
 
-The demo Activity (`LiveActivity`) showcases camera permission handling, preview, and streaming controls.
+The demo Activity (`LiveActivity`) now renders a Material 3 Compose interface with configurable capture/stream resolutions, encoder selection, bitrate tuning, and live preview controls backed by `AVLiveView`.
 
 ## Live Session Lifecycle
 
-`AVLiveView` bridges UI interactions to the streaming pipeline through the `LiveStreamSession` interface:
+`AVLiveView` bridges UI interactions to the streaming pipeline through the `LiveStreamSession` interface. The Compose-based demo wraps it with `AndroidView`, configuring capture and streaming parameters as soon as the view is available:
 
 ```kotlin
-class LiveActivity : AppCompatActivity() {
-    private val live: AVLiveView by lazy { findViewById(R.id.live) }
+@Composable
+fun LivePreview(onReady: (AVLiveView) -> Unit) {
+    AndroidView(
+        factory = { context -> AVLiveView(context).also(onReady) },
+        modifier = Modifier.fillMaxSize()
+    )
+}
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_live)
+class LiveActivity : BaseActivity<View>(), OnConnectListener {
+    private val packer = RtmpPacker()
+    private var sender: RtmpSender? = null
 
-        live.setAudioConfigure(AudioConfiguration.createDefault())
-        live.setVideoConfigure(
-            VideoConfiguration.Builder()
-                .setBps(400, 800)
-                .setFps(25)
-                .setSize(1280, 720)
-                .setMediaCodec(true)
-                .build()
-        )
-        live.setCameraConfigure(
-            CameraConfiguration.Builder()
-                .setFacing(CameraConfiguration.Facing.BACK)
-                .setFps(25)
-                .setPreview(1280, 720)
-                .build()
-        )
-
-        val packer = RtmpPacker()
-        live.setPacker(packer)
-
-        val sender = RtmpSender().apply {
-            setDataSource("rtmp://<host>/<app>/<stream>")
+    override fun getLayoutId(): View = ComposeView(this).apply {
+        setContent {
+            AVLiveTheme {
+                LiveActivityScreen(
+                    onLiveViewReady = { view ->
+                        view.setPacker(packer)
+                        view.setAudioConfigure(AudioConfiguration())
+                        view.setVideoConfigure(VideoConfiguration(width = 960, height = 1920, mediaCodec = true))
+                        view.setCameraConfigure(CameraConfiguration(width = 960, height = 1920))
+                        sender?.let(view::setSender)
+                    }
+                )
+            }
         }
-        live.setSender(sender)
     }
 
-    private fun startStreaming() {
-        live.startPreview()
-        live.startLive()
+    private fun ensureSender(url: String) {
+        if (sender == null) {
+            sender = RtmpSender().also {
+                it.setOnConnectListener(this)
+            }
+        }
+        sender?.setDataSource(url)
+        sender?.connect()
     }
 }
 ```
