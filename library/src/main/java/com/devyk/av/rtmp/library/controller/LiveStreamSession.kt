@@ -13,6 +13,10 @@ import javax.microedition.khronos.egl.EGLContext
  */
 interface LiveStreamSession {
 
+    interface StatsListener {
+        fun onVideoStats(bitrateKbps: Int, fps: Int)
+    }
+
     fun setAudioConfigure(audioConfiguration: AudioConfiguration)
 
     fun setVideoConfigure(videoConfiguration: VideoConfiguration)
@@ -36,4 +40,6 @@ interface LiveStreamSession {
     fun setVideoBps(bps: Int)
 
     fun setWatermark(watermark: Watermark)
+
+    fun setStatsListener(listener: StatsListener?)
 }

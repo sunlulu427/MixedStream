@@ -61,7 +61,7 @@ cd AVRtmpPushSDK
 ./gradlew :app:assembleDebug :library:assembleRelease
 ```
 
-The demo Activity (`LiveActivity`) now renders a Material 3 Compose interface with configurable capture/stream resolutions, encoder selection, bitrate tuning, and live preview controls backed by `AVLiveView`.
+The demo Activity (`LiveActivity`) now renders a Material 3 Compose interface with configurable capture/stream resolutions, encoder selection, bitrate tuning, and live preview controls backed by `AVLiveView`. Streaming is optional—users can leave the RTMP address empty to stay in preview-only mode—and the entire experience runs in an immersive, edge-to-edge layout.
 
 ## Live Session Lifecycle
 
@@ -90,7 +90,12 @@ class LiveActivity : BaseActivity<View>(), OnConnectListener {
                         view.setVideoConfigure(VideoConfiguration(width = 960, height = 1920, mediaCodec = true))
                         view.setCameraConfigure(CameraConfiguration(width = 960, height = 1920))
                         sender?.let(view::setSender)
-                    }
+                    },
+                    onStreamUrlChanged = { /* update state */ },
+                    onTogglePanel = { /* toggle parameter sheet */ },
+                    onShowUrlDialog = { /* prompt RTMP URL */ },
+                    onDismissUrlDialog = { /* dismiss dialog */ },
+                    onConfirmUrl = { url -> ensureSender(url) }
                 )
             }
         }
@@ -107,6 +112,12 @@ class LiveActivity : BaseActivity<View>(), OnConnectListener {
     }
 }
 ```
+
+- A bottom-left Tune button shows or hides the Material 3 parameter panel on demand.
+- The floating action button opens the RTMP dialog when no URL is set, so preview remains available even without streaming.
+- Confirming the dialog stores the URL and starts the live session immediately.
+- A translucent stats card in the top-left keeps capture/stream resolutions, FPS, GOP, bitrate window, and encoder mode visible during preview or live sessions.
+- Watermark text automatically scales with the configured capture resolution so branding stays legible across devices.
 
 Typical runtime sequence:
 

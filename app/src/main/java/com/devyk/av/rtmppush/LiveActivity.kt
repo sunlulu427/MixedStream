@@ -11,22 +11,34 @@ import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Cameraswitch
+import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.PlayArrow
+import androidx.compose.material.icons.rounded.Remove
 import androidx.compose.material.icons.rounded.Stop
+import androidx.compose.material.icons.rounded.Tune
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.ExtendedFloatingActionButton
@@ -37,18 +49,13 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
@@ -57,18 +64,24 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.core.content.ContextCompat
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import com.devyk.av.rtmp.library.callback.OnConnectListener
 import com.devyk.av.rtmp.library.camera.Watermark
 import com.devyk.av.rtmp.library.config.AudioConfiguration
 import com.devyk.av.rtmp.library.config.CameraConfiguration
 import com.devyk.av.rtmp.library.config.VideoConfiguration
+import com.devyk.av.rtmp.library.controller.LiveStreamSession
 import com.devyk.av.rtmp.library.stream.packer.rtmp.RtmpPacker
 import com.devyk.av.rtmp.library.stream.sender.rtmp.RtmpSender
 import com.devyk.av.rtmp.library.utils.LogHelper
@@ -76,7 +89,9 @@ import com.devyk.av.rtmp.library.widget.AVLiveView
 import com.devyk.av.rtmppush.base.BaseActivity
 import com.devyk.av.rtmppush.ui.theme.AVLiveTheme
 import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.roundToInt
+import androidx.compose.ui.graphics.Color as ComposeColor
 
 class LiveActivity : BaseActivity<View>(), OnConnectListener {
 
@@ -99,21 +114,33 @@ class LiveActivity : BaseActivity<View>(), OnConnectListener {
 
     private val uiState: MutableState<LiveUiState> = mutableStateOf(
         LiveUiState(
-            streamUrl = DEFAULT_STREAM_URL,
+            streamUrl = "",
             captureResolution = captureOptions[1],
             streamResolution = streamOptions[2],
             encoder = encoderOptions.first(),
-            targetBitrate = 800
+            targetBitrate = 800,
+            showParameterPanel = true,
+            showStats = true
         )
     )
 
     private val audioConfiguration = AudioConfiguration()
-    private var watermark: Watermark = Watermark("Mato", Color.WHITE, 20, null)
+    private val watermarkLabel = "Mato"
     private var packer: RtmpPacker? = null
     private var sender: RtmpSender? = null
     private var liveView: AVLiveView? = null
     private var previewStarted = false
     private var previewRequested = false
+    private val statsListener = object : LiveStreamSession.StatsListener {
+        override fun onVideoStats(bitrateKbps: Int, fps: Int) {
+            runOnUiThread {
+                val current = uiState.value
+                if (current.currentBitrate != bitrateKbps || current.currentFps != fps) {
+                    uiState.value = current.copy(currentBitrate = bitrateKbps, currentFps = fps)
+                }
+            }
+        }
+    }
 
     override fun initListener() {
         // No-op; listeners are attached when needed.
@@ -124,10 +151,14 @@ class LiveActivity : BaseActivity<View>(), OnConnectListener {
     }
 
     override fun init() {
-        packer = RtmpPacker().also { liveView?.setPacker(it) }
+        packer = RtmpPacker().also { currentPacker ->
+            liveView?.setPacker(currentPacker)
+        }
         applyStreamConfiguration()
+        liveView?.setStatsListener(statsListener)
         tryStartPreview()
     }
+
 
     override fun onContentViewBefore() {
         super.onContentViewBefore()
@@ -135,6 +166,11 @@ class LiveActivity : BaseActivity<View>(), OnConnectListener {
         LogHelper.isShowLog = true
         checkPermission()
         setNotTitleBar()
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        WindowCompat.getInsetsController(window, window.decorView)?.let { controller ->
+            controller.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            controller.hide(WindowInsetsCompat.Type.systemBars())
+        }
     }
 
     override fun getLayoutId(): View = ComposeView(this).apply {
@@ -151,11 +187,15 @@ class LiveActivity : BaseActivity<View>(), OnConnectListener {
                         onStreamResolutionSelected = { updateStreamResolution(it) },
                         onEncoderSelected = { updateEncoderOption(it) },
                         onBitrateChanged = { updateBitrate(it) },
+                        onBitrateInput = { updateBitrateFromInput(it) },
+                        onStreamUrlChanged = { updateStreamUrl(it) },
+                        onTogglePanel = { toggleParameterPanel() },
+                        onShowUrlDialog = { showUrlDialog() },
+                        onDismissUrlDialog = { hideUrlDialog() },
+                        onConfirmUrl = { confirmStreamUrl(it) },
+                        onStatsToggle = { updateStatsVisibility(it) },
                         onSwitchCamera = { liveView?.switchCamera() },
                         onToggleLive = { handleToggleLive() },
-                        onDismissUrlDialog = { hideUrlDialog() },
-                        onConfirmUrl = { startStreamingWithUrl(it) },
-                        onShowUrlDialog = { showUrlDialog() },
                         onLiveViewReady = { attachLiveView(it) }
                     )
                 }
@@ -221,37 +261,49 @@ class LiveActivity : BaseActivity<View>(), OnConnectListener {
         packer?.let { view.setPacker(it) }
         sender?.let { view.setSender(it) }
         view.setAudioConfigure(audioConfiguration)
-        applyStreamConfiguration()
-        view.setWatermark(watermark)
+        applyStreamConfiguration(view)
+        view.setStatsListener(statsListener)
         if (previewRequested || hasCameraPermission()) {
             tryStartPreview()
         }
     }
 
-    private fun applyStreamConfiguration() {
-        val current = uiState.value
-        val view = liveView ?: return
-        val target = current.targetBitrate
-        val minBps = max(current.bitrateRange.first, (target * 0.7f).roundToInt())
-        val maxBps = max(target + 100, (target * 1.3f).roundToInt())
+    private fun applyStreamConfiguration(targetView: AVLiveView? = liveView) {
+        val currentState = uiState.value
+        val minBps = max(300, (currentState.targetBitrate * 0.7f).roundToInt())
+        val maxBps = max(minBps + 200, (currentState.targetBitrate * 1.3f).roundToInt())
+        var updatedState = if (currentState.minBitrate != minBps || currentState.maxBitrate != maxBps)
+            currentState.copy(minBitrate = minBps, maxBitrate = maxBps) else currentState
+        val clampedTarget = updatedState.targetBitrate.coerceIn(updatedState.minBitrate, updatedState.maxBitrate)
+        if (clampedTarget != updatedState.targetBitrate) {
+            updatedState = updatedState.copy(targetBitrate = clampedTarget)
+        }
+        if (updatedState !== currentState) {
+            uiState.value = updatedState
+        }
+        val view = targetView ?: return
         view.setVideoConfigure(
             VideoConfiguration(
-                width = current.streamResolution.width,
-                height = current.streamResolution.height,
-                fps = 30,
-                maxBps = maxBps,
-                minBps = minBps,
-                ifi = 5,
-                mediaCodec = current.encoder.useHardware
+                width = updatedState.streamResolution.width,
+                height = updatedState.streamResolution.height,
+                fps = updatedState.videoFps,
+                maxBps = updatedState.maxBitrate,
+                minBps = updatedState.minBitrate,
+                ifi = updatedState.gop,
+                mediaCodec = updatedState.encoder.useHardware
             )
         )
         view.setCameraConfigure(
             CameraConfiguration(
-                width = current.captureResolution.width,
-                height = current.captureResolution.height,
-                fps = 30
+                width = updatedState.captureResolution.width,
+                height = updatedState.captureResolution.height,
+                fps = updatedState.videoFps
             )
         )
+        if (updatedState.isStreaming) {
+            view.setVideoBps(updatedState.targetBitrate)
+        }
+        updateWatermark(view, updatedState)
     }
 
     private fun updateCaptureResolution(option: ResolutionOption) {
@@ -280,7 +332,7 @@ class LiveActivity : BaseActivity<View>(), OnConnectListener {
 
     private fun updateBitrate(bitrate: Int) {
         val current = uiState.value
-        val clamped = bitrate.coerceIn(current.bitrateRange)
+        val clamped = bitrate.coerceIn(current.minBitrate, current.maxBitrate)
         uiState.value = current.copy(targetBitrate = clamped)
         applyStreamConfiguration()
         if (current.isStreaming) {
@@ -288,12 +340,35 @@ class LiveActivity : BaseActivity<View>(), OnConnectListener {
         }
     }
 
+    private fun updateBitrateFromInput(text: String) {
+        val current = uiState.value
+        val digits = text.filter { it.isDigit() }
+        val parsed = digits.toIntOrNull() ?: current.minBitrate
+        updateBitrate(parsed)
+    }
+
     private fun handleToggleLive() {
         val current = uiState.value
         if (current.isStreaming || current.isConnecting) {
             stopStreaming()
         } else {
-            showUrlDialog()
+            startStreamingIfPossible()
+        }
+    }
+
+    private fun updateStreamUrl(url: String) {
+        uiState.value = uiState.value.copy(streamUrl = url)
+    }
+
+    private fun toggleParameterPanel() {
+        val current = uiState.value
+        uiState.value = current.copy(showParameterPanel = !current.showParameterPanel)
+    }
+
+    private fun updateStatsVisibility(show: Boolean) {
+        val current = uiState.value
+        if (current.showStats != show) {
+            uiState.value = current.copy(showStats = show)
         }
     }
 
@@ -305,13 +380,29 @@ class LiveActivity : BaseActivity<View>(), OnConnectListener {
         uiState.value = uiState.value.copy(showUrlDialog = false)
     }
 
-    private fun startStreamingWithUrl(url: String) {
-        val cleanUrl = url.trim()
-        if (cleanUrl.isEmpty()) {
-            Toast.makeText(applicationContext, "推流地址不能为空", Toast.LENGTH_SHORT).show()
+    private fun confirmStreamUrl(url: String) {
+        val clean = url.trim()
+        if (clean.isEmpty()) {
+            Toast.makeText(this, "推流地址不能为空", Toast.LENGTH_SHORT).show()
             return
         }
-        hideUrlDialog()
+        uiState.value = uiState.value.copy(streamUrl = clean, showUrlDialog = false)
+        startStreamingIfPossible()
+    }
+
+    private fun updateWatermark(target: AVLiveView, state: LiveUiState) {
+        val base = min(state.captureResolution.width, state.captureResolution.height)
+        val textSize = (base * 0.05f).roundToInt().coerceIn(24, 96)
+        val watermark = Watermark(watermarkLabel, Color.WHITE, textSize, null)
+        target.setWatermark(watermark)
+    }
+
+    private fun startStreamingIfPossible() {
+        val cleanUrl = uiState.value.streamUrl.trim()
+        if (cleanUrl.isEmpty()) {
+            showUrlDialog()
+            return
+        }
         val updated = uiState.value.copy(streamUrl = cleanUrl, isConnecting = true)
         uiState.value = updated
         if (!ensureSenderSafely()) {
@@ -326,7 +417,8 @@ class LiveActivity : BaseActivity<View>(), OnConnectListener {
         liveView?.stopLive()
         packer?.stop()
         sender?.close()
-        uiState.value = uiState.value.copy(isStreaming = false, isConnecting = false)
+        val current = uiState.value
+        uiState.value = current.copy(isStreaming = false, isConnecting = false, currentBitrate = 0, currentFps = current.videoFps)
     }
 
     private fun ensureSenderSafely(): Boolean {
@@ -354,7 +446,8 @@ class LiveActivity : BaseActivity<View>(), OnConnectListener {
     override fun onFail(message: String) {
         runOnUiThread {
             Toast.makeText(applicationContext, message, Toast.LENGTH_LONG).show()
-            uiState.value = uiState.value.copy(isConnecting = false, isStreaming = false)
+            val current = uiState.value
+            uiState.value = current.copy(isConnecting = false, isStreaming = false, currentBitrate = 0, currentFps = current.videoFps)
         }
     }
 
@@ -370,19 +463,23 @@ class LiveActivity : BaseActivity<View>(), OnConnectListener {
         liveView?.startLive()
         liveView?.setVideoBps(uiState.value.targetBitrate)
         runOnUiThread {
-            uiState.value = uiState.value.copy(isConnecting = false, isStreaming = true)
+            val current = uiState.value
+            uiState.value = current.copy(
+                isConnecting = false,
+                isStreaming = true,
+                currentBitrate = current.targetBitrate,
+                currentFps = current.videoFps
+            )
         }
     }
 
     override fun onClose() {
         runOnUiThread {
-            uiState.value = uiState.value.copy(isConnecting = false, isStreaming = false)
+            val current = uiState.value
+            uiState.value = current.copy(isConnecting = false, isStreaming = false, currentBitrate = 0, currentFps = current.videoFps)
         }
     }
 
-    companion object {
-        private const val DEFAULT_STREAM_URL = "rtmp://www.devyk.cn:1992/devykLive/live1"
-    }
 }
 
 data class ResolutionOption(val width: Int, val height: Int, val label: String)
@@ -393,12 +490,19 @@ data class LiveUiState(
     val streamUrl: String,
     val isStreaming: Boolean = false,
     val isConnecting: Boolean = false,
+    val showParameterPanel: Boolean = false,
     val showUrlDialog: Boolean = false,
+    val showStats: Boolean = true,
     val captureResolution: ResolutionOption,
     val streamResolution: ResolutionOption,
     val encoder: EncoderOption,
     val targetBitrate: Int,
-    val bitrateRange: IntRange = 300..3500
+    val minBitrate: Int = 300,
+    val maxBitrate: Int = 3500,
+    val videoFps: Int = 30,
+    val gop: Int = 5,
+    val currentBitrate: Int = 0,
+    val currentFps: Int = 30
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -412,96 +516,158 @@ private fun LiveActivityScreen(
     onStreamResolutionSelected: (ResolutionOption) -> Unit,
     onEncoderSelected: (EncoderOption) -> Unit,
     onBitrateChanged: (Int) -> Unit,
-    onSwitchCamera: () -> Unit,
-    onToggleLive: () -> Unit,
+    onBitrateInput: (String) -> Unit,
+    onStreamUrlChanged: (String) -> Unit,
+    onTogglePanel: () -> Unit,
     onShowUrlDialog: () -> Unit,
     onDismissUrlDialog: () -> Unit,
     onConfirmUrl: (String) -> Unit,
+    onStatsToggle: (Boolean) -> Unit,
+    onSwitchCamera: () -> Unit,
+    onToggleLive: () -> Unit,
     onLiveViewReady: (AVLiveView) -> Unit
 ) {
     val parameterEnabled = !state.isStreaming && !state.isConnecting
     val cameraEnabled = !state.isConnecting
-    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
+    val hasUrl = state.streamUrl.isNotBlank()
 
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(text = "Live Studio", fontWeight = FontWeight.SemiBold) },
-                actions = {
-                    IconButton(onClick = onSwitchCamera, enabled = cameraEnabled) {
-                        Icon(imageVector = Icons.Outlined.Cameraswitch, contentDescription = "切换摄像头")
-                    }
-                },
-                scrollBehavior = scrollBehavior
-            )
-        },
+        containerColor = ComposeColor.Transparent,
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         floatingActionButton = {
-            val fabEnabled = !state.isConnecting
-            val fabContainer = when {
-                state.isStreaming -> MaterialTheme.colorScheme.error
-                fabEnabled -> MaterialTheme.colorScheme.primary
-                else -> MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)
-            }
-            ExtendedFloatingActionButton(
-                onClick = {
-                    if (!fabEnabled) return@ExtendedFloatingActionButton
-                    if (state.isStreaming) onToggleLive() else onShowUrlDialog()
-                },
-                containerColor = fabContainer,
-                contentColor = MaterialTheme.colorScheme.onPrimary,
-                elevation = FloatingActionButtonDefaults.elevation(defaultElevation = 4.dp),
-                icon = {
-                    if (state.isStreaming) {
-                        Icon(imageVector = Icons.Rounded.Stop, contentDescription = "停止推流")
-                    } else {
-                        Icon(imageVector = Icons.Rounded.PlayArrow, contentDescription = "开始推流")
-                    }
-                },
-                text = {
-                    Text(text = when {
-                        state.isStreaming -> "结束直播"
-                        state.isConnecting -> "连接中..."
-                        else -> "开始直播"
-                    })
+            if (!state.showParameterPanel) {
+                val fabEnabled = !state.isConnecting
+                val fabColor = when {
+                    state.isStreaming -> MaterialTheme.colorScheme.error
+                    hasUrl -> MaterialTheme.colorScheme.primary
+                    else -> MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)
                 }
-            )
+                ExtendedFloatingActionButton(
+                    onClick = {
+                        if (!fabEnabled) return@ExtendedFloatingActionButton
+                        if (state.isStreaming) {
+                            onToggleLive()
+                        } else if (!hasUrl) {
+                            onShowUrlDialog()
+                        } else {
+                            onToggleLive()
+                        }
+                    },
+                    containerColor = fabColor,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                    elevation = FloatingActionButtonDefaults.elevation(defaultElevation = 4.dp),
+                    icon = {
+                        if (state.isStreaming) {
+                            Icon(imageVector = Icons.Rounded.Stop, contentDescription = "停止推流")
+                        } else {
+                            Icon(imageVector = Icons.Rounded.PlayArrow, contentDescription = "开始推流")
+                        }
+                    },
+                    text = {
+                        Text(
+                            text = when {
+                                state.isStreaming -> "结束直播"
+                                state.isConnecting -> "连接中..."
+                                state.streamUrl.isBlank() -> "填写推流地址"
+                                else -> "开始直播"
+                            }
+                        )
+                    }
+                )
+            }
         }
     ) { innerPadding ->
-        Box(modifier = Modifier
-            .fillMaxSize()
-            .padding(innerPadding)) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+        ) {
             LivePreview(
                 onLiveViewReady = onLiveViewReady,
                 modifier = Modifier.fillMaxSize()
+            )
+
+            CameraSwitchButton(
+                onClick = onSwitchCamera,
+                enabled = cameraEnabled,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(horizontal = 20.dp, vertical = 24.dp)
+            )
+
+            if (state.showStats && !state.showParameterPanel) {
+                StreamingStatsOverlay(
+                    state = state,
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .padding(top = 20.dp, start = 20.dp)
+                        .zIndex(1f)
+                )
+            }
+
+            PanelToggleButton(
+                expanded = state.showParameterPanel,
+                onToggle = onTogglePanel,
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .padding(16.dp)
+                    .zIndex(1f)
             )
 
             AnimatedVisibility(
                 visible = state.isConnecting,
                 enter = fadeIn(),
                 exit = fadeOut(),
-                modifier = Modifier.align(Alignment.TopCenter)
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(top = 24.dp)
             ) {
                 LinearProgressIndicator(
                     modifier = Modifier
-                        .padding(horizontal = 24.dp, vertical = 16.dp)
                         .fillMaxWidth(0.5f)
                 )
             }
 
-            ParameterPanel(
-                state = state,
-                captureOptions = captureOptions,
-                streamOptions = streamOptions,
-                encoderOptions = encoderOptions,
-                onCaptureResolutionSelected = onCaptureResolutionSelected,
-                onStreamResolutionSelected = onStreamResolutionSelected,
-                onEncoderSelected = onEncoderSelected,
-                onBitrateChanged = onBitrateChanged,
-                controlsEnabled = parameterEnabled,
+            AnimatedVisibility(
+                visible = state.showParameterPanel,
+                enter = fadeIn(),
+                exit = fadeOut(),
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .padding(16.dp)
-            )
+                    .zIndex(1f)
+            ) {
+                Box(Modifier.fillMaxSize()) {
+                    val overlayInteraction = remember { MutableInteractionSource() }
+                    Box(
+                        modifier = Modifier
+                            .matchParentSize()
+                            .background(ComposeColor.Black.copy(alpha = 0.25f))
+                            .clickable(indication = null, interactionSource = overlayInteraction) { onTogglePanel() }
+                    )
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .padding(16.dp)
+                            .clickable(indication = null, interactionSource = remember { MutableInteractionSource() }) {}
+                    ) {
+                        ParameterPanel(
+                            state = state,
+                            captureOptions = captureOptions,
+                            streamOptions = streamOptions,
+                            encoderOptions = encoderOptions,
+                            onCaptureResolutionSelected = onCaptureResolutionSelected,
+                            onStreamResolutionSelected = onStreamResolutionSelected,
+                            onEncoderSelected = onEncoderSelected,
+                            onBitrateChanged = onBitrateChanged,
+                            onBitrateInput = onBitrateInput,
+                            onStreamUrlChanged = onStreamUrlChanged,
+                            onStatsToggle = onStatsToggle,
+                            controlsEnabled = parameterEnabled,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                }
+            }
         }
     }
 
@@ -524,6 +690,83 @@ private fun LivePreview(onLiveViewReady: (AVLiveView) -> Unit, modifier: Modifie
     )
 }
 
+@Composable
+private fun CameraSwitchButton(
+    onClick: () -> Unit,
+    enabled: Boolean,
+    modifier: Modifier = Modifier
+) {
+    IconButton(
+        onClick = onClick,
+        enabled = enabled,
+        modifier = modifier
+            .size(48.dp)
+            .clip(CircleShape)
+            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.6f))
+    ) {
+        Icon(imageVector = Icons.Outlined.Cameraswitch, contentDescription = "切换摄像头", tint = MaterialTheme.colorScheme.onSurface)
+    }
+}
+
+@Composable
+private fun PanelToggleButton(
+    expanded: Boolean,
+    onToggle: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    IconButton(
+        onClick = onToggle,
+        modifier = modifier
+            .size(48.dp)
+            .clip(CircleShape)
+            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.6f))
+    ) {
+        Icon(
+            imageVector = Icons.Rounded.Tune,
+            contentDescription = if (expanded) "收起参数面板" else "展开参数面板",
+            tint = MaterialTheme.colorScheme.onSurface
+        )
+    }
+}
+
+@Composable
+private fun StreamingStatsOverlay(
+    state: LiveUiState,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        modifier = modifier,
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.75f)
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            val status = when {
+                state.isConnecting -> "连接中"
+                state.isStreaming -> "直播中"
+                else -> "预览中"
+            }
+            Text(text = "状态: $status", style = MaterialTheme.typography.labelLarge)
+            Text(text = "采集: ${state.captureResolution.label} @ ${state.videoFps}fps", style = MaterialTheme.typography.bodySmall)
+            Text(text = "推流: ${state.streamResolution.label}", style = MaterialTheme.typography.bodySmall)
+            Text(text = "当前码率: ${state.currentBitrate} kbps (目标 ${state.targetBitrate})", style = MaterialTheme.typography.bodySmall)
+            Text(text = "GOP: ${state.gop}", style = MaterialTheme.typography.bodySmall)
+            Text(text = "实际帧率: ${state.currentFps} fps", style = MaterialTheme.typography.bodySmall)
+            Text(text = "编码: ${state.encoder.label}", style = MaterialTheme.typography.bodySmall)
+            if (state.streamUrl.isNotBlank()) {
+                Text(
+                    text = "地址: ${state.streamUrl}",
+                    style = MaterialTheme.typography.bodySmall,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+        }
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ParameterPanel(
@@ -535,6 +778,9 @@ private fun ParameterPanel(
     onStreamResolutionSelected: (ResolutionOption) -> Unit,
     onEncoderSelected: (EncoderOption) -> Unit,
     onBitrateChanged: (Int) -> Unit,
+    onBitrateInput: (String) -> Unit,
+    onStreamUrlChanged: (String) -> Unit,
+    onStatsToggle: (Boolean) -> Unit,
     controlsEnabled: Boolean,
     modifier: Modifier = Modifier
 ) {
@@ -545,6 +791,17 @@ private fun ParameterPanel(
     ) {
         Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
             Text(text = "直播参数", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+
+            OutlinedTextField(
+                value = state.streamUrl,
+                onValueChange = onStreamUrlChanged,
+                label = { Text("推流地址（可选）") },
+                placeholder = { Text("rtmp://host/app/stream") },
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
+                enabled = !state.isStreaming && !state.isConnecting,
+                modifier = Modifier.fillMaxWidth()
+            )
 
             ResolutionDropdown(
                 label = "采集分辨率",
@@ -570,20 +827,78 @@ private fun ParameterPanel(
             )
 
             Column {
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    Text(text = "推流码率", style = MaterialTheme.typography.bodyMedium)
-                    Text(text = "${state.targetBitrate} kbps", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
+                Text(text = "推流码率", style = MaterialTheme.typography.bodyMedium)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    val step = 100
+                    IconButton(onClick = { onBitrateChanged(state.targetBitrate - step) }, enabled = controlsEnabled) {
+                        Icon(imageVector = Icons.Rounded.Remove, contentDescription = "降低码率")
+                    }
+                    OutlinedTextField(
+                        value = state.targetBitrate.toString(),
+                        onValueChange = onBitrateInput,
+                        label = { Text("kbps") },
+                        singleLine = true,
+                        enabled = controlsEnabled,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.weight(1f)
+                    )
+                    IconButton(onClick = { onBitrateChanged(state.targetBitrate + step) }, enabled = controlsEnabled) {
+                        Icon(imageVector = Icons.Rounded.Add, contentDescription = "提升码率")
+                    }
                 }
-                Slider(
-                    value = state.targetBitrate.toFloat(),
-                    onValueChange = { onBitrateChanged(it.roundToInt()) },
-                    valueRange = state.bitrateRange.first.toFloat()..state.bitrateRange.last.toFloat(),
-                    steps = ((state.bitrateRange.last - state.bitrateRange.first) / 100).coerceAtLeast(1) - 1,
-                    colors = SliderDefaults.colors(thumbColor = MaterialTheme.colorScheme.primary)
-                )
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(text = "显示实时信息", style = MaterialTheme.typography.bodyMedium)
+                Switch(checked = state.showStats, onCheckedChange = onStatsToggle)
             }
         }
     }
+}
+
+@Composable
+private fun StreamUrlDialog(
+    initialValue: String,
+    onDismiss: () -> Unit,
+    onConfirm: (String) -> Unit
+) {
+    var text by remember { mutableStateOf(initialValue) }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(text = "推流地址") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text(text = "请输入 RTMP 推流地址", style = MaterialTheme.typography.bodyMedium)
+                OutlinedTextField(
+                    value = text,
+                    onValueChange = { text = it },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = { onConfirm(text) }) {
+                Text(text = "确定")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(text = "取消")
+            }
+        }
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -649,39 +964,4 @@ private fun EncoderSegmentedControl(
             )
         }
     }
-}
-
-@Composable
-private fun StreamUrlDialog(
-    initialValue: String,
-    onDismiss: () -> Unit,
-    onConfirm: (String) -> Unit
-) {
-    var text by remember { mutableStateOf(initialValue) }
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(text = "推流地址") },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text(text = "请输入推流 URL：", style = MaterialTheme.typography.bodyMedium)
-                OutlinedTextField(
-                    value = text,
-                    onValueChange = { text = it },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = { onConfirm(text) }) {
-                Text(text = "开始连接")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(text = "取消")
-            }
-        }
-    )
 }

@@ -38,6 +38,7 @@ class AVLiveView @JvmOverloads constructor(
     private var currentWatermark: Watermark? = null
     private var currentPacker: Packer? = null
     private var currentSender: Sender? = null
+    private var statsListener: LiveStreamSession.StatsListener? = null
 
     private var mVideoConfiguration = VideoConfiguration(
         width = mPreviewWidth,
@@ -129,6 +130,11 @@ class AVLiveView @JvmOverloads constructor(
         streamSession.setSender(sender)
     }
 
+    fun setStatsListener(listener: LiveStreamSession.StatsListener) {
+        statsListener = listener
+        streamSession.setStatsListener(listener)
+    }
+
     /**
      * camera 打开可以初始化了
      */
@@ -188,5 +194,6 @@ class AVLiveView @JvmOverloads constructor(
         currentPacker?.let { streamSession.setPacker(it) }
         currentSender?.let { streamSession.setSender(it) }
         currentWatermark?.let { streamSession.setWatermark(it) }
+        statsListener?.let { streamSession.setStatsListener(it) }
     }
 }

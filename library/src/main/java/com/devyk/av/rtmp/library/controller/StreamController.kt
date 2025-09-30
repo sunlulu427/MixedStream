@@ -3,6 +3,7 @@ package com.devyk.av.rtmp.library.controller
 import android.content.Context
 import android.media.MediaCodec
 import android.media.MediaFormat
+import android.os.SystemClock
 import com.devyk.av.rtmp.library.callback.IController
 import com.devyk.av.rtmp.library.camera.Watermark
 import com.devyk.av.rtmp.library.config.AudioConfiguration
@@ -13,6 +14,7 @@ import com.devyk.av.rtmp.library.stream.sender.Sender
 import com.devyk.av.rtmp.library.utils.LogHelper
 import java.nio.ByteBuffer
 import javax.microedition.khronos.egl.EGLContext
+import kotlin.math.roundToInt
 
 /**
  * <pre>
@@ -61,6 +63,10 @@ class StreamController : LiveStreamSession, IController.OnAudioDataListener,
      * 发送器
      */
     private var mSender: Sender? = null
+    private var statsListener: LiveStreamSession.StatsListener? = null
+    private var statsWindowBytes = 0L
+    private var statsWindowFrames = 0
+    private var statsWindowStart = SystemClock.elapsedRealtime()
 
     private var mContext: Context? = null
     private var mTextureId = 0
@@ -96,6 +102,10 @@ class StreamController : LiveStreamSession, IController.OnAudioDataListener,
         this.mSender = sender
     }
 
+    override fun setStatsListener(listener: LiveStreamSession.StatsListener?) {
+        statsListener = listener
+    }
+
 
     /**
      *  @see start 之前必须调用 prepare
@@ -128,6 +138,8 @@ class StreamController : LiveStreamSession, IController.OnAudioDataListener,
         }
         if (mAudioController == null || mVideoController == null)
             init()
+        resetStats()
+        statsListener?.onVideoStats(0, mVideoConfiguration.fps)
         mAudioController?.start()
         mVideoController?.start()
     }
@@ -147,6 +159,8 @@ class StreamController : LiveStreamSession, IController.OnAudioDataListener,
         mVideoController?.stop()
         mAudioController = null
         mVideoController = null
+        resetStats()
+        statsListener?.onVideoStats(0, 0)
     }
 
     override fun setMute(isMute: Boolean) {
@@ -191,6 +205,20 @@ class StreamController : LiveStreamSession, IController.OnAudioDataListener,
      * 视频编码数据交于打包
      */
     override fun onVideoData(bb: ByteBuffer?, bi: MediaCodec.BufferInfo?) {
+        bi?.let {
+            statsWindowBytes += it.size
+            statsWindowFrames += 1
+            val now = SystemClock.elapsedRealtime()
+            val elapsed = now - statsWindowStart
+            if (elapsed >= 1000) {
+                val bitrateKbps = ((statsWindowBytes * 8f) / elapsed).roundToInt()
+                val fps = ((statsWindowFrames * 1000f) / elapsed).roundToInt()
+                statsListener?.onVideoStats(bitrateKbps.coerceAtLeast(0), fps.coerceAtLeast(0))
+                statsWindowBytes = 0
+                statsWindowFrames = 0
+                statsWindowStart = now
+            }
+        }
         mPacker?.onVideoData(bb, bi)
     }
 
@@ -212,5 +240,11 @@ class StreamController : LiveStreamSession, IController.OnAudioDataListener,
     override fun setWatermark(watermark: Watermark) {
         mWatermark = watermark
         mVideoController?.setWatermark(watermark)
+    }
+
+    private fun resetStats() {
+        statsWindowBytes = 0
+        statsWindowFrames = 0
+        statsWindowStart = SystemClock.elapsedRealtime()
     }
 }
