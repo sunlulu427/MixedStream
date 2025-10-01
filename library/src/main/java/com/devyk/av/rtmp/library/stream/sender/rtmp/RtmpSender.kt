@@ -5,15 +5,6 @@ import com.devyk.av.rtmp.library.callback.OnConnectListener
 import com.devyk.av.rtmp.library.stream.PacketType
 import com.devyk.av.rtmp.library.stream.sender.Sender
 
-/**
- * <pre>
- *     author  : devyk on 2020-07-16 21:27
- *     blog    : https://juejin.im/user/578259398ac2470061f3a3fb/posts
- *     github  : https://github.com/yangkun19921001
- *     mailbox : yang1001yk@gmail.com
- *     desc    : This is RtmpSender
- * </pre>
- */
 class RtmpSender : Sender {
     private var listener: OnConnectListener? = null
     private var mRtmpUrl: String? = null

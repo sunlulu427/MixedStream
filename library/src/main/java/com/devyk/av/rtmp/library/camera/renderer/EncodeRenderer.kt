@@ -13,15 +13,6 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
 
-/**
- * <pre>
- *     author  : devyk on 2020-07-08 17:21
- *     blog    : https://juejin.im/user/578259398ac2470061f3a3fb/posts
- *     github  : https://github.com/yangkun19921001
- *     mailbox : yang1001yk@gmail.com
- *     desc    : This is EncodeRenderer MediaCodec 编码渲染器
- * </pre>
- */
 class EncodeRenderer(private val context: Context, private val textureId: Int) : IRenderer {
     /**
      * 顶点坐标

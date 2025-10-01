@@ -14,15 +14,6 @@ import com.devyk.av.rtmp.library.config.RendererConfiguration
 import com.devyk.av.rtmp.library.utils.LogHelper
 
 
-/**
- * <pre>
- *     author  : devyk on 20-07-07 22:47
- *     blog    : https://juejin.im/user/578259398ac24700613a3fb/posts
- *     github  : https://github.com/yangkun19921001
- *     mailbox : yang1001yk@gmail.com
- *     desc    : This is CameraView
- * </pre>
- */
 open class CameraView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,

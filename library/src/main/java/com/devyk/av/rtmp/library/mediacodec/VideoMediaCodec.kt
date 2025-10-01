@@ -9,15 +9,6 @@ import com.devyk.av.rtmp.library.black.BlackListHelper
 import com.devyk.av.rtmp.library.config.VideoConfiguration
 import com.devyk.av.rtmp.library.utils.LogHelper
 
-/**
- * <pre>
- *     author  : devyk on 2020-06-14 22:09
- *     blog    : https://juejin.im/user/578259398ac2470061f3a3fb/posts
- *     github  : https://github.com/yangkun19921001
- *     mailbox : yang1001yk@gmail.com
- *     desc    : This is VideoMediaCodec
- * </pre>
- */
 object VideoMediaCodec {
     private val TAG = this.javaClass.simpleName
 

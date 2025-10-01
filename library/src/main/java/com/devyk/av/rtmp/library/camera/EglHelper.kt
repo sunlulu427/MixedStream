@@ -10,15 +10,6 @@ import javax.microedition.khronos.egl.EGLContext
 import javax.microedition.khronos.egl.EGLDisplay
 import javax.microedition.khronos.egl.EGLSurface
 
-/**
- * <pre>
- *     author  : devyk on 2020-07-04 14:49
- *     blog    : https://juejin.im/user/578259398ac2470061f3a3fb/posts
- *     github  : https://github.com/yangkun19921001
- *     mailbox : yang1001yk@gmail.com
- *     desc    : This is EglHelper EGL 环境
- * </pre>
- */
 
 
 class EglHelper {

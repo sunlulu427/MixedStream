@@ -11,15 +11,6 @@ import com.devyk.av.rtmp.library.config.VideoConfiguration
 import java.nio.ByteBuffer
 import javax.microedition.khronos.egl.EGLContext
 
-/**
- * <pre>
- *     author  : devyk on 2020-07-15 22:07
- *     blog    : https://juejin.im/user/578259398ac2470061f3a3fb/posts
- *     github  : https://github.com/yangkun19921001
- *     mailbox : yang1001yk@gmail.com
- *     desc    : This is VideoController Camera 预览和 H264 编码的控制
- * </pre>
- */
 
 class VideoController(
     context: Context,

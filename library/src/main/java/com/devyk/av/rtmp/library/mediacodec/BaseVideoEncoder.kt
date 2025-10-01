@@ -11,18 +11,6 @@ import com.devyk.av.rtmp.library.config.VideoConfiguration
 import com.devyk.av.rtmp.library.utils.LogHelper
 import java.util.concurrent.locks.ReentrantLock
 
-/**
- * <pre>
- *     author  : devyk on 2020-06-15 21:46
- *     blog    : https://juejin.im/user/578259398ac2470061f3a3fb/posts
- *     github  : https://github.com/yangkun19921001
- *     mailbox : yang1001yk@gmail.com
- *     desc    : This is VideoEncodec
- *
- *
- *     @see https://www.cnblogs.com/tinywan/p/6402007.html H264编码profile & level控制
- * </pre>
- */
 abstract class BaseVideoEncoder : IVideoCodec {
 
     private var mMediaCodec: MediaCodec? = null

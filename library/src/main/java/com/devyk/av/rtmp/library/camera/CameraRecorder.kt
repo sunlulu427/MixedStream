@@ -10,15 +10,6 @@ import com.devyk.av.rtmp.library.widget.GLSurfaceView
 import java.lang.ref.WeakReference
 import javax.microedition.khronos.egl.EGLContext
 
-/**
- * <pre>
- *     author  : devyk on 2020-07-11 15:18
- *     blog    : https://juejin.im/user/578259398ac2470061f3a3fb/posts
- *     github  : https://github.com/yangkun19921001
- *     mailbox : yang1001yk@gmail.com
- *     desc    : This is CameraRecorder 摄像头录制
- * </pre>
- */
 class CameraRecorder(context: Context, textureId: Int, private val eglContext: EGLContext?) :
     VideoEncoder(), IGLThreadConfig {
     private val mRenderer: EncodeRenderer = EncodeRenderer(context, textureId)

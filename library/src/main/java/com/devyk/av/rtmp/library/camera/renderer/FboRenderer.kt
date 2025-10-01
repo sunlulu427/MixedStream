@@ -13,25 +13,6 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
 
-/**
- * <pre>
- *     author  : devyk on 2020-07-07 10:55
- *     blog    : https://juejin.im/user/578259398ac2470061f3a3fb/posts
- *     github  : https://github.com/yangkun19921001
- *     mailbox : yang1001yk@gmail.com
- *     desc    : This is FboRenderer
- * </pre>
- *
- * FBO 概念：
- * 为什么要用FBO?
- * - 当我们需要对纹理进行多次渲染采样时，而这些渲染采样是不需要展示给用户看的，所以我们就可以用一个单独的缓冲对象（离屏渲染）来存储我们的这几次渲染采样的结果，等处理完后才显示到窗口上。
- *
- * 优势
- * - 提高渲染效率，避免闪屏，可以很方便的实现纹理共享等。
- *
- *
- *
- */
 class FboRenderer(private val context: Context) : IRenderer {
     /**
      * 顶点坐标

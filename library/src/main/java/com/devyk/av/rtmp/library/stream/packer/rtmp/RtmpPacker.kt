@@ -11,15 +11,6 @@ import com.devyk.av.rtmp.library.stream.packer.flv.FlvPackerHelper.VIDEO_HEADER_
 import com.devyk.av.rtmp.library.stream.packer.flv.FlvPackerHelper.VIDEO_SPECIFIC_CONFIG_EXTEND_SIZE
 import java.nio.ByteBuffer
 
-/**
- * <pre>
- *     author  : devyk on 2020-07-18 15:56
- *     blog    : https://juejin.im/user/578259398ac2470061f3a3fb/posts
- *     github  : https://github.com/yangkun19921001
- *     mailbox : yang1001yk@gmail.com
- *     desc    : This is RtmpPacker
- * </pre>
- */
 
 class RtmpPacker : Packer, AnnexbHelper.AnnexbNaluListener {
 

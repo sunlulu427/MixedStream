@@ -13,23 +13,6 @@ import java.lang.ref.WeakReference
 import javax.microedition.khronos.egl.EGLContext
 
 
-/**
- * <pre>
- *     author  : devyk on 2020-07-04 15:36
- *     blog    : https://juejin.im/user/578259398ac2470061f3a3fb/posts
- *     github  : https://github.com/yangkun19921001
- *     mailbox : yang1001yk@gmail.com
- *     desc    : This is GLSurfaceView
- * </pre>
- *
- *
- * 步骤：
- * 1、继承 SurfaceView 并实现 CallBack 回调
- * 2、自定义 GLThread 线程类，主要用于 OpenGL 绘制工作
- * 3、添加设置 Surface 和 EglContext 的方法
- * 4、提供和系统 GLSurfaceView 相同的调用方法
- *
- */
 open class GLSurfaceView : SurfaceView, SurfaceHolder.Callback, IGLThreadConfig {
 
 

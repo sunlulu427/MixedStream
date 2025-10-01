@@ -14,16 +14,6 @@ import com.devyk.av.rtmppush.R
 import com.devyk.av.rtmppush.SPUtils
 import com.tbruyelle.rxpermissions2.RxPermissions
 
-/**
- * <pre>
- *     author  : devyk on 2020-05-24 23:40
- *     blog    : https://juejin.im/user/578259398ac2470061f3a3fb/posts
- *     github  : https://github.com/yangkun19921001
- *     mailbox : yang1001yk@gmail.com
- *     desc    : This is BaseActivity
- * </pre>
- */
-
 abstract class BaseActivity<T> : AppCompatActivity() {
     protected val TAG = javaClass.simpleName
     override fun onCreate(savedInstanceState: Bundle?) {

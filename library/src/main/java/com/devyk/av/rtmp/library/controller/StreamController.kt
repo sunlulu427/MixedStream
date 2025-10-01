@@ -16,15 +16,6 @@ import java.nio.ByteBuffer
 import javax.microedition.khronos.egl.EGLContext
 import kotlin.math.roundToInt
 
-/**
- * <pre>
- *     author  : devyk on 2020-07-15 22:05
- *     blog    : https://juejin.im/user/578259398ac2470061f3a3fb/posts
- *     github  : https://github.com/yangkun19921001
- *     mailbox : yang1001yk@gmail.com
- *     desc    : This is StreamController
- * </pre>
- */
 class StreamController : LiveStreamSession, IController.OnAudioDataListener,
     IController.OnVideoDataListener, Packer.OnPacketListener {
     private val TAG = javaClass.simpleName

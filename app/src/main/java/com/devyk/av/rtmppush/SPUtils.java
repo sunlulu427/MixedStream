@@ -11,14 +11,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * <pre>
- *     author: Blankj
- *     blog  : http://blankj.com
- *     time  : 2016/08/02
- *     desc  : utils about shared preference
- * </pre>
- */
 @SuppressLint("ApplySharedPref")
 public final class SPUtils {
 

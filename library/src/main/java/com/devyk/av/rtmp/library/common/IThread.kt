@@ -1,14 +1,5 @@
 package com.devyk.av.rtmp.library.common
 
-/**
- * <pre>
- *     author  : devyk on 2020-07-15 20:42
- *     blog    : https://juejin.im/user/578259398ac2470061f3a3fb/posts
- *     github  : https://github.com/yangkun19921001
- *     mailbox : yang1001yk@gmail.com
- *     desc    : This is IThread
- * </pre>
- */
 interface IThread {
 
     /**

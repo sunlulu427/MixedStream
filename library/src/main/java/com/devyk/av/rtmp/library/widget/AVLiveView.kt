@@ -13,15 +13,6 @@ import com.devyk.av.rtmp.library.controller.StreamController
 import com.devyk.av.rtmp.library.stream.packer.Packer
 import com.devyk.av.rtmp.library.stream.sender.Sender
 
-/**
- * <pre>
- *     author  : devyk on 2020-07-16 15:50
- *     blog    : https://juejin.im/user/578259398ac2470061f3a3fb/posts
- *     github  : https://github.com/yangkun19921001
- *     mailbox : yang1001yk@gmail.com
- *     desc    : This is LiveView
- * </pre>
- */
 class AVLiveView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,

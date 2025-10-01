@@ -14,15 +14,6 @@ import android.widget.LinearLayout
 import android.widget.TextView
 
 
-/**
- * <pre>
- *     author  : devyk on 2020-07-09 21:38
- *     blog    : https://juejin.im/user/578259398ac2470061f3a3fb/posts
- *     github  : https://github.com/yangkun19921001
- *     mailbox : yang1001yk@gmail.com
- *     desc    : This is BitmapUtils
- * </pre>
- */
 object BitmapUtils {
     /**
      * 将文字 生成 文字图片 生成显示编码的Bitmap,目前这个方法是可用的
