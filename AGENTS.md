@@ -23,7 +23,7 @@
 - **可测试性**：控制层以接口注入依赖，便于替换假实现（Fake）进行用例测试。
 
 ### 使用概览（提炼自 README/Core）
-- 预览视图：在布局使用 `com.devyk.av.rtmp.library.widget.AVLiveView`，通过 `setAudioConfigure`、`setVideoConfigure`、`setCameraConfigure` 配置参数。
+- 预览视图：在布局使用 `com.astrastream.avpush.widget.AVLiveView`，通过 `setAudioConfigure`、`setVideoConfigure`、`setCameraConfigure` 配置参数。
 - 启动顺序：`startPreview()` →（准备）→ `mSender.connect()` → `mPacker.start()` → `live.startLive()`。
 - 动态码率：`live.setVideoBps(bps)`。
 - 结束：`live.stopLive()` → `mSender.close()` → `mPacker.stop()`。

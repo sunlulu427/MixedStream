@@ -6,7 +6,7 @@
              android:layout_height="match_parent">
 
 
-    <com.devyk.av.rtmp.library.widget.AVLiveView
+    <com.astrastream.avpush.presentation.widget.AVLiveView
             android:id="@+id/live"
             android:layout_width="match_parent"
             android:layout_height="match_parent"

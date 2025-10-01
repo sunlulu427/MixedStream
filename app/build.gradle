@@ -2,7 +2,7 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 
 android {
-    namespace 'com.devyk.av.rtmppush'
+    namespace 'com.astrastream.streamer'
     compileSdk 34
 
     buildFeatures {
@@ -19,7 +19,7 @@ android {
     }
 
     defaultConfig {
-        applicationId "com.devyk.av.rtmppush"
+        applicationId "com.astrastream.streamer"
         minSdk 21
         targetSdk 34
         versionCode 100

@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-PKG="com.devyk.av.rtmppush"
-ACT="com.devyk.av.rtmppush/.LiveActivity"
+PKG="com.astrastream.streamer"
+ACT="com.astrastream.streamer/.LiveActivity"
 
 TIMESTAMP=$(date +%Y%m%d-%H%M%S)
 OUTDIR="diagnostics"

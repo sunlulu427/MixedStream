@@ -1,7 +1,7 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 android {
-    namespace 'com.devyk.av.rtmp.library'
+    namespace 'com.astrastream.avpush'
     compileSdk 34
 
     compileOptions {
