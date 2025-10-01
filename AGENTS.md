@@ -80,6 +80,8 @@
 - 原则：自行通过 adb 重启 App 并抓取日志，不依赖人工操作；让流程自动可复用，问题定位更高效、更智能。
 - 建议脚本：`tools/diagnose_camera.sh` 自动执行 `am force-stop` → `am start` → 抓取关键 tag（CameraView/CameraHolder/CameraRenderer/GLSurfaceView/EglHelper/SurfaceTexture/CameraService）。
 - 日志不足时，先在关键路径补齐日志（相机 open/setSurfaceTexture/startPreview、GL onSurfaceCreate/onDraw、updateTexImage），再复测抓取。
+- 预览黑屏排查：`./gradlew :app:installDebug` 后执行 `bash tools/diagnose_camera.sh [waitSeconds]`（默认 8s），脚本会等待预览就绪并聚焦 LiveActivity/LiveSessionCoordinator/Camera*、GLSurfaceView/GLThread 等日志，同时落盘至 `diagnostics/camera-startup-<timestamp>.log`；根据 `cameraTex`、`state`、`glError` 等关键信息即可区分相机参数问题与 GL 纹理解链路异常。
+- 已在 `CameraHolder` 与 `CameraRenderer` 增补 LogHelper 输出，覆盖 open/start/updateTexImage 以及 onSurfaceCreate/onDraw，便于精确定位预览黑屏根因；如需新增场景请沿用统一标签与采样策略。
 
 ## 代码风格与命名
 - Kotlin/Java：4 空格；类 UpperCamelCase；方法/字段 lowerCamelCase；常量 UPPER_SNAKE_CASE；包名小写；资源与 ID 使用 snake_case（如 `camera_view`）。

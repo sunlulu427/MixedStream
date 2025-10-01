@@ -351,15 +351,23 @@ class CameraRenderer(private val context: Context) : IRenderer {
 
         val now = SystemClock.elapsedRealtime()
         val glError = GLES20.glGetError()
+        val errorLabel = when (glError) {
+            GLES20.GL_NO_ERROR -> "OK"
+            GLES20.GL_INVALID_ENUM -> "GL_INVALID_ENUM"
+            GLES20.GL_INVALID_VALUE -> "GL_INVALID_VALUE"
+            GLES20.GL_INVALID_OPERATION -> "GL_INVALID_OPERATION"
+            GLES20.GL_OUT_OF_MEMORY -> "GL_OUT_OF_MEMORY"
+            else -> "0x${Integer.toHexString(glError)}"
+        }
         if (drawFrameCount <= 5 || now - lastDrawLogTimestamp >= 2000 || glError != GLES20.GL_NO_ERROR) {
             LogHelper.d(
                 TAG,
-                "onDraw frame=$drawFrameCount viewport=${mWidth}x${mHeight} cameraTex=$mCameraTextureId fboTex=$mTextureID glError=0x${Integer.toHexString(glError)}"
+                "onDraw frame=$drawFrameCount viewport=${mWidth}x${mHeight} cameraTex=$mCameraTextureId fboTex=$mTextureID glError=$errorLabel"
             )
             lastDrawLogTimestamp = now
         }
         if (glError != GLES20.GL_NO_ERROR) {
-            LogHelper.e(TAG, "GL error detected in onDraw: 0x${Integer.toHexString(glError)}")
+            LogHelper.e(TAG, "GL error detected in onDraw: $errorLabel")
         }
     }
 

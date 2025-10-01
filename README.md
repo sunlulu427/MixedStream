@@ -42,12 +42,15 @@ Core data-flow and component diagrams are authored in PlantUML:
 
 > CI runs `tools/render_docs.sh` to publish PNG/Markdown artifacts in the `docs-diagrams` workflow artifact. Run the script locally to regenerate visuals as needed.
 
-### Core Media Pipeline
+### Audio/Video Data Flow
 
-![Core Media Pipeline](docs/generated/av_dataflow.png)
+The end-to-end live pipeline is summarised in the PlantUML diagram below. It tracks a frame (and its paired PCM buffers) across capture, GPU processing, encoding, FLV packaging, and RTMP transmission.
 
-- Source: `docs/av_dataflow.puml`
-- Regenerate locally with `./tools/render_docs.sh`
+![Audio/Video Data Flow](docs/generated/av_dataflow.png)
+
+- **Source:** `docs/av_dataflow.puml`
+- **Regenerate:** `./tools/render_docs.sh` (requires `plantuml` on PATH; emits assets into `docs/generated/` which remain untracked)
+- **Highlights:** Camera frames flow through `GLSurfaceView` → `CameraRenderer` (FBO + watermark) → `VideoEncoder`; audio samples are captured and encoded in parallel, both converging inside the `StreamController` which multiplexes FLV and pushes via `RtmpSender`.
 
 ## Getting Started
 
@@ -118,7 +121,7 @@ The interface exposes lifecycle hooks (`prepare`, `start`, `pause`, `resume`, `s
 ## Tooling & Diagnostics
 
 - `tools/render_docs.sh`: generate diagram PNG/Markdown in `docs/generated/`
-- `tools/diagnose_camera.sh`: automated ADB script for camera/GL troubleshooting
+- `tools/diagnose_camera.sh [waitSeconds]`: automated ADB script for camera/GL troubleshooting (defaults to 8s delay before log capture and writes filtered output to `diagnostics/camera-startup-<timestamp>.log`)
 - GitHub Actions (`.github/workflows/ci.yml`): builds the app/AAR and uploads rendered diagrams for every push/PR
 
 Refer to [AGENTS.md](AGENTS.md) for detailed development guidelines, Clean Architecture rules, and logging/diagnostic expectations.

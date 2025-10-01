@@ -197,6 +197,12 @@ class CameraHolder {
                 TAG,
                 "startPreview success -> actual ${cameraData?.cameraWidth}x${cameraData?.cameraHeight} state=$state"
             )
+            mCameraDevice?.parameters?.previewSize?.let { size ->
+                LogHelper.d(
+                    TAG,
+                    "startPreview confirmed preview ${size.width}x${size.height}"
+                )
+            }
         } catch (e: Exception) {
             releaseCamera()
             e.printStackTrace()
@@ -407,9 +413,11 @@ class CameraHolder {
             frameCount += 1
             val now = SystemClock.elapsedRealtime()
             if (frameCount <= 5 || now - lastFrameLogTimestamp >= 2000) {
+                val timestampNs = texture.timestamp
+                val timestampMs = if (timestampNs > 0) timestampNs / 1_000_000 else 0
                 LogHelper.d(
                     TAG,
-                    "updateTexImage frame=$frameCount timestamp=${texture.timestamp} state=$state"
+                    "updateTexImage frame=$frameCount timestampNs=$timestampNs (~${timestampMs}ms) state=$state"
                 )
                 lastFrameLogTimestamp = now
             }

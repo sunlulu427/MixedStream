@@ -8,13 +8,15 @@ TIMESTAMP=$(date +%Y%m%d-%H%M%S)
 OUTDIR="diagnostics"
 mkdir -p "$OUTDIR"
 LOGFILE="$OUTDIR/camera-startup-$TIMESTAMP.log"
+WAIT_SECS=${1:-8}
 
 echo "[diag] clearing logcat" && adb logcat -c || true
 echo "[diag] force-stop $PKG" && adb shell am force-stop "$PKG" || true
 echo "[diag] start $ACT" && adb shell am start -n "$ACT" -a android.intent.action.MAIN -c android.intent.category.LAUNCHER >/dev/null
 
 # wait a bit for startup and camera open
-sleep 8
+echo "[diag] wait ${WAIT_SECS}s for preview setup"
+sleep "$WAIT_SECS"
 
 echo "[diag] capturing focused logs to $LOGFILE"
 adb logcat -d -v time \

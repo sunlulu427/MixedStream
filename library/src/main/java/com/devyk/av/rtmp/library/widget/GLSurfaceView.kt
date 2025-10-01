@@ -9,6 +9,7 @@ import com.devyk.av.camera_recorder.callback.IGLThreadConfig
 import com.devyk.av.rtmp.library.callback.IRenderer
 import com.devyk.av.rtmp.library.camera.GLThread
 import com.devyk.av.rtmp.library.config.RendererConfiguration
+import com.devyk.av.rtmp.library.utils.LogHelper
 import java.lang.ref.WeakReference
 import javax.microedition.khronos.egl.EGLContext
 
@@ -101,6 +102,7 @@ open class GLSurfaceView : SurfaceView, SurfaceHolder.Callback, IGLThreadConfig 
             this.mEGLContext = it
         }
         if (this::mEglThread.isInitialized) {
+            LogHelper.d(TAG, "configure: renderer updated, force recreate (mode=$mRendererMode)")
             mEglThread.isCreate = true
             mEglThread.isChange = true
             if (mRendererMode == RENDERERMODE_WHEN_DIRTY) {
