@@ -21,7 +21,7 @@ for puml in "$DOC_DIR"/*.puml; do
 
   plantuml -tpng -o generated "$puml"
 
-  title="$(python3 - <<'PY'
+  title="$(python3 - "$name" <<'PY'
 import sys
 
 def titleize(value: str) -> str:
@@ -30,14 +30,14 @@ def titleize(value: str) -> str:
 
 print(titleize(sys.argv[1]))
 PY
-"$name")"
+)"
 
   cat >"$OUT_DIR/$name.md" <<EOF
 # $title
 
 ![${title}](./$name.png)
 
-- Source: \\`$name.puml\\`
+- Source: \`$name.puml\`
 - Generated: $timestamp UTC
 EOF
 done
