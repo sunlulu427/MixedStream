@@ -29,8 +29,8 @@ class LiveActivity : BaseActivity<View>(), OnConnectListener {
     private val uiState: MutableState<LiveUiState> = mutableStateOf(
         LiveUiState(
             streamUrl = "",
-            captureResolution = LiveSessionCoordinator.defaultCaptureOptions()[1],
-            streamResolution = LiveSessionCoordinator.defaultStreamOptions()[2],
+            captureResolution = LiveSessionCoordinator.defaultCaptureOptions().first(),
+            streamResolution = LiveSessionCoordinator.defaultStreamOptions()[1],
             encoder = LiveSessionCoordinator.defaultEncoderOptions().first(),
             targetBitrate = 800,
             showParameterPanel = true

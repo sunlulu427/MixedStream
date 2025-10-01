@@ -2,8 +2,11 @@ package com.devyk.av.rtmppush.ui.live
 
 import android.content.Context
 import android.graphics.Color
+import android.Manifest
+import android.content.pm.PackageManager
 import android.widget.Toast
 import androidx.compose.runtime.MutableState
+import androidx.core.content.ContextCompat
 import com.devyk.av.rtmp.library.camera.Watermark
 import com.devyk.av.rtmp.library.config.AudioConfiguration
 import com.devyk.av.rtmp.library.config.CameraConfiguration
@@ -11,6 +14,7 @@ import com.devyk.av.rtmp.library.config.VideoConfiguration
 import com.devyk.av.rtmp.library.controller.LiveStreamSession
 import com.devyk.av.rtmp.library.stream.packer.rtmp.RtmpPacker
 import com.devyk.av.rtmp.library.stream.sender.rtmp.RtmpSender
+import com.devyk.av.rtmp.library.utils.LogHelper
 import com.devyk.av.rtmp.library.widget.AVLiveView
 import kotlin.math.max
 import kotlin.math.min
@@ -22,15 +26,19 @@ class LiveSessionCoordinator(
     private val audioConfiguration: AudioConfiguration
 ) : LiveStreamSession.StatsListener {
 
+    private val tag = "LiveSessionCoordinator"
+
     val captureOptions = defaultCaptureOptions()
     val streamOptions = defaultStreamOptions()
     val encoderOptions = defaultEncoderOptions()
+    private val safeCaptureOption = captureOptions.first()
 
     var packer: RtmpPacker? = null
     var sender: RtmpSender? = null
     var liveView: AVLiveView? = null
     private var previewStarted = false
     private var previewRequested = false
+    private var permissionWarningShown = false
 
     override fun onVideoStats(bitrateKbps: Int, fps: Int) {
         state.value = state.value.copy(currentBitrate = bitrateKbps, currentFps = fps)
@@ -43,6 +51,8 @@ class LiveSessionCoordinator(
         sender?.let(view::setSender)
         view.setAudioConfigure(audioConfiguration)
         view.setStatsListener(this)
+        view.setOnPreviewSizeListener { width, height -> onCameraPreviewSize(width, height) }
+        view.setOnCameraErrorListener { message -> onCameraError(message) }
         applyStreamConfiguration(view)
         if (previewRequested) startPreview()
     }
@@ -71,6 +81,15 @@ class LiveSessionCoordinator(
 
     fun startPreview() {
         if (previewStarted) return
+        if (!hasCameraPermission()) {
+            LogHelper.w(tag, "startPreview skipped: camera permission missing")
+            previewRequested = true
+            if (!permissionWarningShown) {
+                Toast.makeText(context, "请先授予相机权限", Toast.LENGTH_SHORT).show()
+                permissionWarningShown = true
+            }
+            return
+        }
         val view = liveView ?: run {
             previewRequested = true
             return
@@ -78,6 +97,7 @@ class LiveSessionCoordinator(
         view.startPreview()
         previewStarted = true
         previewRequested = false
+        permissionWarningShown = false
     }
 
     fun restartPreview() {
@@ -148,6 +168,31 @@ class LiveSessionCoordinator(
         onValid()
     }
 
+    private fun onCameraPreviewSize(width: Int, height: Int) {
+        LogHelper.i(tag, "camera preview ready with ${width}x$height")
+        val current = state.value
+        if (current.captureResolution.width == width && current.captureResolution.height == height) {
+            return
+        }
+        val updatedOption = captureOptions.find { it.width == width && it.height == height }
+            ?: ResolutionOption(width, height, "${width} × ${height}")
+        state.value = current.copy(captureResolution = updatedOption)
+        applyStreamConfiguration()
+    }
+
+    private fun onCameraError(message: String) {
+        LogHelper.e(tag, "camera pipeline error: $message")
+        Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+        state.value = state.value.copy(
+            captureResolution = safeCaptureOption,
+            isConnecting = false,
+            isStreaming = false
+        )
+        applyStreamConfiguration()
+        previewStarted = false
+        previewRequested = false
+    }
+
     fun applyStreamConfiguration(target: AVLiveView? = liveView) {
         val current = state.value
         val minBps = max(300, (current.targetBitrate * 0.7f).roundToInt())
@@ -158,6 +203,10 @@ class LiveSessionCoordinator(
             targetBitrate = current.targetBitrate.coerceIn(minBps, maxBps)
         )
         if (adjusted != current) state.value = adjusted
+        LogHelper.d(
+            tag,
+            "applyStreamConfiguration capture=${adjusted.captureResolution.width}x${adjusted.captureResolution.height}, stream=${adjusted.streamResolution.width}x${adjusted.streamResolution.height}, fps=${adjusted.videoFps}"
+        )
         val view = target ?: return
         view.setVideoConfigure(
             VideoConfiguration(
@@ -190,6 +239,7 @@ class LiveSessionCoordinator(
     fun markPreviewPending() {
         previewStarted = false
         previewRequested = true
+        LogHelper.d(tag, "preview marked pending (permission or surface not ready)")
     }
 
     fun markStreamingStarted(targetBitrate: Int, fps: Int) {
@@ -236,4 +286,7 @@ class LiveSessionCoordinator(
             EncoderOption("软件编解码", false)
         )
     }
+
+    private fun hasCameraPermission(): Boolean =
+        ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
 }

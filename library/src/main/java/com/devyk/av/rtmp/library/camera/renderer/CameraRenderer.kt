@@ -6,6 +6,7 @@ import android.graphics.SurfaceTexture
 import android.opengl.GLES11Ext
 import android.opengl.GLES20
 import android.opengl.Matrix
+import android.os.SystemClock
 import com.devyk.av.rtmp.library.R
 import com.devyk.av.rtmp.library.callback.IRenderer
 import com.devyk.av.rtmp.library.camera.ShaderHelper
@@ -144,6 +145,9 @@ class CameraRenderer(private val context: Context) : IRenderer {
     private var mBitmapWidth = 0f
     private var mbitmapHeight = 0f
 
+    private var drawFrameCount = 0
+    private var lastDrawLogTimestamp = 0L
+
 
     @Volatile
     private var isTexture = true
@@ -157,6 +161,8 @@ class CameraRenderer(private val context: Context) : IRenderer {
 
     override fun onSurfaceCreate(width: Int, height: Int) {
         LogHelper.d(TAG, "onSurfaceCreate w=$width h=$height")
+        drawFrameCount = 0
+        lastDrawLogTimestamp = 0L
         mScreenWidth = context.resources.displayMetrics.widthPixels
         mScreenHeight = context.resources.displayMetrics.heightPixels
         this.mHeight = height
@@ -283,12 +289,16 @@ class CameraRenderer(private val context: Context) : IRenderer {
         // 渲染一次
         // 注意：SurfaceTexture.updateTexImage() 在回调中调用
         if (!isTexture) {
+            if (drawFrameCount == 0) {
+                LogHelper.d(TAG, "onDraw skip while switching camera")
+            }
             Thread.sleep(300)
             isTexture = switchCametaListener?.onChange()!!
             if (!isTexture)
                 return
         }
         mRendererListener?.onDraw()
+        drawFrameCount += 1
 
         //相当于清屏
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT)
@@ -338,6 +348,19 @@ class CameraRenderer(private val context: Context) : IRenderer {
         mFboRenderer.onSurfaceChange(mWidth, mHeight)
         //绘制纹理
         mFboRenderer.onDraw(mTextureID)
+
+        val now = SystemClock.elapsedRealtime()
+        val glError = GLES20.glGetError()
+        if (drawFrameCount <= 5 || now - lastDrawLogTimestamp >= 2000 || glError != GLES20.GL_NO_ERROR) {
+            LogHelper.d(
+                TAG,
+                "onDraw frame=$drawFrameCount viewport=${mWidth}x${mHeight} cameraTex=$mCameraTextureId fboTex=$mTextureID glError=0x${Integer.toHexString(glError)}"
+            )
+            lastDrawLogTimestamp = now
+        }
+        if (glError != GLES20.GL_NO_ERROR) {
+            LogHelper.e(TAG, "GL error detected in onDraw: 0x${Integer.toHexString(glError)}")
+        }
     }
 
     private fun genCameraTextureId(): Int {

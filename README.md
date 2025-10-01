@@ -1,6 +1,6 @@
 # AVRtmpPushSDK
 
-AVRtmpPushSDK is a Kotlin + C++ streaming toolkit that delivers end-to-end AV capture, processing, encoding, FLV packaging, and RTMP uplink. The repository contains a demonstration Android app and a reusable library that powers hardware-accelerated live streaming pipelines.
+AVRtmpPushSDK is a Kotlin + C++ streaming toolkit that delivers end-to-end AV capture, processing, encoding, FLV packaging, and RTMP uplink. The repository contains a demonstration Android app ("**AstraStream**") and a reusable library that powers hardware-accelerated live streaming pipelines.
 
 ## Contents
 
@@ -16,6 +16,7 @@ AVRtmpPushSDK is a Kotlin + C++ streaming toolkit that delivers end-to-end AV ca
 - Hardware-based audio and video encoding via `MediaCodec`
 - Adaptive bitrate control at runtime
 - Camera parameter tuning with front/back switching
+- Safe camera bootstrapping with automatic fallback to 720p preview when a requested profile is unsupported
 - Audio preprocessing (AEC/AGC) and capture configuration APIs
 - OpenGL watermark composition and FBO based rendering
 - FLV muxing and RTMP delivery backed by `librtmp`
@@ -25,7 +26,7 @@ AVRtmpPushSDK is a Kotlin + C++ streaming toolkit that delivers end-to-end AV ca
 
 The project follows a clean architecture split:
 
-- **UI Layer** – `app/` demo and `widget/AVLiveView`
+- **UI Layer** – `app/` demo (`LiveScreen`, `LiveSessionCoordinator`) and `widget/AVLiveView`
 - **Use-Case Layer** – `controller/*` orchestrating capture/encode/package/send
 - **Device/Infrastructure** – `camera/*`, `mediacodec/*`, `stream/*`, native `librtmp`
 
@@ -40,6 +41,13 @@ Core data-flow and component diagrams are authored in PlantUML:
 | [`docs/video_streaming.puml`](docs/video_streaming.puml) | FLV muxing and RTMP sender interactions |
 
 > CI runs `tools/render_docs.sh` to publish PNG/Markdown artifacts in the `docs-diagrams` workflow artifact. Run the script locally to regenerate visuals as needed.
+
+### Core Media Pipeline
+
+![Core Media Pipeline](docs/generated/av_dataflow.png)
+
+- Source: `docs/av_dataflow.puml`
+- Regenerate locally with `./tools/render_docs.sh`
 
 ## Getting Started
 
@@ -61,67 +69,32 @@ cd AVRtmpPushSDK
 ./gradlew :app:assembleDebug :library:assembleRelease
 ```
 
-The demo Activity (`LiveActivity`) now renders a Material 3 Compose interface with configurable capture/stream resolutions, encoder selection, bitrate tuning, and live preview controls backed by `AVLiveView`. Streaming is optional—users can leave the RTMP address empty to stay in preview-only mode—and the entire experience runs in an immersive, edge-to-edge layout.
+The demo Activity (`LiveActivity`) now renders a Material 3 Compose interface (`LiveScreen`) driven by a coordinator (`LiveSessionCoordinator`). It wires an `AVLiveView` into the Compose tree, applies default **720 × 1280 @ 30fps** capture/stream settings, and exposes encoder selection, bitrate tuning, and live controls. Streaming is optional—users can leave the RTMP address empty to stay in preview-only mode—and the entire experience runs in an immersive, edge-to-edge layout.
 
 ## Live Session Lifecycle
 
 `AVLiveView` bridges UI interactions to the streaming pipeline through the `LiveStreamSession` interface. The Compose-based demo wraps it with `AndroidView`, configuring capture and streaming parameters as soon as the view is available:
 
+- `LiveSessionCoordinator` centralises all `AVLiveView` wiring:
+
 ```kotlin
-@Composable
-fun LivePreview(onReady: (AVLiveView) -> Unit) {
-    AndroidView(
-        factory = { context -> AVLiveView(context).also(onReady) },
-        modifier = Modifier.fillMaxSize()
-    )
-}
+AndroidView(
+    factory = { context -> AVLiveView(context).also(coordinator::attachLiveView) },
+    modifier = Modifier.fillMaxSize()
+)
 
-class LiveActivity : BaseActivity<View>(), OnConnectListener {
-    private val packer = RtmpPacker()
-    private var sender: RtmpSender? = null
-
-    override fun getLayoutId(): View = ComposeView(this).apply {
-        setContent {
-            AVLiveTheme {
-                LiveActivityScreen(
-                    onLiveViewReady = { view ->
-                        view.setPacker(packer)
-                        view.setAudioConfigure(AudioConfiguration())
-                        view.setVideoConfigure(VideoConfiguration(width = 960, height = 1920, mediaCodec = true))
-                        view.setCameraConfigure(CameraConfiguration(width = 960, height = 1920))
-                        sender?.let(view::setSender)
-                    },
-                    onStreamUrlChanged = { /* update state */ },
-                    onTogglePanel = { /* toggle parameter sheet */ },
-                    onShowUrlDialog = { /* prompt RTMP URL */ },
-                    onDismissUrlDialog = { /* dismiss dialog */ },
-                    onConfirmUrl = { url -> ensureSender(url) }
-                )
-            }
-        }
-    }
-
-    private fun ensureSender(url: String) {
-        if (sender == null) {
-            sender = RtmpSender().also {
-                it.setOnConnectListener(this)
-            }
-        }
-        sender?.setDataSource(url)
-        sender?.connect()
-    }
-}
+// Automatically retries with 720×1280 if the requested profile is unsupported
+LogHelper.i("LiveSessionCoordinator", "camera preview ready with 720x1280")
 ```
 
-- A bottom-left Tune button shows or hides the Material 3 parameter panel on demand.
+- Compose UI keeps the parameter sheet, stats overlay, and FAB states in sync with `LiveUiState`.
+- Camera startup logs now surface the selected preview size and emit a warning when a fallback profile is applied, enabling quick diagnosis of device-specific limitations.
 - The floating action button opens the RTMP dialog when no URL is set, so preview remains available even without streaming.
-- Confirming the dialog stores the URL and starts the live session immediately.
-- A translucent stats card in the top-left keeps capture/stream resolutions, FPS, GOP, bitrate window, and encoder mode visible during preview or live sessions.
 - Watermark text automatically scales with the configured capture resolution so branding stays legible across devices.
 
 Typical runtime sequence:
 
-1. Configure audio, video, and camera parameters
+1. Configure audio, video, and camera parameters (defaults to 720 × 1280 @ 30 fps)
 2. Attach packer (`FLV`) and sender (`RTMP`)
 3. Call `startPreview()` to spin up camera GL pipeline
 4. Open RTMP connection and invoke `startLive()`

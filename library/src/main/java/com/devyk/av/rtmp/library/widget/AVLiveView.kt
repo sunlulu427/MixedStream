@@ -30,6 +30,8 @@ class AVLiveView @JvmOverloads constructor(
     private var currentPacker: Packer? = null
     private var currentSender: Sender? = null
     private var statsListener: LiveStreamSession.StatsListener? = null
+    private var previewSizeListener: ((Int, Int) -> Unit)? = null
+    private var cameraErrorListener: ((String) -> Unit)? = null
 
     private var mVideoConfiguration = VideoConfiguration(
         width = mPreviewWidth,
@@ -126,11 +128,27 @@ class AVLiveView @JvmOverloads constructor(
         streamSession.setStatsListener(listener)
     }
 
+    fun setOnPreviewSizeListener(listener: (Int, Int) -> Unit) {
+        previewSizeListener = listener
+    }
+
+    fun setOnCameraErrorListener(listener: (String) -> Unit) {
+        cameraErrorListener = listener
+    }
+
     /**
      * camera 打开可以初始化了
      */
     override fun onCameraOpen() {
         streamSession.prepare(context, getTextureId(), getEGLContext())
+    }
+
+    override fun onCameraError(message: String) {
+        cameraErrorListener?.invoke(message)
+    }
+
+    override fun onCameraPreviewSizeSelected(width: Int, height: Int) {
+        previewSizeListener?.invoke(width, height)
     }
 
     /**

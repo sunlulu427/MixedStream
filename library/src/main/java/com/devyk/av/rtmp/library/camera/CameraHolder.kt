@@ -3,8 +3,10 @@ package com.devyk.av.rtmp.library.camera
 import android.graphics.Rect
 import android.graphics.SurfaceTexture
 import android.hardware.Camera
+import android.os.SystemClock
 import android.util.Log
 import com.devyk.av.rtmp.library.config.CameraConfiguration
+import com.devyk.av.rtmp.library.utils.LogHelper
 import java.io.IOException
 
 class CameraHolder {
@@ -21,6 +23,8 @@ class CameraHolder {
     var state: State? = null
         private set
     private var mTexture: SurfaceTexture? = null
+    private var frameCount: Int = 0
+    private var lastFrameLogTimestamp: Long = 0
     private var isTouchMode = false
     private var isOpenBackFirst = true
     private var mConfiguration = CameraConfiguration()
@@ -106,17 +110,19 @@ class CameraHolder {
     fun setSurfaceTexture(textureId: Int, listener: SurfaceTexture.OnFrameAvailableListener?) {
         mTexture = SurfaceTexture(textureId)
         Log.d(TAG, "setSurfaceTexture(id) called, textureId=$textureId")
-//        if (state == State.PREVIEW && mCameraDevice != null && mTexture != null) {
         try {
             mCameraDevice?.run {
                 setPreviewTexture(mTexture)
                 mTexture?.setOnFrameAvailableListener(listener)
             }
+            LogHelper.d(
+                TAG,
+                "setSurfaceTexture(id) success -> camera=${cameraData?.cameraID} state=$state"
+            )
         } catch (e: IOException) {
+            LogHelper.e(TAG, "setSurfaceTexture(id) failed: ${e.message}")
             releaseCamera()
         }
-
-//        }
     }
 
     fun setSurfaceTexture(
@@ -125,17 +131,33 @@ class CameraHolder {
     ) {
         mTexture = texture
         Log.d(TAG, "setSurfaceTexture(surfaceTexture) called")
-//        if (state == State.PREVIEW && mCameraDevice != null && mTexture != null) {
         try {
             mCameraDevice?.run {
+                cameraData?.let {
+                    try {
+                        texture.setDefaultBufferSize(it.cameraWidth, it.cameraHeight)
+                        LogHelper.d(
+                            TAG,
+                            "setDefaultBufferSize ${it.cameraWidth}x${it.cameraHeight} for camera=${it.cameraID}"
+                        )
+                    } catch (setSizeError: Throwable) {
+                        LogHelper.w(
+                            TAG,
+                            "setDefaultBufferSize failed: ${setSizeError.message}"
+                        )
+                    }
+                }
                 setPreviewTexture(mTexture)
                 mTexture?.setOnFrameAvailableListener(listener)
             }
+            LogHelper.d(
+                TAG,
+                "setSurfaceTexture(surface) success -> camera=${cameraData?.cameraID} state=$state"
+            )
         } catch (e: IOException) {
+            LogHelper.e(TAG, "setSurfaceTexture(surface) failed: ${e.message}")
             releaseCamera()
         }
-
-//        }
     }
 
     /**
@@ -168,7 +190,13 @@ class CameraHolder {
             mCameraDevice!!.setPreviewTexture(mTexture)
             mCameraDevice!!.startPreview()
             state = State.PREVIEW
+            frameCount = 0
+            lastFrameLogTimestamp = 0
             Log.d(TAG, "startPreview success")
+            LogHelper.i(
+                TAG,
+                "startPreview success -> actual ${cameraData?.cameraWidth}x${cameraData?.cameraHeight} state=$state"
+            )
         } catch (e: Exception) {
             releaseCamera()
             e.printStackTrace()
@@ -369,7 +397,29 @@ class CameraHolder {
     }
 
     fun updateTexImage() {
-        mTexture?.updateTexImage()
+        val texture = mTexture
+        if (texture == null) {
+            LogHelper.w(TAG, "updateTexImage skipped: texture=null state=$state")
+            return
+        }
+        try {
+            texture.updateTexImage()
+            frameCount += 1
+            val now = SystemClock.elapsedRealtime()
+            if (frameCount <= 5 || now - lastFrameLogTimestamp >= 2000) {
+                LogHelper.d(
+                    TAG,
+                    "updateTexImage frame=$frameCount timestamp=${texture.timestamp} state=$state"
+                )
+                lastFrameLogTimestamp = now
+            }
+        } catch (error: Throwable) {
+            LogHelper.e(
+                TAG,
+                "updateTexImage failed: ${error.javaClass.simpleName} ${error.message}"
+            )
+            throw error
+        }
     }
 
     /**

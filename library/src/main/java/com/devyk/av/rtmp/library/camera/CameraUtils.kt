@@ -7,6 +7,7 @@ import android.hardware.Camera
 import android.util.Log
 import com.devyk.av.rtmp.library.black.BlackListHelper
 import com.devyk.av.rtmp.library.config.CameraConfiguration
+import com.devyk.av.rtmp.library.utils.LogHelper
 
 object CameraUtils {
 
@@ -79,6 +80,7 @@ object CameraUtils {
         sCamera = camera
         camera?.run {
             val parameters = camera.parameters
+            logSupportedPreviewSizes(parameters)
             setPreviewFormat(camera, parameters)
             setPreviewFps(camera, configuration.fps, parameters)
             setPreviewSize(camera, cameraData, cameraWidth, cameraHeight, parameters)
@@ -271,26 +273,55 @@ object CameraUtils {
      * 找到最为合适的预览大小
      */
     fun getOptimalPreviewSize(camera: Camera, width: Int, height: Int): Camera.Size? {
-        var optimalSize: Camera.Size? = null
-        var minHeightDiff = java.lang.Double.MAX_VALUE
-        var minWidthDiff = java.lang.Double.MAX_VALUE
         val sizes = camera.parameters.supportedPreviewSizes ?: return null
-        //找到宽度差距最小的
+        val targetRatio = if (height != 0) width.toFloat() / height else 0f
+        val aspectTolerance = 0.02f
+        var optimalSize: Camera.Size? = null
+        var minDiff = Double.MAX_VALUE
+
         for (size in sizes) {
-            if (Math.abs(size.width - width) < minWidthDiff) {
-                minWidthDiff = Math.abs(size.width - width).toDouble()
+            val ratio = size.width.toFloat() / size.height
+            if (targetRatio > 0f && Math.abs(ratio - targetRatio) > aspectTolerance) {
+                continue
+            }
+            val diff = Math.abs(size.height - height).toDouble()
+            if (diff < minDiff) {
+                optimalSize = size
+                minDiff = diff
             }
         }
-        //在宽度差距最小的里面，找到高度差距最小的
-        for (size in sizes) {
-            if (Math.abs(size.width - width).toDouble() == minWidthDiff) {
-                if (Math.abs(size.height - height) < minHeightDiff) {
+
+        if (optimalSize == null) {
+            // 无法满足容差要求时，选择高度最接近的
+            minDiff = Double.MAX_VALUE
+            for (size in sizes) {
+                val diff = Math.abs(size.height - height).toDouble()
+                if (diff < minDiff) {
                     optimalSize = size
-                    minHeightDiff = Math.abs(size.height - height).toDouble()
+                    minDiff = diff
                 }
             }
         }
+
+        optimalSize?.let {
+            LogHelper.i(
+                TAG,
+                "selected preview size ${it.width}x${it.height} for request ${width}x$height (ratio=${"%.3f".format(it.width.toFloat() / it.height)})"
+            )
+        }
+
         return optimalSize
+    }
+
+    private fun logSupportedPreviewSizes(parameters: Camera.Parameters) {
+        try {
+            val sizes = parameters.supportedPreviewSizes ?: return
+            val ordered = sizes.sortedByDescending { it.width * it.height }
+            val summary = ordered.joinToString(separator = ", ") { "${it.width}x${it.height}" }
+            LogHelper.i(TAG, "supported preview sizes: $summary")
+        } catch (t: Throwable) {
+            LogHelper.w(TAG, "list preview sizes failed: ${t.message}")
+        }
     }
 
     /**

@@ -100,6 +100,13 @@ open class GLSurfaceView : SurfaceView, SurfaceHolder.Callback, IGLThreadConfig 
         mRendererConfiguration.eglContext?.let {
             this.mEGLContext = it
         }
+        if (this::mEglThread.isInitialized) {
+            mEglThread.isCreate = true
+            mEglThread.isChange = true
+            if (mRendererMode == RENDERERMODE_WHEN_DIRTY) {
+                requestRenderer()
+            }
+        }
     }
 
     /**
@@ -142,4 +149,3 @@ open class GLSurfaceView : SurfaceView, SurfaceHolder.Callback, IGLThreadConfig 
         fun getEGLContext(): EGLContext? = mEGLHelper.getEglContext()
     }
 }
-

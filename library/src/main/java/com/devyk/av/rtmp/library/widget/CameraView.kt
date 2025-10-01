@@ -32,6 +32,7 @@ open class CameraView @JvmOverloads constructor(
     protected var mCameraOpenListener: ICameraOpenListener? = null
     private var glReady = false
     private var pendingWatermark: Watermark? = null
+    private var fallbackTried = false
 
     /**
      * 相机预览默认配置
@@ -46,6 +47,7 @@ open class CameraView @JvmOverloads constructor(
     fun startPreview(cameraConfiguration: CameraConfiguration) {
         this.mCameraConfiguration = cameraConfiguration
         cameraId = cameraConfiguration.facing
+        fallbackTried = false
         renderer = CameraRenderer(context)
         LogHelper.d(TAG, "startPreview: configure renderer and GL thread")
         configure(
@@ -65,26 +67,7 @@ open class CameraView @JvmOverloads constructor(
             override fun onCreate(surfaceTexture: SurfaceTexture, textureID: Int) {
                 LogHelper.d(TAG, "onRendererCreate(surfaceTexture) textureID=$textureID")
                 mTextureId = textureID
-                try {
-                    CameraHolder.instance().setConfiguration(mCameraConfiguration)
-                    CameraHolder.instance().openCamera()
-                    CameraHolder.instance().setSurfaceTexture(surfaceTexture, this@CameraView)
-                    CameraHolder.instance().startPreview()
-                    LogHelper.i(TAG, "camera opened, textureId=${mTextureId}")
-                    glReady = true
-                    pendingWatermark?.let {
-                        try {
-                            renderer.setWatemark(it)
-                        } catch (t: Throwable) {
-                            LogHelper.e(TAG, "apply pending watermark failed: ${t.message}")
-                        }
-                        pendingWatermark = null
-                    }
-                    mCameraOpenListener?.onCameraOpen()
-                } catch (t: Throwable) {
-                    // 关键路径容错：相机服务不可用/无权限/设备无相机时不崩溃，记录错误日志
-                    LogHelper.e(TAG, "open camera failed: ${t.javaClass.simpleName} ${t.message}")
-                }
+                tryOpenCamera(surfaceTexture)
             }
 
             override fun onCreate(cameraTextureId: Int, textureID: Int) {
@@ -96,6 +79,92 @@ open class CameraView @JvmOverloads constructor(
                 CameraHolder.instance().updateTexImage()
             }
         })
+    }
+
+    private fun tryOpenCamera(surfaceTexture: SurfaceTexture) {
+        try {
+            openCameraWith(surfaceTexture)
+        } catch (error: Throwable) {
+            handleCameraInitFailure(surfaceTexture, error)
+        }
+    }
+
+    @Synchronized
+    private fun openCameraWith(surfaceTexture: SurfaceTexture) {
+        val holder = CameraHolder.instance()
+        LogHelper.d(
+            TAG,
+            "openCameraWith -> request ${mCameraConfiguration.width}x${mCameraConfiguration.height} fps=${mCameraConfiguration.fps}"
+        )
+        holder.setConfiguration(mCameraConfiguration)
+        holder.openCamera()
+        holder.cameraData?.let { data ->
+            LogHelper.d(TAG, "camera opened -> id=${data.cameraID} preview=${data.cameraWidth}x${data.cameraHeight}")
+        }
+        holder.setSurfaceTexture(surfaceTexture, this)
+        holder.startPreview()
+        LogHelper.i(
+            TAG,
+            "camera opened with requested ${mCameraConfiguration.width}x${mCameraConfiguration.height}"
+        )
+        glReady = true
+        pendingWatermark?.let {
+            try {
+                renderer.setWatemark(it)
+            } catch (t: Throwable) {
+                LogHelper.e(TAG, "apply pending watermark failed: ${t.message}")
+            }
+            pendingWatermark = null
+        }
+        holder.cameraData?.let { data ->
+            mCameraOpenListener?.onCameraPreviewSizeSelected(data.cameraWidth, data.cameraHeight)
+        }
+        mCameraOpenListener?.onCameraOpen()
+    }
+
+    private fun handleCameraInitFailure(surfaceTexture: SurfaceTexture, error: Throwable) {
+        LogHelper.e(
+            TAG,
+            "open camera failed (${mCameraConfiguration.width}x${mCameraConfiguration.height}): ${error.javaClass.simpleName} ${error.message}"
+        )
+        CameraHolder.instance().releaseCamera()
+        CameraHolder.instance().release()
+        if (!fallbackTried) {
+            fallbackTried = true
+            val fallback = CameraConfiguration(
+                width = SAFE_PREVIEW_WIDTH,
+                height = SAFE_PREVIEW_HEIGHT,
+                fps = mCameraConfiguration.fps,
+                rotation = mCameraConfiguration.rotation,
+                facing = mCameraConfiguration.facing,
+                orientation = mCameraConfiguration.orientation,
+                focusMode = mCameraConfiguration.focusMode
+            )
+            LogHelper.w(
+                TAG,
+                "retry camera with safe preview ${fallback.width}x${fallback.height}"
+            )
+            mCameraConfiguration = fallback
+            try {
+                openCameraWith(surfaceTexture)
+                LogHelper.i(TAG, "camera fallback succeeded with ${fallback.width}x${fallback.height}")
+                return
+            } catch (fallbackError: Throwable) {
+                LogHelper.e(
+                    TAG,
+                    "fallback camera open failed: ${fallbackError.javaClass.simpleName} ${fallbackError.message}"
+                )
+                CameraHolder.instance().releaseCamera()
+                CameraHolder.instance().release()
+                mCameraOpenListener?.onCameraError(
+                    "Camera unavailable: ${fallbackError.message ?: fallbackError.javaClass.simpleName}"
+                )
+                return
+            }
+        }
+        mCameraOpenListener?.onCameraError(
+            "Camera unavailable: ${error.message ?: error.javaClass.simpleName}"
+        )
     }
 
     /**
@@ -135,7 +204,7 @@ open class CameraView @JvmOverloads constructor(
     }
 
     override fun onFrameAvailable(surfaceTexture: SurfaceTexture) {
-        LogHelper.e(TAG, "onFrameAvailable: 相机纹理刷新")
+        LogHelper.d(TAG, "onFrameAvailable -> texture=$mTextureId rendererReady=$glReady")
     }
 
 
@@ -193,5 +262,10 @@ open class CameraView @JvmOverloads constructor(
 
     fun addCameraOpenCallback(listener: ICameraOpenListener) {
         mCameraOpenListener = listener
+    }
+
+    companion object {
+        private const val SAFE_PREVIEW_WIDTH = 720
+        private const val SAFE_PREVIEW_HEIGHT = 1280
     }
 }
