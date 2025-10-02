@@ -17,7 +17,7 @@
             android:supportsRtl="true"
             android:theme="@style/Theme.AppCompat.DayNight.NoActionBar"
             tools:ignore="GoogleAppIndexingWarning">
-        <activity android:name=".LiveActivity"
+        <activity android:name=".app.LiveActivity"
                   android:configChanges="orientation|keyboardHidden|screenSize"
                   android:exported="true">
             <intent-filter>

@@ -1,4 +1,4 @@
-package com.astrastream.streamer.core.util
+package com.astrastream.streamer.core.util;
 
 import android.annotation.SuppressLint;
 import android.content.Context;

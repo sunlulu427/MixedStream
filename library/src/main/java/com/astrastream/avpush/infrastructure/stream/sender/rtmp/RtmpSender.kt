@@ -1,6 +1,6 @@
 package com.astrastream.avpush.infrastructure.stream.sender.rtmp
 
-import com.astrastream.avpush.Contacts
+import com.astrastream.avpush.core.Contacts
 import com.astrastream.avpush.domain.callback.OnConnectListener
 import com.astrastream.avpush.infrastructure.stream.PacketType
 import com.astrastream.avpush.infrastructure.stream.sender.Sender

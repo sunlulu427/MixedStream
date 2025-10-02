@@ -1,4 +1,4 @@
-package com.astrastream.avpush.infrastructure.stream.packer.flv
+package com.astrastream.avpush.infrastructure.stream.packer.flv;
 
 
 import com.astrastream.avpush.infrastructure.stream.amf.AmfMap;

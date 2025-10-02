@@ -1,7 +1,16 @@
 {
   "permissions": {
     "allow": [
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "Bash(./gradlew:*)",
+      "Bash(find:*)",
+      "Bash(for file in library/src/main/java/com/astrastream/avpush/infrastructure/stream/amf/*.java library/src/main/java/com/astrastream/avpush/infrastructure/stream/packer/flv/FlvPackerHelper.java)",
+      "Bash(do)",
+      "Bash(done)",
+      "Bash(for file in app/src/main/java/com/astrastream/streamer/core/util/*.java)",
+      "Bash(bash:*)",
+      "Bash(adb shell am start -n com.astrastream.streamer/.app.LiveActivity:*)",
+      "Bash(adb:*)"
     ],
     "deny": [],
     "ask": []

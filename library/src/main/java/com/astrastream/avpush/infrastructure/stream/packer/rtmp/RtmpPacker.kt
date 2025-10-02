@@ -5,10 +5,6 @@ import com.astrastream.avpush.infrastructure.stream.AnnexbHelper
 import com.astrastream.avpush.infrastructure.stream.PacketType
 import com.astrastream.avpush.infrastructure.stream.packer.Packer
 import com.astrastream.avpush.infrastructure.stream.packer.flv.FlvPackerHelper
-import com.astrastream.avpush.infrastructure.stream.packer.flv.FlvPackerHelper.AUDIO_HEADER_SIZE
-import com.astrastream.avpush.infrastructure.stream.packer.flv.FlvPackerHelper.AUDIO_SPECIFIC_CONFIG_SIZE
-import com.astrastream.avpush.infrastructure.stream.packer.flv.FlvPackerHelper.VIDEO_HEADER_SIZE
-import com.astrastream.avpush.infrastructure.stream.packer.flv.FlvPackerHelper.VIDEO_SPECIFIC_CONFIG_EXTEND_SIZE
 import java.nio.ByteBuffer
 
 
@@ -44,7 +40,7 @@ class RtmpPacker : Packer, AnnexbHelper.AnnexbNaluListener {
 
         val audio = ByteArray(bi.size)
         bb.get(audio)
-        val size = AUDIO_HEADER_SIZE + audio.size
+        val size = FlvPackerHelper.AUDIO_HEADER_SIZE + audio.size
         val buffer = ByteBuffer.allocate(size)
         FlvPackerHelper.writeAudioTag(buffer, audio, false, mAudioSampleSize)
         packetListener!!.onPacket(buffer.array(), PacketType.AUDIO)
@@ -69,7 +65,7 @@ class RtmpPacker : Packer, AnnexbHelper.AnnexbNaluListener {
         if (!isKeyFrameWrite) {
             return
         }
-        val size = VIDEO_HEADER_SIZE + video.size
+        val size = FlvPackerHelper.VIDEO_HEADER_SIZE + video.size
         val buffer = ByteBuffer.allocate(size)
         FlvPackerHelper.writeH264Packet(buffer, video, isKeyFrame)
         packetListener!!.onPacket(buffer.array(),packetType)
@@ -88,14 +84,14 @@ class RtmpPacker : Packer, AnnexbHelper.AnnexbNaluListener {
     }
 
     private fun writeFirstVideoTag(sps: ByteArray?, pps: ByteArray?) {
-        val size = VIDEO_HEADER_SIZE + VIDEO_SPECIFIC_CONFIG_EXTEND_SIZE + sps!!.size + pps!!.size
+        val size = FlvPackerHelper.VIDEO_HEADER_SIZE + FlvPackerHelper.VIDEO_SPECIFIC_CONFIG_EXTEND_SIZE + sps!!.size + pps!!.size
         val buffer = ByteBuffer.allocate(size)
         FlvPackerHelper.writeFirstVideoTag(buffer, sps, pps)
         packetListener!!.onPacket(buffer.array(), PacketType.FIRST_VIDEO)
     }
 
     private fun writeFirstAudioTag() {
-        val size = AUDIO_SPECIFIC_CONFIG_SIZE + AUDIO_HEADER_SIZE
+        val size = FlvPackerHelper.AUDIO_SPECIFIC_CONFIG_SIZE + FlvPackerHelper.AUDIO_HEADER_SIZE
         val buffer = ByteBuffer.allocate(size)
         FlvPackerHelper.writeFirstAudioTag(buffer, mAudioSampleRate, mIsStereo, mAudioSampleSize)
         packetListener!!.onPacket(buffer.array(), PacketType.FIRST_AUDIO)

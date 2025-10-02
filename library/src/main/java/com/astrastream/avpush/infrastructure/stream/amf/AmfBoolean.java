@@ -1,4 +1,4 @@
-package com.astrastream.avpush.infrastructure.stream.amf
+package com.astrastream.avpush.infrastructure.stream.amf;
 
 import java.io.IOException;
 import java.io.InputStream;

@@ -1,6 +1,6 @@
 package com.astrastream.avpush.infrastructure.audio
 
-import com.astrastream.avpush.Contacts
+import com.astrastream.avpush.core.Contacts
 import com.astrastream.avpush.infrastructure.audio.AudioUtils.AUDIO_CHANNEL_CONFIG
 import com.astrastream.avpush.infrastructure.audio.AudioUtils.AUDIO_FROMAT
 import com.astrastream.avpush.infrastructure.audio.AudioUtils.SAMPLE_RATE_IN_HZ

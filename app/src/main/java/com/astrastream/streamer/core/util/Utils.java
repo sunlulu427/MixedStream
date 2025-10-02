@@ -1,9 +1,9 @@
-package com.astrastream.streamer.core.util
+package com.astrastream.streamer.core.util;
 
 import android.app.Application;
 import android.content.Context;
 
-class Utils {
+public class Utils {
     private static Application sApp;
 
     public static Context getApp() {

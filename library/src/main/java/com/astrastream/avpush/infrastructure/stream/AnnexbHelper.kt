@@ -1,7 +1,7 @@
 package com.astrastream.avpush.infrastructure.stream
 
 import android.media.MediaCodec
-import com.astrastream.avpush.Contacts
+import com.astrastream.avpush.core.Contacts
 import com.astrastream.avpush.core.utils.LogHelper
 import java.nio.ByteBuffer
 import kotlin.experimental.and

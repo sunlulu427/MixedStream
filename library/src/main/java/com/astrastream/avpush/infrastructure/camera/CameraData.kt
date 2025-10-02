@@ -1,6 +1,6 @@
 package com.astrastream.avpush.infrastructure.camera
 
-internal data class CameraData(
+data class CameraData(
     val cameraId: Int,
     val facing: Int,
     var width: Int = 0,

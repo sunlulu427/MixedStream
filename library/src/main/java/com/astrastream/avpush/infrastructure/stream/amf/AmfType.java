@@ -1,4 +1,4 @@
-package com.astrastream.avpush.infrastructure.stream.amf
+package com.astrastream.avpush.infrastructure.stream.amf;
 
 import java.util.HashMap;
 import java.util.Map;

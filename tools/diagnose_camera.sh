@@ -2,7 +2,7 @@
 set -euo pipefail
 
 PKG="com.astrastream.streamer"
-ACT="com.astrastream.streamer/.LiveActivity"
+ACT="com.astrastream.streamer/.app.LiveActivity"
 
 TIMESTAMP=$(date +%Y%m%d-%H%M%S)
 OUTDIR="diagnostics"
