@@ -1,13 +1,42 @@
 @startuml
 title 视频渲染（OpenGL 管线）
 
-participant GLSurfaceView
-participant "GLThread" as GLThread
-participant EglHelper
-participant CameraRenderer
-participant FboRenderer
-participant SurfaceTexture
-participant "SurfaceView Surface" as Surface
+' Subtle color scheme - highlight only core components
+skinparam participant {
+  BackgroundColor #2b2b2b
+  BorderColor #999999
+  FontColor #f0f0f0
+}
+skinparam participant<<ui>> {
+  BackgroundColor #3a3a3a
+  BorderColor #666666
+  FontColor #f0f0f0
+}
+skinparam participant<<control>> {
+  BackgroundColor #4a4a4a
+  BorderColor #777777
+  FontColor #f0f0f0
+}
+skinparam participant<<core>> {
+  BackgroundColor #D4AF37
+  BorderColor #B8941F
+  FontColor #2b2b2b
+}
+skinparam participant<<infrastructure>> {
+  BackgroundColor #2b2b2b
+  BorderColor #555555
+  FontColor #cccccc
+}
+skinparam ArrowColor #c0c0c0
+skinparam defaultFontName "JetBrains Mono"
+
+participant GLSurfaceView <<ui>>
+participant "GLThread" as GLThread <<control>>
+participant EglHelper <<infrastructure>>
+participant CameraRenderer <<core>>
+participant FboRenderer <<core>>
+participant SurfaceTexture <<infrastructure>>
+participant "SurfaceView Surface" as Surface <<ui>>
 
 GLSurfaceView -> GLThread: surfaceCreated()
 GLThread -> EglHelper: initEgl(Surface, sharedContext)

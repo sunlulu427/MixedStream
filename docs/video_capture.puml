@@ -1,14 +1,53 @@
 @startuml
 title 视频采集链路
 
+' Subtle color scheme - highlight only core components
+skinparam participant {
+  BackgroundColor #2b2b2b
+  BorderColor #999999
+  FontColor #f0f0f0
+}
+skinparam actor {
+  BackgroundColor #3a3a3a
+  BorderColor #666666
+  FontColor #f0f0f0
+}
+skinparam participant<<ui>> {
+  BackgroundColor #3a3a3a
+  BorderColor #666666
+  FontColor #f0f0f0
+}
+skinparam participant<<control>> {
+  BackgroundColor #4a4a4a
+  BorderColor #777777
+  FontColor #f0f0f0
+}
+skinparam participant<<core>> {
+  BackgroundColor #D4AF37
+  BorderColor #B8941F
+  FontColor #2b2b2b
+}
+skinparam participant<<infrastructure>> {
+  BackgroundColor #2b2b2b
+  BorderColor #555555
+  FontColor #cccccc
+}
+skinparam participant<<external>> {
+  BackgroundColor #333333
+  BorderColor #666666
+  FontColor #aaaaaa
+}
+skinparam ArrowColor #c0c0c0
+skinparam defaultFontName "JetBrains Mono"
+
 actor User
-participant LiveActivity
-participant AVLiveView
-participant CameraView
-participant CameraRenderer
-participant CameraHolder
-participant "Android CameraService" as CameraService
-participant SurfaceTexture
+participant LiveActivity <<ui>>
+participant AVLiveView <<control>>
+participant CameraView <<ui>>
+participant CameraRenderer <<core>>
+participant CameraHolder <<infrastructure>>
+participant "Android CameraService" as CameraService <<external>>
+participant SurfaceTexture <<infrastructure>>
 
 User -> LiveActivity: 启动 Activity
 LiveActivity -> AVLiveView: tryStartPreview()

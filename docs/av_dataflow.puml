@@ -1,61 +1,129 @@
 @startuml
-title 音视频处理数据流
+title 音视频采集、渲染与推流完整数据流
 
-left to right direction
+top to bottom direction
 skinparam rectangle {
-  BackgroundColor #1d1d1d
-  BorderColor #999999
-  FontColor #f0f0f0
-}
-skinparam note {
   BackgroundColor #2b2b2b
   BorderColor #999999
   FontColor #f0f0f0
 }
+skinparam note {
+  BackgroundColor #3a3a3a
+  BorderColor #999999
+  FontColor #f0f0f0
+}
 skinparam ArrowColor #c0c0c0
+
+' Subtle color definitions - highlight only core components
+skinparam rectangle<<ui>> {
+  BackgroundColor #3a3a3a
+  BorderColor #666666
+  FontColor #f0f0f0
+}
+skinparam rectangle<<control>> {
+  BackgroundColor #4a4a4a
+  BorderColor #777777
+  FontColor #f0f0f0
+}
+skinparam rectangle<<core>> {
+  BackgroundColor #D4AF37
+  BorderColor #B8941F
+  FontColor #2b2b2b
+}
+skinparam rectangle<<infrastructure>> {
+  BackgroundColor #2b2b2b
+  BorderColor #555555
+  FontColor #cccccc
+}
+skinparam rectangle<<external>> {
+  BackgroundColor #333333
+  BorderColor #666666
+  FontColor #aaaaaa
+}
 skinparam defaultFontName "JetBrains Mono"
 skinparam defaultTextAlignment center
 
-rectangle "Audio Pipeline" as Audio {
+rectangle "Audio Capture & Processing" as AudioCapture <<infrastructure>> {
   [Mic Capture\n(AudioRecord)] --> [AEC/AGC\nPreprocess]
-  [AEC/AGC\nPreprocess] --> [PCM Queue]
-  [PCM Queue] --> [AAC Encoder\n(MediaCodec)]
+  [AEC/AGC\nPreprocess] --> [PCM Buffer Queue]
+  [PCM Buffer Queue] --> [AAC Encoder\n(MediaCodec)]
 }
 
-rectangle "Video Pipeline" as Video {
-  [Camera Sensor\n(Camera2)] --> [SurfaceTexture]
-  [SurfaceTexture] --> [GL Thread\n(CameraRenderer)]
-  [GL Thread\n(CameraRenderer)] --> [FBO & Watermark]
-  [FBO & Watermark] --> [YUV/EGL Frame Queue]
-  [YUV/EGL Frame Queue] --> [H.264 Encoder\n(MediaCodec)]
+rectangle "Video Capture & Processing" as VideoCapture <<infrastructure>> {
+  [Camera Sensor\n(Camera2 API)] --> [SurfaceTexture\n(GL Context)]
+  [SurfaceTexture\n(GL Context)] --> [CameraRenderer\n(GL Thread)]
+  [CameraRenderer\n(GL Thread)] --> [FBO Processing\n& Watermark]
+  [FBO Processing\n& Watermark] --> [Surface to Encoder]
+  [Surface to Encoder] --> [H.264 Encoder\n(MediaCodec)]
 }
 
-[AAC Encoder\n(MediaCodec)] --> [FLV Muxer\n(Packer)]
-[H.264 Encoder\n(MediaCodec)] --> [FLV Muxer\n(Packer)]
+rectangle "Preview Rendering Pipeline" as PreviewRender <<ui>> {
+  [CameraRenderer\n(GL Thread)] --> [Preview Surface\n(GLSurfaceView)]
+  [Preview Surface\n(GLSurfaceView)] --> [Display Buffer]
+  [Display Buffer] --> [Screen Display]
+}
 
-[FLV Muxer\n(Packer)] --> [StreamController]
-[StreamController] --> [RTMP Sender]
-[RTMP Sender] --> [JNI Bridge]
-[JNI Bridge] --> [librtmp]
-[librtmp] --> [RTMP Server]
+rectangle "Audio Rendering Pipeline" as AudioRender <<ui>> {
+  [PCM Buffer Queue] --> [Audio Mixer\n(Optional)]
+  [Audio Mixer\n(Optional)] --> [AudioTrack\n(Speaker Output)]
+  [AudioTrack\n(Speaker Output)] --> [Audio Hardware]
+}
 
-note right of [FBO & Watermark]
-GL 合成：
-* 纹理裁剪/预览适配
-* 叠加文字/图片水印
+rectangle "Stream Processing & Transmission" as StreamTx <<core>> {
+  [AAC Encoder\n(MediaCodec)] --> [Audio Frame\nBuffer]
+  [H.264 Encoder\n(MediaCodec)] --> [Video Frame\nBuffer]
+  [Audio Frame\nBuffer] --> [FLV Muxer\n(Packer)]
+  [Video Frame\nBuffer] --> [FLV Muxer\n(Packer)]
+  [FLV Muxer\n(Packer)] --> [StreamController\n(A/V Sync)]
+  [StreamController\n(A/V Sync)] --> [RTMP Sender\n(TCP Queue)]
+  [RTMP Sender\n(TCP Queue)] --> [JNI Bridge]
+  [JNI Bridge] --> [librtmp\n(Native)]
+  [librtmp\n(Native)] --> [RTMP Server\n(Remote)]
+}
+
+note right of [FBO Processing\n& Watermark]
+OpenGL 处理：
+* 纹理变换与裁剪
+* 预览尺寸适配
+* 文字/图片水印叠加
+* 美颜滤镜（可选）
+end note
+
+note right of [Preview Surface\n(GLSurfaceView)]
+预览渲染：
+* 实时显示相机画面
+* UI线程交互
+* 触摸对焦/缩放
+end note
+
+note right of [Audio Mixer\n(Optional)]
+音频处理：
+* 本地监听（可选）
+* 音量调节
+* 回声消除验证
 end note
 
 note bottom of [FLV Muxer\n(Packer)]
-封装流程：
-* SPS/PPS + Video Tag
-* Audio Header + Audio Tag
-* 时间戳对齐
+封装策略：
+* H.264: SPS/PPS + NALU
+* AAC: Audio Specific Config
+* 时间戳同步与校准
+* FLV Tag格式化
 end note
 
-note bottom of [RTMP Sender]
-发送策略：
-* 重试/心跳
-* 队列监控
+note bottom of [StreamController\n(A/V Sync)]
+流控制：
+* 音视频时间戳对齐
+* 丢帧策略（高延迟时）
+* 码率自适应
+end note
+
+note bottom of [RTMP Sender\n(TCP Queue)]
+传输优化：
+* 连接重试与心跳
+* 发送队列监控
+* 网络状态适配
+* 错误恢复机制
 end note
 
 @enduml

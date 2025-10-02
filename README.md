@@ -30,7 +30,15 @@ The project follows a clean architecture split:
 - **Use-Case Layer** – `controller/*` orchestrating capture/encode/package/send
 - **Device/Infrastructure** – `camera/*`, `mediacodec/*`, `stream/*`, native `librtmp`
 
-Core data-flow and component diagrams are authored in PlantUML:
+Core data-flow and component diagrams are authored in PlantUML with selective highlighting:
+
+| Color | Layer | Components |
+| --- | --- | --- |
+| 🟡 **Gold** | **Core Processing** | CameraRenderer, VideoEncoder, FLV Packer, RtmpPacker - Critical transformation logic |
+| ⚫ **Dark Gray** | **Control Layer** | StreamController, AVLiveView, VideoController - Business coordination |
+| ⬛ **Gray Variants** | **Other Layers** | UI, Infrastructure, External systems - Supporting components |
+
+The minimalist color scheme highlights only the most critical processing components, reducing visual noise while maintaining clear architectural boundaries.
 
 | Diagram | Purpose |
 | --- | --- |

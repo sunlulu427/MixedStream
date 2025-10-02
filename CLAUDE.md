@@ -148,10 +148,12 @@ packer.stop()
   - Streaming packaging: `docs/video_streaming.puml`
 
 ### Documentation Generation Standards
-- All architecture diagrams uniformly stored in `docs/*.puml`.
+- All architecture diagrams uniformly stored in `docs/*.puml` with subtle, selective highlighting.
+- Color scheme: 🟡 Gold highlighting for core processing components only; gray variants for all other layers to reduce visual noise.
 - CI generates `docs/generated/<name>.png` and corresponding Markdown through `tools/render_docs.sh` using PlantUML.
 - Markdown format: First-level title (filename converted to Title Case), embedded `![Title](./name.png)`, and listed `Source` and `Generated` metadata.
 - Run script manually before local diagram updates to ensure generated artifacts match CI; don't include `docs/generated/` in commits (produced by CI as artifacts).
+- See `docs/COLOR_SCHEME.md` for detailed minimalist color guidelines and selective highlighting principles.
 
 ### Startup Stability & Common Issues
 - Avoid crashes:

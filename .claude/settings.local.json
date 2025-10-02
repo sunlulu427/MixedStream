@@ -10,7 +10,14 @@
       "Bash(for file in app/src/main/java/com/astrastream/streamer/core/util/*.java)",
       "Bash(bash:*)",
       "Bash(adb shell am start -n com.astrastream.streamer/.app.LiveActivity:*)",
-      "Bash(adb:*)"
+      "Bash(adb:*)",
+      "Bash(./tools/render_docs.sh:*)",
+      "Bash(java:*)",
+      "Bash(brew install:*)",
+      "Bash(export PATH=\"/opt/homebrew/bin:$PATH\")",
+      "Read(//opt/homebrew/bin/**)",
+      "Bash(brew list:*)",
+      "Bash(plantuml:*)"
     ],
     "deny": [],
     "ask": []
