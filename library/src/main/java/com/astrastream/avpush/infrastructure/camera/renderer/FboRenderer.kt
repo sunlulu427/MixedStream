@@ -12,8 +12,22 @@ import com.astrastream.avpush.core.utils.BitmapUtils
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
+import kotlin.math.max
 
 class FboRenderer(private val context: Context) : IRenderer {
+    companion object {
+        private val DEFAULT_WATERMARK_COORDS = floatArrayOf(
+            0.6f, -0.9f,
+            0.9f, -0.9f,
+            0.6f, -0.6f,
+            0.9f, -0.6f
+        )
+        private const val MAX_HEIGHT_NDC = 0.3f
+        private const val MIN_HEIGHT_NDC = 0.1f
+        private const val MAX_WIDTH_NDC = 0.6f
+        private const val HORIZONTAL_MARGIN = 0.05f
+        private const val VERTICAL_MARGIN = 0.06f
+    }
     /**
      * 顶点坐标
      */
@@ -32,7 +46,7 @@ class FboRenderer(private val context: Context) : IRenderer {
     /**
      * 水印坐标
      */
-    private var mWatemarkData: FloatArray? = null
+    private var mWatemarkData: FloatArray = DEFAULT_WATERMARK_COORDS.copyOf()
 
     /**
      * 纹理坐标
@@ -99,9 +113,14 @@ class FboRenderer(private val context: Context) : IRenderer {
 
     private var mBitmap: Bitmap? = null
     private var mBitmapTextureId = -1
+    private var surfaceWidth = 0
+    private var surfaceHeight = 0
+    private var pendingWatermark: Watermark? = null
+    private var currentWatermark: Watermark? = null
 
     init {
-        initWatemark()
+        mBitmap = BitmapUtils.createBitmapByCanvas("       ", 20f, Color.WHITE, Color.TRANSPARENT)
+        updateVertexBufferWith(mWatemarkData)
     }
 
     override fun onSurfaceCreate(width: Int, height: Int) {
@@ -140,13 +159,19 @@ class FboRenderer(private val context: Context) : IRenderer {
         //4.4 解绑 VBO
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0)
 
-        mBitmapTextureId = createWatemark()
-
-
+        mBitmap?.let { uploadBitmapTexture(it) }
+        attemptApplyWatermark()
     }
 
     override fun onSurfaceChange(width: Int, height: Int) {
         GLES20.glViewport(0, 0, width, height)
+        val sizeChanged = surfaceWidth != width || surfaceHeight != height
+        surfaceWidth = width
+        surfaceHeight = height
+        if (sizeChanged && pendingWatermark == null) {
+            pendingWatermark = currentWatermark
+        }
+        attemptApplyWatermark()
     }
 
     override fun onDraw() {
@@ -201,64 +226,118 @@ class FboRenderer(private val context: Context) : IRenderer {
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0)
     }
 
-    private fun initWatemark() {
-        if (mBitmap == null) {
-            mBitmap = BitmapUtils.createBitmapByCanvas("       ", 20f, Color.WHITE, Color.TRANSPARENT)
+    private fun attemptApplyWatermark() {
+        val watermark = pendingWatermark ?: return
+        if (watermark.floatArray == null && (surfaceWidth == 0 || surfaceHeight == 0)) {
+            return
         }
-
-        mWatemarkData?.let { watemark ->
-            mVertexData[8] = watemark[0];
-            mVertexData[9] = watemark[1];
-
-            mVertexData[10] = watemark[2];
-            mVertexData[11] = watemark[3];
-
-            mVertexData[12] = watemark[4];
-            mVertexData[13] = watemark[5];
-
-            mVertexData[14] = watemark[6];
-            mVertexData[15] = watemark[7];
+        if (applyWatermark(watermark)) {
+            pendingWatermark = null
         }
     }
 
-    private fun createWatemark(): Int {
-        val watemarkId = ShaderHelper.loadBitmapTexture(mBitmap!!);
-        //解绑纹理
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
-        return watemarkId
+    private fun applyWatermark(watermark: Watermark): Boolean {
+        val bitmap = prepareBitmap(watermark)
+        val coords = watermark.floatArray?.takeIf { it.size >= 8 }?.copyOf(8)
+            ?: computeDefaultQuad(bitmap, watermark)
+            ?: return false
+
+        mWatemarkData = coords
+        updateVertexBufferWith(mWatemarkData)
+        uploadBitmapTexture(bitmap)
+        return true
+    }
+
+    private fun prepareBitmap(watermark: Watermark): Bitmap {
+        val bitmap = when {
+            watermark.markImg != null -> watermark.markImg!!
+            watermark.txt != null -> {
+                val text = watermark.txt!!
+                val size = if (watermark.textSize > 0) watermark.textSize.toFloat() else 32f
+                val color = if (watermark.textColor != -1) watermark.textColor else Color.WHITE
+                BitmapUtils.createBitmapByCanvas(text, size, color)
+            }
+            mBitmap != null -> mBitmap!!
+            else -> BitmapUtils.createBitmapByCanvas(" ", 20f, Color.WHITE, Color.TRANSPARENT)
+        }
+        mBitmap = bitmap
+        return bitmap
+    }
+
+    private fun computeDefaultQuad(bitmap: Bitmap, watermark: Watermark): FloatArray? {
+        if (surfaceWidth <= 0 || surfaceHeight <= 0) return null
+
+        val safeScale = watermark.scale.takeIf { it > 0f } ?: 1f
+        val ratio = bitmap.width.toFloat() / bitmap.height.coerceAtLeast(1)
+
+        var targetHeight = (2f * bitmap.height / surfaceHeight.toFloat()) * safeScale
+        targetHeight = targetHeight.coerceIn(MIN_HEIGHT_NDC, MAX_HEIGHT_NDC)
+        var targetWidth = targetHeight * ratio
+        if (targetWidth > MAX_WIDTH_NDC) {
+            val factor = MAX_WIDTH_NDC / targetWidth
+            targetWidth = MAX_WIDTH_NDC
+            targetHeight = max(MIN_HEIGHT_NDC, targetHeight * factor)
+        }
+
+        var right = 1f - HORIZONTAL_MARGIN
+        var left = right - targetWidth
+        if (left < -1f + HORIZONTAL_MARGIN) {
+            val shift = (-1f + HORIZONTAL_MARGIN) - left
+            left += shift
+            right += shift
+        }
+
+        var bottom = -1f + VERTICAL_MARGIN
+        var top = bottom + targetHeight
+        if (top > 1f - VERTICAL_MARGIN) {
+            val shift = top - (1f - VERTICAL_MARGIN)
+            top -= shift
+            bottom -= shift
+        }
+
+        return floatArrayOf(
+            left, bottom,
+            right, bottom,
+            left, top,
+            right, top
+        )
+    }
+
+    private fun updateVertexBufferWith(coords: FloatArray) {
+        if (coords.size < 8) return
+        mVertexData[8] = coords[0]
+        mVertexData[9] = coords[1]
+        mVertexData[10] = coords[2]
+        mVertexData[11] = coords[3]
+        mVertexData[12] = coords[4]
+        mVertexData[13] = coords[5]
+        mVertexData[14] = coords[6]
+        mVertexData[15] = coords[7]
+
+        mVertexBuffer.position(0)
+        mVertexBuffer.put(mVertexData)
+        mVertexBuffer.position(0)
+
+        if (mVboID != 0) {
+            GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, mVboID)
+            GLES20.glBufferSubData(GLES20.GL_ARRAY_BUFFER, 0, mVertexData.size * 4, mVertexBuffer)
+            GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0)
+        }
+    }
+
+    private fun uploadBitmapTexture(bitmap: Bitmap) {
+        if (mBitmapTextureId != -1) {
+            val textures = IntArray(1)
+            textures[0] = mBitmapTextureId
+            GLES20.glDeleteTextures(1, textures, 0)
+        }
+        mBitmapTextureId = ShaderHelper.loadBitmapTexture(bitmap)
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0)
     }
 
     fun setWatemark(watermark: Watermark) {
-
-        watermark.txt?.let {
-//            mBitmap =
-//                BitmapUtils.creatBitmap(it, context, watermark.textSize, watermark.textColor, Color.TRANSPARENT)
-            mBitmap = BitmapUtils.createBitmapByCanvas(it, watermark.textSize.toFloat(), watermark.textColor)
-        }
-
-        watermark.markImg?.let {
-            mBitmap = it
-        }
-
-        if (watermark.floatArray == null) {
-            mBitmap?.let { bitmap ->
-                val r = 1.0f * bitmap.getWidth() / bitmap.getHeight();
-                val w = r * 0.1f;
-                mVertexData[8] =0.7f - w;
-                mVertexData[9] = -0.9f;
-                mVertexData[10] = 0.9f;
-                mVertexData[11] = -0.9f;
-                mVertexData[12] = 0.7f - w;
-                mVertexData[13] = -0.75f;
-                mVertexData[14] = 0.9f;
-                mVertexData[15] = -0.75f;
-            }
-        }
-
-        watermark.floatArray?.let {
-            this.mWatemarkData = watermark.floatArray
-        }
-        initWatemark()
-        mBitmapTextureId = createWatemark()
+        currentWatermark = watermark
+        pendingWatermark = watermark
+        attemptApplyWatermark()
     }
 }
