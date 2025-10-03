@@ -1,8 +1,15 @@
 package com.astrastream.streamer.ui.live
 
+import com.astrastream.avpush.domain.config.VideoConfiguration
+
 data class ResolutionOption(val width: Int, val height: Int, val label: String)
 
-data class EncoderOption(val label: String, val useHardware: Boolean)
+data class EncoderOption(
+    val label: String,
+    val useHardware: Boolean,
+    val videoCodec: VideoConfiguration.VideoCodec = VideoConfiguration.VideoCodec.H264,
+    val description: String = ""
+)
 
 data class LiveUiState(
     val streamUrl: String,

@@ -17,7 +17,8 @@
       "Bash(export PATH=\"/opt/homebrew/bin:$PATH\")",
       "Read(//opt/homebrew/bin/**)",
       "Bash(brew list:*)",
-      "Bash(plantuml:*)"
+      "Bash(plantuml:*)",
+      "Bash(git add:*)"
     ],
     "deny": [],
     "ask": []

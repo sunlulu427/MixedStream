@@ -13,9 +13,15 @@ class VideoConfiguration(
     val ifi: Int = 2,
     val mediaCodec: Boolean = true,
     val codeType: ICODEC = ICODEC.ENCODE,
-    val mime: String = MediaFormat.MIMETYPE_VIDEO_AVC,
+    val codec: VideoCodec = VideoCodec.H264,
+    val mime: String = codec.mimeType,
     val spspps: ByteBuffer? = null,
     val surface: Surface? = null
 ) {
     enum class ICODEC { ENCODE, DECODE, }
+
+    enum class VideoCodec(val mimeType: String, val flvCodecId: Int) {
+        H264(MediaFormat.MIMETYPE_VIDEO_AVC, 7),
+        H265(MediaFormat.MIMETYPE_VIDEO_HEVC, 12)
+    }
 }

@@ -86,6 +86,7 @@ object FlvPackerHelper {
      * @param audioRate Audio sample rate
      * @param audioSize Audio sample size
      * @param isStereo Whether audio is stereo
+     * @param videoCodecId Video codec ID (AVC=7, HEVC=12)
      * @return Metadata byte array
      */
     fun writeFlvMetaData(
@@ -94,14 +95,15 @@ object FlvPackerHelper {
         fps: Int,
         audioRate: Int,
         audioSize: Int,
-        isStereo: Boolean
+        isStereo: Boolean,
+        videoCodecId: Int = FlvVideoCodecID.AVC
     ): ByteArray {
         val metaDataHeader = AmfString("onMetaData", false)
         val amfMap = AmfMap().apply {
             setProperty("width", width)
             setProperty("height", height)
             setProperty("framerate", fps)
-            setProperty("videocodecid", FlvVideoCodecID.AVC)
+            setProperty("videocodecid", videoCodecId)
             setProperty("audiosamplerate", audioRate)
             setProperty("audiosamplesize", audioSize)
             setProperty("stereo", isStereo)
@@ -159,6 +161,98 @@ object FlvPackerHelper {
         val frameType = if (isKeyFrame) FlvVideoFrameType.KEY_FRAME else FlvVideoFrameType.INTER_FRAME
         writeVideoHeader(buffer, frameType, FlvVideoCodecID.AVC, FlvVideoAVCPacketType.NALU)
         buffer.put(data)
+    }
+
+    /**
+     * Write first H.265 video tag with HEVC configuration
+     */
+    fun writeFirstH265VideoTag(buffer: ByteBuffer, vps: ByteArray, sps: ByteArray, pps: ByteArray) {
+        // Write FLV Video Header for H.265
+        writeVideoHeader(buffer, FlvVideoFrameType.KEY_FRAME, FlvVideoCodecID.HEVC, FlvVideoHEVCPacketType.SEQUENCE_HEADER)
+
+        // HEVC Configuration Record (HEVCDecoderConfigurationRecord)
+        writeHEVCDecoderConfigurationRecord(buffer, vps, sps, pps)
+    }
+
+    /**
+     * Write H.265 packet
+     */
+    fun writeH265Packet(buffer: ByteBuffer, data: ByteArray, isKeyFrame: Boolean) {
+        val frameType = if (isKeyFrame) FlvVideoFrameType.KEY_FRAME else FlvVideoFrameType.INTER_FRAME
+        writeVideoHeader(buffer, frameType, FlvVideoCodecID.HEVC, FlvVideoHEVCPacketType.NALU)
+        buffer.put(data)
+    }
+
+    /**
+     * Write HEVC Decoder Configuration Record
+     */
+    private fun writeHEVCDecoderConfigurationRecord(buffer: ByteBuffer, vps: ByteArray, sps: ByteArray, pps: ByteArray) {
+        // HEVCDecoderConfigurationRecord format
+        buffer.put(0x01.toByte()) // Configuration version
+
+        // Extract profile space, tier flag, and profile idc from SPS
+        val profileSpace = (sps[1].toInt() and 0xC0) shr 6
+        val tierFlag = (sps[1].toInt() and 0x20) shr 5
+        val profileIdc = sps[1].toInt() and 0x1F
+        buffer.put(((profileSpace shl 6) or (tierFlag shl 5) or profileIdc).toByte())
+
+        // Profile compatibility indicators (4 bytes)
+        buffer.put(sps[2])
+        buffer.put(sps[3])
+        buffer.put(sps[4])
+        buffer.put(sps[5])
+
+        // Constraint indicator flags (6 bytes)
+        for (i in 6..11) {
+            if (i < sps.size) buffer.put(sps[i]) else buffer.put(0x00.toByte())
+        }
+
+        // Level idc
+        buffer.put(sps[12])
+
+        // Min spatial segmentation idc (2 bytes)
+        buffer.put(0xF0.toByte())
+        buffer.put(0x00.toByte())
+
+        // Parallelism type (2 bits) + reserved (6 bits)
+        buffer.put(0xFC.toByte())
+
+        // Chroma format idc (2 bits) + reserved (6 bits)
+        buffer.put(0xFD.toByte())
+
+        // Bit depth luma minus8 (3 bits) + reserved (5 bits)
+        buffer.put(0xFE.toByte())
+
+        // Bit depth chroma minus8 (3 bits) + reserved (5 bits)
+        buffer.put(0xFE.toByte())
+
+        // Avg frame rate (2 bytes)
+        buffer.put(0x00.toByte())
+        buffer.put(0x00.toByte())
+
+        // Constant frame rate (2 bits) + num temporal layers (3 bits) + temporal id nested (1 bit) + length size minus one (2 bits)
+        buffer.put(0x03.toByte()) // Length size minus one = 3 (4 bytes)
+
+        // Number of arrays
+        buffer.put(0x03.toByte()) // VPS, SPS, PPS
+
+        // VPS array
+        buffer.put(0x20.toByte()) // Array completeness (1) + reserved (1) + NAL unit type (6) = VPS (32)
+        buffer.putShort(1) // Number of NAL units
+        buffer.putShort(vps.size.toShort())
+        buffer.put(vps)
+
+        // SPS array
+        buffer.put(0x21.toByte()) // NAL unit type = SPS (33)
+        buffer.putShort(1) // Number of NAL units
+        buffer.putShort(sps.size.toShort())
+        buffer.put(sps)
+
+        // PPS array
+        buffer.put(0x22.toByte()) // NAL unit type = PPS (34)
+        buffer.putShort(1) // Number of NAL units
+        buffer.putShort(pps.size.toShort())
+        buffer.put(pps)
     }
 
     /**
@@ -241,6 +335,13 @@ object FlvPackerHelper {
         const val RESERVED = 3
     }
 
+    object FlvVideoHEVCPacketType {
+        const val SEQUENCE_HEADER = 0
+        const val NALU = 1
+        const val SEQUENCE_HEADER_EOF = 2
+        const val RESERVED = 3
+    }
+
     object FlvAudioAACPacketType {
         const val SEQUENCE_HEADER = 0
         const val RAW = 1
@@ -264,6 +365,7 @@ object FlvPackerHelper {
         const val AVC = 7
         const val DISABLED = 8
         const val RESERVED2 = 9
+        const val HEVC = 12  // H.265/HEVC support
     }
 
     object FlvAudio {

@@ -59,7 +59,19 @@ class LiveSessionCoordinator(
 
     fun ensurePacker() {
         if (packer == null) {
-            packer = RtmpPacker().also { current -> liveView?.setPacker(current) }
+            // Use current video configuration or default to H.264
+            val current = state.value
+            val videoConfig = VideoConfiguration(
+                width = current.streamResolution.width,
+                height = current.streamResolution.height,
+                fps = current.videoFps,
+                maxBps = current.maxBitrate,
+                minBps = current.minBitrate,
+                ifi = current.gop,
+                mediaCodec = current.encoder.useHardware,
+                codec = current.encoder.videoCodec
+            )
+            packer = RtmpPacker(videoConfig).also { current -> liveView?.setPacker(current) }
         }
     }
 
@@ -216,7 +228,8 @@ class LiveSessionCoordinator(
                 maxBps = adjusted.maxBitrate,
                 minBps = adjusted.minBitrate,
                 ifi = adjusted.gop,
-                mediaCodec = adjusted.encoder.useHardware
+                mediaCodec = adjusted.encoder.useHardware,
+                codec = adjusted.encoder.videoCodec
             )
         )
         view.setCameraConfigure(
@@ -282,8 +295,9 @@ class LiveSessionCoordinator(
         )
 
         fun defaultEncoderOptions() = listOf(
-            EncoderOption("硬件编解码 (MediaCodec)", true),
-            EncoderOption("软件编解码", false)
+            EncoderOption("H.264", true, VideoConfiguration.VideoCodec.H264, "硬件 H.264 编码"),
+            EncoderOption("H.265", true, VideoConfiguration.VideoCodec.H265, "硬件 H.265 编码"),
+            EncoderOption("软件", false, VideoConfiguration.VideoCodec.H264, "软件编解码")
         )
     }
 

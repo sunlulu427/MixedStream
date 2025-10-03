@@ -47,6 +47,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.astrastream.avpush.domain.config.VideoConfiguration
 
 @Composable
 fun CameraSwitchButton(onClick: () -> Unit, enabled: Boolean, modifier: Modifier = Modifier) {
@@ -100,7 +101,7 @@ fun StreamingStatsOverlay(state: LiveUiState, modifier: Modifier = Modifier) {
             Text(text = "当前码率: ${state.currentBitrate} kbps (目标 ${state.targetBitrate})", style = MaterialTheme.typography.bodySmall)
             Text(text = "实际帧率: ${state.currentFps} fps", style = MaterialTheme.typography.bodySmall)
             Text(text = "GOP: ${state.gop}", style = MaterialTheme.typography.bodySmall)
-            Text(text = "编码: ${state.encoder.label}", style = MaterialTheme.typography.bodySmall)
+            Text(text = "编码: ${state.encoder.description}", style = MaterialTheme.typography.bodySmall)
             if (state.streamUrl.isNotBlank()) {
                 Text(
                     text = "地址: ${state.streamUrl}",
@@ -191,7 +192,7 @@ fun ParameterPanel(
                 enabled = controlsEnabled
             )
 
-            EncoderSegmentedControl(
+            EncoderDropdown(
                 options = encoderOptions,
                 selected = state.encoder,
                 onSelected = onEncoderSelected,
@@ -326,21 +327,90 @@ fun ResolutionDropdown(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+fun EncoderDropdown(
+    options: List<EncoderOption>,
+    selected: EncoderOption,
+    onSelected: (EncoderOption) -> Unit,
+    enabled: Boolean
+) {
+    var expanded = remember { mutableStateOf(false) }
+    ExposedDropdownMenuBox(expanded = expanded.value, onExpandedChange = { if (enabled) expanded.value = it }) {
+        OutlinedTextField(
+            value = selected.description,
+            onValueChange = {},
+            label = { Text("编码器") },
+            readOnly = true,
+            enabled = enabled,
+            modifier = Modifier
+                .fillMaxWidth()
+                .menuAnchor(),
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded.value) }
+        )
+        DropdownMenu(
+            expanded = expanded.value,
+            onDismissRequest = { expanded.value = false }
+        ) {
+            options.forEach { option ->
+                androidx.compose.material3.DropdownMenuItem(
+                    text = {
+                        Column {
+                            Text(option.description, style = MaterialTheme.typography.bodyMedium)
+                            Text(
+                                text = when {
+                                    option.videoCodec == VideoConfiguration.VideoCodec.H265 -> "更高压缩率，更低带宽"
+                                    option.videoCodec == VideoConfiguration.VideoCodec.H264 -> "兼容性更好，更稳定"
+                                    else -> "CPU编码，功耗较高"
+                                },
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    },
+                    onClick = {
+                        onSelected(option)
+                        expanded.value = false
+                    },
+                    enabled = enabled,
+                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
+                )
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
 fun EncoderSegmentedControl(
     options: List<EncoderOption>,
     selected: EncoderOption,
     onSelected: (EncoderOption) -> Unit,
     enabled: Boolean
 ) {
-    SingleChoiceSegmentedButtonRow {
-        options.forEachIndexed { index, option ->
-            SegmentedButton(
-                shape = SegmentedButtonDefaults.itemShape(index = index, count = options.size),
-                selected = option == selected,
-                onClick = { if (enabled) onSelected(option) },
-                enabled = enabled,
-                label = { Text(option.label, maxLines = 1, overflow = TextOverflow.Ellipsis) }
-            )
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(
+            text = "编码器",
+            style = MaterialTheme.typography.labelMedium,
+            color = if (enabled) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+        )
+        SingleChoiceSegmentedButtonRow(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            options.forEachIndexed { index, option ->
+                SegmentedButton(
+                    shape = SegmentedButtonDefaults.itemShape(index = index, count = options.size),
+                    selected = option == selected,
+                    onClick = { if (enabled) onSelected(option) },
+                    enabled = enabled,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(
+                        text = option.label,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        style = MaterialTheme.typography.labelMedium
+                    )
+                }
+            }
         }
     }
 }
