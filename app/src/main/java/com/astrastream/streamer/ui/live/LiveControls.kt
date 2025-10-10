@@ -198,14 +198,10 @@ fun ParameterPanel(
                     onValueChange = onStreamUrlChanged,
                     label = { Text("推流地址（可选）") },
                     placeholder = { Text("rtmp://host/app/stream") },
-                    singleLine = true,
+                    singleLine = false,
+                    minLines = 1,
                     enabled = controlsEnabled,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                PullStreamList(
-                    urls = state.pullUrls,
+                    keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Uri),
                     modifier = Modifier.fillMaxWidth()
                 )
 
@@ -255,9 +251,13 @@ fun ParameterPanel(
                         }
                     }
                 }
+                PullStreamList(
+                    urls = state.pullUrls,
+                    modifier = Modifier.fillMaxWidth()
+                )
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),

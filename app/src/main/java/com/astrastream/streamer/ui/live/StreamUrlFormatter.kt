@@ -6,7 +6,24 @@ object StreamUrlFormatter {
 
     fun buildPullUrls(sourceUrl: String): List<String> {
         if (sourceUrl.isBlank()) return emptyList()
-        return listOfNotNull(convertToHttpFlv(sourceUrl))
+        val cleanedSource = sourceUrl.trim()
+        return listOfNotNull(
+            normalizeRtmp(cleanedSource),
+            convertToHttpFlv(cleanedSource)
+        ).distinct()
+    }
+
+    private fun normalizeRtmp(sourceUrl: String): String? {
+        val uri = runCatching { Uri.parse(sourceUrl) }.getOrNull() ?: return null
+        val scheme = uri.scheme?.lowercase() ?: return null
+        if (scheme !in setOf("rtmp", "rtmps")) return null
+        val host = uri.host ?: return null
+        val portSuffix = if (uri.port != -1) ":${uri.port}" else ""
+        val rawPath = uri.encodedPath?.takeIf { it.isNotBlank() } ?: return null
+        val normalizedPath = if (rawPath.startsWith("/")) rawPath else "/$rawPath"
+        val query = uri.encodedQuery?.let { "?$it" } ?: ""
+        val fragment = uri.encodedFragment?.let { "#$it" } ?: ""
+        return "$scheme://$host$portSuffix$normalizedPath$query$fragment"
     }
 
     private fun convertToHttpFlv(sourceUrl: String): String? {
@@ -38,4 +55,3 @@ object StreamUrlFormatter {
         return "$scheme://$host$portSuffix$basePath$normalizedStreamKey$query$fragment"
     }
 }
-
