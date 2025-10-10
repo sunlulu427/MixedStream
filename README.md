@@ -117,12 +117,22 @@ Watermarks can be queued before GL initialization—`AVLiveView` applies them on
 
 ### Live Session States
 
-- **Before Push** – UI prepared with camera preview and parameters ready to edit.
-  ![Before Push](docs/images/before_push.webp)
-- **Pushing** – Uplink established, stats overlay and live controls in streaming mode.
-  ![Pushing](docs/images/pushing.webp)
-- **Pulling Preview** – Downstream playback state for verifying the live stream output.
-  ![Pulling](docs/images/pulling.webp)
+<table>
+  <tr>
+    <td align="center">
+      <img src="docs/images/before_push.webp" alt="Before Push" width="260" /><br/>
+      <sub><strong>Before Push</strong> · Preview ready, parameters editable</sub>
+    </td>
+    <td align="center">
+      <img src="docs/images/pushing.webp" alt="Pushing" width="260" /><br/>
+      <sub><strong>Pushing</strong> · Live uplink active with stats overlay</sub>
+    </td>
+    <td align="center">
+      <img src="docs/images/pulling.webp" alt="Pulling" width="260" /><br/>
+      <sub><strong>Pulling Preview</strong> · Downstream playback verification</sub>
+    </td>
+  </tr>
+</table>
 
 ## Extensibility
 
