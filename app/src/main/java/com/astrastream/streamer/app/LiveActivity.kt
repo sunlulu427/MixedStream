@@ -20,6 +20,7 @@ import com.astrastream.avpush.core.utils.LogHelper
 import com.astrastream.avpush.presentation.widget.AVLiveView
 import com.astrastream.streamer.core.base.BaseActivity
 import com.astrastream.streamer.core.util.Utils
+import com.astrastream.streamer.data.LivePreferencesStore
 import com.astrastream.streamer.ui.live.LiveScreen
 import com.astrastream.streamer.ui.live.LiveSessionCoordinator
 import com.astrastream.streamer.ui.live.LiveUiState
@@ -27,16 +28,22 @@ import com.astrastream.streamer.ui.theme.AVLiveTheme
 
 class LiveActivity : BaseActivity<View>(), OnConnectListener {
 
-    private val uiState: MutableState<LiveUiState> = mutableStateOf(
-        LiveUiState(
+    private val captureDefaults = LiveSessionCoordinator.defaultCaptureOptions()
+    private val streamDefaults = LiveSessionCoordinator.defaultStreamOptions()
+    private val encoderDefaults = LiveSessionCoordinator.defaultEncoderOptions()
+    private val preferences by lazy { LivePreferencesStore(this) }
+
+    private val uiState: MutableState<LiveUiState> by lazy {
+        val defaultState = LiveUiState(
             streamUrl = "",
-            captureResolution = LiveSessionCoordinator.defaultCaptureOptions().first(),
-            streamResolution = LiveSessionCoordinator.defaultStreamOptions()[1],
-            encoder = LiveSessionCoordinator.defaultEncoderOptions().first(),
+            captureResolution = captureDefaults.first(),
+            streamResolution = streamDefaults.getOrElse(1) { streamDefaults.first() },
+            encoder = encoderDefaults.first(),
             targetBitrate = 800,
             showParameterPanel = true
         )
-    )
+        mutableStateOf(preferences.load(defaultState, captureDefaults, streamDefaults, encoderDefaults))
+    }
 
     private val audioConfig = AudioConfiguration()
     private lateinit var coordinator: LiveSessionCoordinator
@@ -64,7 +71,7 @@ class LiveActivity : BaseActivity<View>(), OnConnectListener {
     }
 
     override fun getLayoutId(): View = ComposeView(this).apply {
-        coordinator = LiveSessionCoordinator(this@LiveActivity, uiState, audioConfig)
+        coordinator = LiveSessionCoordinator(this@LiveActivity, uiState, audioConfig, preferences)
         setContent {
             AVLiveTheme {
                 LiveScreen(

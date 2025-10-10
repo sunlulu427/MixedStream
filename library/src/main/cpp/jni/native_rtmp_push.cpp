@@ -5,7 +5,7 @@
 #include <PushProxy.h>
 #include <android/log.h>
 
-#define NATIVE_PUSH "com/devyk/av/rtmp/library/stream/sender/rtmp/RtmpSender"
+#define NATIVE_PUSH "com/astrastream/avpush/infrastructure/stream/sender/rtmp/RtmpSender"
 
 JavaVM *javaVM = 0;
 
@@ -70,10 +70,19 @@ int JNI_OnLoad(JavaVM *vm, void *pVoid) {
     }
     javaVM = vm;
     jclass jclass1 = jniEnv->FindClass(NATIVE_PUSH);
-    jniEnv->RegisterNatives(jclass1, mNativeMethod,
-                            sizeof(mNativeMethod) / sizeof(mNativeMethod[0]));
+    if (jclass1 == nullptr) {
+        __android_log_print(ANDROID_LOG_ERROR, "native_rtmp_push",
+                            "Failed to find class %s", NATIVE_PUSH);
+        return JNI_ERR;
+    }
+    if (jniEnv->RegisterNatives(jclass1, mNativeMethod,
+                                sizeof(mNativeMethod) / sizeof(mNativeMethod[0])) < 0) {
+        __android_log_print(ANDROID_LOG_ERROR, "native_rtmp_push",
+                            "RegisterNatives failed for %s", NATIVE_PUSH);
+        jniEnv->DeleteLocalRef(jclass1);
+        return JNI_ERR;
+    }
     jniEnv->DeleteLocalRef(jclass1);
     __android_log_print(ANDROID_LOG_DEBUG, "native_rtmp_push", "JNI_OnLoad: %p", vm);
     return JNI_VERSION_1_6;
 }
-

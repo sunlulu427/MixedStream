@@ -16,6 +16,7 @@ import com.astrastream.avpush.infrastructure.stream.packer.rtmp.RtmpPacker
 import com.astrastream.avpush.infrastructure.stream.sender.rtmp.RtmpSender
 import com.astrastream.avpush.core.utils.LogHelper
 import com.astrastream.avpush.presentation.widget.AVLiveView
+import com.astrastream.streamer.data.LivePreferencesStore
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -23,7 +24,8 @@ import kotlin.math.roundToInt
 class LiveSessionCoordinator(
     private val context: Context,
     private val state: MutableState<LiveUiState>,
-    private val audioConfiguration: AudioConfiguration
+    private val audioConfiguration: AudioConfiguration,
+    private val preferencesStore: LivePreferencesStore
 ) : LiveStreamSession.StatsListener {
 
     private val tag = "LiveSessionCoordinator"
@@ -122,6 +124,7 @@ class LiveSessionCoordinator(
         if (state.value.captureResolution == option) return
         state.value = state.value.copy(captureResolution = option)
         applyStreamConfiguration()
+        persistState()
         if (!state.value.isStreaming) restartPreview()
     }
 
@@ -129,12 +132,14 @@ class LiveSessionCoordinator(
         if (state.value.streamResolution == option) return
         state.value = state.value.copy(streamResolution = option)
         applyStreamConfiguration()
+        persistState()
     }
 
     fun updateEncoder(option: EncoderOption) {
         if (state.value.encoder == option) return
         state.value = state.value.copy(encoder = option)
         applyStreamConfiguration()
+        persistState()
     }
 
     fun updateBitrate(bitrate: Int) {
@@ -142,6 +147,7 @@ class LiveSessionCoordinator(
         val clamped = bitrate.coerceIn(snapshot.minBitrate, snapshot.maxBitrate)
         state.value = snapshot.copy(targetBitrate = clamped)
         applyStreamConfiguration()
+        persistState()
         if (state.value.isStreaming) liveView?.setVideoBps(clamped)
     }
 
@@ -152,14 +158,19 @@ class LiveSessionCoordinator(
 
     fun updateStreamUrl(url: String) {
         state.value = state.value.copy(streamUrl = url)
+        persistState()
     }
 
     fun togglePanel() {
         state.value = state.value.copy(showParameterPanel = !state.value.showParameterPanel)
+        persistState()
     }
 
     fun setStatsVisible(visible: Boolean) {
-        if (state.value.showStats != visible) state.value = state.value.copy(showStats = visible)
+        if (state.value.showStats != visible) {
+            state.value = state.value.copy(showStats = visible)
+            persistState()
+        }
     }
 
     fun showUrlDialog() {
@@ -177,6 +188,7 @@ class LiveSessionCoordinator(
             return
         }
         state.value = state.value.copy(streamUrl = clean, showUrlDialog = false)
+        persistState()
         onValid()
     }
 
@@ -190,6 +202,7 @@ class LiveSessionCoordinator(
             ?: ResolutionOption(width, height, "${width} × ${height}")
         state.value = current.copy(captureResolution = updatedOption)
         applyStreamConfiguration()
+        persistState()
     }
 
     private fun onCameraError(message: String) {
@@ -203,6 +216,7 @@ class LiveSessionCoordinator(
         applyStreamConfiguration()
         previewStarted = false
         previewRequested = false
+        persistState()
     }
 
     fun applyStreamConfiguration(target: AVLiveView? = liveView) {
@@ -279,6 +293,10 @@ class LiveSessionCoordinator(
 
     fun clearConnecting() {
         state.value = state.value.copy(isConnecting = false)
+    }
+
+    private fun persistState() {
+        preferencesStore.save(state.value)
     }
 
     companion object {
