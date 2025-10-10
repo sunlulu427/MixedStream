@@ -115,6 +115,15 @@ Typical runtime sequence:
 
 Watermarks can be queued before GL initialization—`AVLiveView` applies them once the renderer is ready.
 
+### Live Session States
+
+- **Before Push** – UI prepared with camera preview and parameters ready to edit.
+  ![Before Push](docs/images/before_push.png)
+- **Pushing** – Uplink established, stats overlay and live controls in streaming mode.
+  ![Pushing](docs/images/pushing.png)
+- **Pulling Preview** – Downstream playback state for verifying the live stream output.
+  ![Pulling](docs/images/pulling.png)
+
 ## Extensibility
 
 Implement `LiveStreamSession` to swap streaming strategies (e.g., different packer, custom sender) without touching UI code:
