@@ -1,7 +1,7 @@
 package com.astrastream.avpush.core
 
 object Contacts {
-    var TAG = "AVRtmpPush"
+    var TAG = "astra"
     //rtmp 初始化失败
     var RTMP_INIT_ERROR = -9
     //设置 rtmp url 失败

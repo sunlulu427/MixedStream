@@ -18,6 +18,7 @@ data class LiveUiState(
     val showParameterPanel: Boolean = false,
     val showUrlDialog: Boolean = false,
     val showStats: Boolean = true,
+    val pullUrls: List<String> = emptyList(),
     val captureResolution: ResolutionOption,
     val streamResolution: ResolutionOption,
     val encoder: EncoderOption,

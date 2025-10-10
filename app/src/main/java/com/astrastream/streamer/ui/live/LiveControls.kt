@@ -1,5 +1,6 @@
 package com.astrastream.streamer.ui.live
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -7,16 +8,23 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Cameraswitch
 import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.ContentCopy
 import androidx.compose.material.icons.rounded.Remove
 import androidx.compose.material.icons.rounded.Tune
 import androidx.compose.material3.AlertDialog
@@ -38,14 +46,18 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.astrastream.avpush.domain.config.VideoConfiguration
 
@@ -157,71 +169,95 @@ fun ParameterPanel(
     controlsEnabled: Boolean,
     modifier: Modifier = Modifier
 ) {
+    val configuration = LocalConfiguration.current
+    val maxHeight = (configuration.screenHeightDp.dp * 2f) / 3f
+
+    val scrollState = rememberScrollState()
+
     Card(
-        modifier = modifier,
+        modifier = modifier.heightIn(max = maxHeight),
         shape = MaterialTheme.shapes.large,
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.92f))
     ) {
-        Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            Text(text = "直播参数", style = MaterialTheme.typography.titleMedium, fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold)
-
-            OutlinedTextField(
-                value = state.streamUrl,
-                onValueChange = onStreamUrlChanged,
-                label = { Text("推流地址（可选）") },
-                placeholder = { Text("rtmp://host/app/stream") },
-                singleLine = true,
-                enabled = controlsEnabled,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            ResolutionDropdown(
-                label = "采集分辨率",
-                options = captureOptions,
-                selected = state.captureResolution,
-                onSelected = onCaptureResolutionSelected,
-                enabled = controlsEnabled
-            )
-
-            ResolutionDropdown(
-                label = "推流分辨率",
-                options = streamOptions,
-                selected = state.streamResolution,
-                onSelected = onStreamResolutionSelected,
-                enabled = controlsEnabled
-            )
-
-            EncoderDropdown(
-                options = encoderOptions,
-                selected = state.encoder,
-                onSelected = onEncoderSelected,
-                enabled = controlsEnabled
-            )
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(max = maxHeight)
+                .padding(20.dp)
+        ) {
+            Column(
+                modifier = Modifier
+                    .weight(1f, fill = false)
+                    .verticalScroll(scrollState),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Text(text = "推流码率", style = MaterialTheme.typography.bodyMedium)
-                Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(onClick = { onBitrateChanged(state.targetBitrate - 100) }, enabled = controlsEnabled) {
-                        Icon(Icons.Rounded.Remove, contentDescription = "降低码率")
-                    }
-                    OutlinedTextField(
-                        value = state.targetBitrate.toString(),
-                        onValueChange = onBitrateInput,
-                        singleLine = true,
-                        enabled = controlsEnabled,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        modifier = Modifier.width(96.dp)
-                    )
-                    IconButton(onClick = { onBitrateChanged(state.targetBitrate + 100) }, enabled = controlsEnabled) {
-                        Icon(Icons.Rounded.Add, contentDescription = "提升码率")
+                Text(text = "直播参数", style = MaterialTheme.typography.titleMedium, fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold)
+
+                OutlinedTextField(
+                    value = state.streamUrl,
+                    onValueChange = onStreamUrlChanged,
+                    label = { Text("推流地址（可选）") },
+                    placeholder = { Text("rtmp://host/app/stream") },
+                    singleLine = true,
+                    enabled = controlsEnabled,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                PullStreamList(
+                    urls = state.pullUrls,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                ResolutionDropdown(
+                    label = "采集分辨率",
+                    options = captureOptions,
+                    selected = state.captureResolution,
+                    onSelected = onCaptureResolutionSelected,
+                    enabled = controlsEnabled
+                )
+
+                ResolutionDropdown(
+                    label = "推流分辨率",
+                    options = streamOptions,
+                    selected = state.streamResolution,
+                    onSelected = onStreamResolutionSelected,
+                    enabled = controlsEnabled
+                )
+
+                EncoderDropdown(
+                    options = encoderOptions,
+                    selected = state.encoder,
+                    onSelected = onEncoderSelected,
+                    enabled = controlsEnabled
+                )
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(text = "推流码率", style = MaterialTheme.typography.bodyMedium)
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                        IconButton(onClick = { onBitrateChanged(state.targetBitrate - 100) }, enabled = controlsEnabled) {
+                            Icon(Icons.Rounded.Remove, contentDescription = "降低码率")
+                        }
+                        OutlinedTextField(
+                            value = state.targetBitrate.toString(),
+                            onValueChange = onBitrateInput,
+                            singleLine = true,
+                            enabled = controlsEnabled,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            modifier = Modifier.width(96.dp)
+                        )
+                        IconButton(onClick = { onBitrateChanged(state.targetBitrate + 100) }, enabled = controlsEnabled) {
+                            Icon(Icons.Rounded.Add, contentDescription = "提升码率")
+                        }
                     }
                 }
             }
+
+            Spacer(modifier = Modifier.height(12.dp))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -230,6 +266,77 @@ fun ParameterPanel(
             ) {
                 Text(text = "显示实时信息", style = MaterialTheme.typography.bodyMedium)
                 Switch(checked = state.showStats, onCheckedChange = onStatsToggle)
+            }
+        }
+    }
+}
+
+@Composable
+private fun PullStreamList(urls: List<String>, modifier: Modifier = Modifier) {
+    val clipboard = LocalClipboardManager.current
+    val context = LocalContext.current
+    val hasUrl = urls.isNotEmpty()
+
+    Card(
+        modifier = modifier,
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.65f)
+        ),
+        shape = RoundedCornerShape(16.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Text(
+                text = "拉流地址",
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold
+            )
+            if (!hasUrl) {
+                Text(
+                    text = "暂无可用拉流地址",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                )
+            } else {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    urls.forEachIndexed { index, url ->
+                        Surface(
+                            color = MaterialTheme.colorScheme.surface,
+                            tonalElevation = 2.dp,
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 12.dp, vertical = 10.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                Text(
+                                    text = "${index + 1}.",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = androidx.compose.ui.text.font.FontWeight.Medium
+                                )
+                                SelectionContainer(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = url,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        maxLines = 3,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                }
+                                IconButton(onClick = {
+                                    clipboard.setText(AnnotatedString(url))
+                                    Toast.makeText(context, "已复制", Toast.LENGTH_SHORT).show()
+                                }) {
+                                    Icon(imageVector = Icons.Rounded.ContentCopy, contentDescription = "复制地址")
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
     }

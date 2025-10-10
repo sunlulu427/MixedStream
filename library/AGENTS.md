@@ -25,7 +25,7 @@
 
 ## JNI/NDK
 - CMake：`library/src/main/cpp/CMakeLists.txt`
-  - 目标库：`AVRtmpPush`（SHARED）；链接 `librtmp.a` 和 `log`。
+- 目标库：`astra`（SHARED）；链接 `librtmp.a` 和 `log`。
   - STL：`c++_shared`。
 - 支持 ABI：`armeabi-v7a`、`arm64-v8a`（见 Gradle 与 CMake）。
 

@@ -1,51 +1,53 @@
 cmake_minimum_required(VERSION 3.22.1)
 
-#配置 librtmp 库的路径
-set(LIBRTMP_ROOT_PATH ${CMAKE_SOURCE_DIR}/librtmp)
-set(JNI_ROOT_PATH ${CMAKE_SOURCE_DIR}/jni)
-set(PUSH_ROOT_PATH ${CMAKE_SOURCE_DIR}/push)
-set(COMMON_ROOT_PATH ${CMAKE_SOURCE_DIR}/common)
-set(CALLBACK_ROOT_PATH ${CMAKE_SOURCE_DIR}/callback)
+project(astra LANGUAGES C CXX)
 
-#librtmp H 文件
-include_directories(${LIBRTMP_ROOT_PATH}/include)
-#push H 文件
-include_directories(${PUSH_ROOT_PATH})
-#JNI H 文件
-include_directories(${JNI_ROOT_PATH})
-#核心库 H 文件
-include_directories(${COMMON_ROOT_PATH})
-#Java callback
-include_directories(${CALLBACK_ROOT_PATH})
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+set(SRC_ROOT ${CMAKE_CURRENT_SOURCE_DIR})
+set(LIBRTMP_ROOT ${SRC_ROOT}/librtmp)
+set(JNI_ROOT ${SRC_ROOT}/jni)
+set(PUSH_ROOT ${SRC_ROOT}/push)
+set(COMMON_ROOT ${SRC_ROOT}/common)
+set(CALLBACK_ROOT ${SRC_ROOT}/callback)
 
-#jni cpp 文件
-FILE(GLOB JNI_ALL_CPP ${JNI_ROOT_PATH}/*.cpp)
-#push cpp 文件
-FILE(GLOB PUSH_ALL_CPP ${PUSH_ROOT_PATH}/*.cpp)
-#核心库 cpp 文件
-FILE(GLOB COMMON_ALL_CPP ${COMMON_ROOT_PATH}/*.cpp)
-#callback
-FILE(GLOB CALLBACK_ALL_CPP ${CALLBACK_ROOT_PATH}/*.cpp)
-
+file(GLOB JNI_SOURCES CONFIGURE_DEPENDS ${JNI_ROOT}/*.cpp)
+file(GLOB PUSH_SOURCES CONFIGURE_DEPENDS ${PUSH_ROOT}/*.cpp)
+file(GLOB COMMON_SOURCES CONFIGURE_DEPENDS ${COMMON_ROOT}/*.cpp)
+file(GLOB CALLBACK_SOURCES CONFIGURE_DEPENDS ${CALLBACK_ROOT}/*.cpp)
 
 add_library(
-        AVRtmpPush
+        astra
         SHARED
-        ${JNI_ALL_CPP}
-        ${PUSH_ALL_CPP}
-        ${COMMON_ALL_CPP}
-        ${CALLBACK_ALL_CPP}
+        ${JNI_SOURCES}
+        ${PUSH_SOURCES}
+        ${COMMON_SOURCES}
+        ${CALLBACK_SOURCES}
 )
 
-#librtmp 静态库
-add_library(rtmp STATIC IMPORTED)
-set_target_properties(rtmp PROPERTIES IMPORTED_LOCATION ${LIBRTMP_ROOT_PATH}/libs/${CMAKE_ANDROID_ARCH_ABI}/librtmp.a)
+target_include_directories(
+        astra
+        PRIVATE
+        ${LIBRTMP_ROOT}/include
+        ${JNI_ROOT}
+        ${PUSH_ROOT}
+        ${COMMON_ROOT}
+        ${CALLBACK_ROOT}
+)
 
-find_library(log-lib log)
+add_library(rtmp STATIC IMPORTED)
+set_target_properties(
+        rtmp
+        PROPERTIES
+        IMPORTED_LOCATION ${LIBRTMP_ROOT}/libs/${CMAKE_ANDROID_ARCH_ABI}/librtmp.a
+)
+
+find_library(android_log log)
 
 target_link_libraries(
-        AVRtmpPush
+        astra
+        PRIVATE
         rtmp
-        ${log-lib}
+        ${android_log}
 )

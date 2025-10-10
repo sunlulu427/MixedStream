@@ -17,6 +17,7 @@ import com.astrastream.avpush.infrastructure.stream.sender.rtmp.RtmpSender
 import com.astrastream.avpush.core.utils.LogHelper
 import com.astrastream.avpush.presentation.widget.AVLiveView
 import com.astrastream.streamer.data.LivePreferencesStore
+import com.astrastream.streamer.ui.live.StreamUrlFormatter.buildPullUrls
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -157,7 +158,7 @@ class LiveSessionCoordinator(
     }
 
     fun updateStreamUrl(url: String) {
-        state.value = state.value.copy(streamUrl = url)
+        state.value = state.value.copy(streamUrl = url, pullUrls = buildPullUrls(url))
         persistState()
     }
 
@@ -187,7 +188,11 @@ class LiveSessionCoordinator(
             Toast.makeText(context, "推流地址不能为空", Toast.LENGTH_SHORT).show()
             return
         }
-        state.value = state.value.copy(streamUrl = clean, showUrlDialog = false)
+        state.value = state.value.copy(
+            streamUrl = clean,
+            showUrlDialog = false,
+            pullUrls = buildPullUrls(clean)
+        )
         persistState()
         onValid()
     }

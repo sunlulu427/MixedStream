@@ -7,6 +7,7 @@ import kotlin.math.roundToInt
 import com.astrastream.streamer.ui.live.EncoderOption
 import com.astrastream.streamer.ui.live.LiveUiState
 import com.astrastream.streamer.ui.live.ResolutionOption
+import com.astrastream.streamer.ui.live.StreamUrlFormatter
 
 class LivePreferencesStore(context: Context) {
 
@@ -60,6 +61,7 @@ class LivePreferencesStore(context: Context) {
 
         return defaultState.copy(
             streamUrl = streamUrl,
+            pullUrls = StreamUrlFormatter.buildPullUrls(streamUrl),
             captureResolution = captureResolution,
             streamResolution = streamResolution,
             encoder = encoder,
@@ -125,5 +127,5 @@ class LivePreferencesStore(context: Context) {
         private const val KEY_SHOW_PANEL = "show_parameter_panel"
         private const val KEY_SHOW_STATS = "show_stats_overlay"
     }
-}
 
+}

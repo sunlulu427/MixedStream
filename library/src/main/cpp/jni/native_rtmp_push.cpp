@@ -5,57 +5,7 @@
 #include <PushProxy.h>
 #include <android/log.h>
 
-#define NATIVE_PUSH "com/astrastream/avpush/infrastructure/stream/sender/rtmp/RtmpSender"
-
 JavaVM *javaVM = 0;
-
-static void Android_JNI_RtmpConnect(JNIEnv *jniEnv, jobject jobject1, jstring url) {
-
-    const char *rtmpUrl = (char *) jniEnv->GetStringUTFChars(url, 0);
-
-    JavaCallback *javaCallback = new JavaCallback(javaVM, jniEnv, jobject1);
-    PushProxy::getInstance()->init(rtmpUrl, &javaCallback);
-    PushProxy::getInstance()->start();
-    jniEnv->ReleaseStringUTFChars(url, rtmpUrl);
-}
-
-static void Android_JNI_RtmpClose(JNIEnv *jniEnv, jobject jobject1) {
-    PushProxy::getInstance()->stop();
-}
-
-static void
-Android_JNI_pushAudio(JNIEnv *jniEnv, jobject jobject1, jbyteArray audio, jint size, jint type) {
-    jbyte *audioData = jniEnv->GetByteArrayElements(audio, 0);
-    PushProxy::getInstance()->pushAudioData(reinterpret_cast<uint8_t *>(audioData), size, type);
-    jniEnv->ReleaseByteArrayElements(audio, audioData, 0);
-}
-
-static void
-Android_JNI_pushVideo(JNIEnv *jniEnv, jobject jobject1, jbyteArray video, jint size, jint type) {
-    jbyte *videoData = jniEnv->GetByteArrayElements(video, 0);
-    PushProxy::getInstance()->pushVideoData(reinterpret_cast<uint8_t *>(videoData), size, type);
-    jniEnv->ReleaseByteArrayElements(video, videoData, 0);
-}
-
-static void
-Android_JNI_pushSpsPps(JNIEnv *jniEnv, jobject jobject1, jbyteArray sps, jint spsSize,
-                       jbyteArray pps, jint ppsSize) {
-    jbyte *spsData = jniEnv->GetByteArrayElements(sps, 0);
-    jbyte *ppsData = jniEnv->GetByteArrayElements(pps, 0);
-    PushProxy::getInstance()->pushSpsPps(reinterpret_cast<uint8_t *>(spsData), spsSize,
-                                         reinterpret_cast<uint8_t *>(ppsData), ppsSize);
-    jniEnv->ReleaseByteArrayElements(sps, spsData, 0);
-    jniEnv->ReleaseByteArrayElements(pps, ppsData, 0);
-}
-
-
-static JNINativeMethod mNativeMethod[] = {
-        {"NativeRtmpConnect", "(Ljava/lang/String;)V", (void *) Android_JNI_RtmpConnect},
-        {"NativeRtmpClose",   "()V",                   (void *) Android_JNI_RtmpClose},
-        {"pushAudio",         "([BII)V",               (void *) Android_JNI_pushAudio},
-        {"pushVideo",         "([BII)V",               (void *) Android_JNI_pushVideo},
-        {"pushSpsPps",        "([BI[BI)V",             (void *) Android_JNI_pushSpsPps},
-};
 
 /**
  * native
@@ -69,20 +19,54 @@ int JNI_OnLoad(JavaVM *vm, void *pVoid) {
         return JNI_ERR;
     }
     javaVM = vm;
-    jclass jclass1 = jniEnv->FindClass(NATIVE_PUSH);
-    if (jclass1 == nullptr) {
-        __android_log_print(ANDROID_LOG_ERROR, "native_rtmp_push",
-                            "Failed to find class %s", NATIVE_PUSH);
-        return JNI_ERR;
-    }
-    if (jniEnv->RegisterNatives(jclass1, mNativeMethod,
-                                sizeof(mNativeMethod) / sizeof(mNativeMethod[0])) < 0) {
-        __android_log_print(ANDROID_LOG_ERROR, "native_rtmp_push",
-                            "RegisterNatives failed for %s", NATIVE_PUSH);
-        jniEnv->DeleteLocalRef(jclass1);
-        return JNI_ERR;
-    }
-    jniEnv->DeleteLocalRef(jclass1);
     __android_log_print(ANDROID_LOG_DEBUG, "native_rtmp_push", "JNI_OnLoad: %p", vm);
     return JNI_VERSION_1_6;
+}
+
+extern "C" {
+
+JNIEXPORT void JNICALL
+Java_com_astrastream_avpush_infrastructure_stream_sender_rtmp_RtmpSender_NativeRtmpConnect(
+        JNIEnv *jniEnv, jobject jobject1, jstring url) {
+    const char *rtmpUrl = jniEnv->GetStringUTFChars(url, nullptr);
+    JavaCallback *javaCallback = new JavaCallback(javaVM, jniEnv, jobject1);
+    PushProxy::getInstance()->init(rtmpUrl, &javaCallback);
+    PushProxy::getInstance()->start();
+    jniEnv->ReleaseStringUTFChars(url, rtmpUrl);
+}
+
+JNIEXPORT void JNICALL
+Java_com_astrastream_avpush_infrastructure_stream_sender_rtmp_RtmpSender_NativeRtmpClose(
+        JNIEnv *jniEnv, jobject jobject1) {
+    PushProxy::getInstance()->stop();
+}
+
+JNIEXPORT void JNICALL
+Java_com_astrastream_avpush_infrastructure_stream_sender_rtmp_RtmpSender_pushAudio(
+        JNIEnv *jniEnv, jobject jobject1, jbyteArray audio, jint size, jint type) {
+    jbyte *audioData = jniEnv->GetByteArrayElements(audio, nullptr);
+    PushProxy::getInstance()->pushAudioData(reinterpret_cast<uint8_t *>(audioData), size, type);
+    jniEnv->ReleaseByteArrayElements(audio, audioData, 0);
+}
+
+JNIEXPORT void JNICALL
+Java_com_astrastream_avpush_infrastructure_stream_sender_rtmp_RtmpSender_pushVideo(
+        JNIEnv *jniEnv, jobject jobject1, jbyteArray video, jint size, jint type) {
+    jbyte *videoData = jniEnv->GetByteArrayElements(video, nullptr);
+    PushProxy::getInstance()->pushVideoData(reinterpret_cast<uint8_t *>(videoData), size, type);
+    jniEnv->ReleaseByteArrayElements(video, videoData, 0);
+}
+
+JNIEXPORT void JNICALL
+Java_com_astrastream_avpush_infrastructure_stream_sender_rtmp_RtmpSender_pushSpsPps(
+        JNIEnv *jniEnv, jobject jobject1, jbyteArray sps, jint spsSize,
+        jbyteArray pps, jint ppsSize) {
+    jbyte *spsData = jniEnv->GetByteArrayElements(sps, nullptr);
+    jbyte *ppsData = jniEnv->GetByteArrayElements(pps, nullptr);
+    PushProxy::getInstance()->pushSpsPps(reinterpret_cast<uint8_t *>(spsData), spsSize,
+                                         reinterpret_cast<uint8_t *>(ppsData), ppsSize);
+    jniEnv->ReleaseByteArrayElements(sps, spsData, 0);
+    jniEnv->ReleaseByteArrayElements(pps, ppsData, 0);
+}
+
 }

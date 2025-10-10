@@ -12,7 +12,7 @@
 
 #include <android/log.h>
 
-#define TAG "AVRtmpPush"
+#define TAG "astra"
 
 #include <malloc.h>
 #include <IPush.h>

@@ -11,7 +11,7 @@ class RtmpSender : Sender {
 
     companion object {
         init {
-            System.loadLibrary("AVRtmpPush")
+            System.loadLibrary("astra")
         }
     }
 
