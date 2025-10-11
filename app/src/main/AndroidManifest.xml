@@ -15,11 +15,13 @@
             android:label="@string/app_name"
             android:roundIcon="@mipmap/ic_launcher_round"
             android:supportsRtl="true"
-            android:theme="@style/Theme.AppCompat.DayNight.NoActionBar"
+            android:theme="@style/Theme.AstraStream.App"
             tools:ignore="GoogleAppIndexingWarning">
         <activity android:name=".app.LiveActivity"
                   android:configChanges="orientation|keyboardHidden|screenSize"
-                  android:exported="true">
+                  android:exported="true"
+                  android:windowLayoutInDisplayCutoutMode="shortEdges"
+                  tools:targetApi="p">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
 

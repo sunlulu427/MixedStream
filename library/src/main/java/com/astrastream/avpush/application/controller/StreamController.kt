@@ -183,6 +183,9 @@ class StreamController : LiveStreamSession, IController.OnAudioDataListener,
      * 视频输出格式
      */
     override fun onVideoOutformat(outputFormat: MediaFormat?) {
+        if (mVideoConfiguration.codec == VideoConfiguration.VideoCodec.H265) {
+            return
+        }
         val spsb = outputFormat?.getByteBuffer("csd-0") ?: return
         val sps = ByteArray(spsb.remaining())
         spsb.get(sps, 0, sps.size)

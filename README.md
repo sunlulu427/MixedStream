@@ -23,6 +23,8 @@ AVRtmpPushSDK is a Kotlin + C++ streaming toolkit that delivers end-to-end AV ca
 - FLV muxing and RTMP delivery backed by `librtmp`
 - Orientation-aware preview with seamless live/preview transitions
 - Session UI persists RTMP URL, encoder, resolution, and bitrate selections for quick relaunches
+- Immersive, edge-to-edge preview with cutout support on full-screen devices
+- RTMP + HTTP-FLV downstream address helper for quick playback verification
 
 ## Architecture Overview
 

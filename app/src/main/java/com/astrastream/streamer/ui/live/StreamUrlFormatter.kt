@@ -9,7 +9,7 @@ object StreamUrlFormatter {
         val cleanedSource = sourceUrl.trim()
         return listOfNotNull(
             normalizeRtmp(cleanedSource),
-            convertToHttpFlv(cleanedSource)
+            convertToHttpQuery(cleanedSource)
         ).distinct()
     }
 
@@ -26,10 +26,10 @@ object StreamUrlFormatter {
         return "$scheme://$host$portSuffix$normalizedPath$query$fragment"
     }
 
-    private fun convertToHttpFlv(sourceUrl: String): String? {
+    private fun convertToHttpQuery(sourceUrl: String): String? {
         val uri = runCatching { Uri.parse(sourceUrl.trim()) }.getOrNull() ?: return null
         val host = uri.host ?: return null
-        val pathSegments = uri.pathSegments
+        val pathSegments = uri.pathSegments.filter { it.isNotBlank() }
         if (pathSegments.isEmpty()) return null
 
         val scheme = when (uri.scheme?.lowercase()) {
@@ -37,21 +37,18 @@ object StreamUrlFormatter {
             else -> "http"
         }
 
-        val portSuffix = if (uri.port != -1) ":${uri.port}" else ""
-        val basePath = buildString {
-            if (uri.path?.startsWith("/") == true) append("/")
-            if (pathSegments.size > 1) {
-                append(pathSegments.dropLast(1).joinToString("/"))
-                append('/')
-            }
+        val portSuffix = when (uri.port) {
+            -1, 1935, 80, 443 -> ""
+            else -> ":${uri.port}"
         }
 
-        val streamKey = pathSegments.last().ifEmpty { return null }
-        val normalizedStreamKey = if (streamKey.endsWith(".flv", true)) streamKey else "$streamKey.flv"
+        val app = pathSegments.first()
+        val streamKey = pathSegments.drop(1).joinToString("/").ifBlank { app }
 
-        val query = uri.query?.let { "?$it" } ?: ""
+        val basePath = "/$app"
+        val existingQuery = uri.query?.let { "&$it" } ?: ""
         val fragment = uri.fragment?.let { "#$it" } ?: ""
 
-        return "$scheme://$host$portSuffix$basePath$normalizedStreamKey$query$fragment"
+        return "$scheme://$host$portSuffix$basePath?app=$app&stream=$streamKey$existingQuery$fragment"
     }
 }

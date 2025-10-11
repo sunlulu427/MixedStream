@@ -4,6 +4,7 @@ import com.astrastream.avpush.domain.callback.IGLThreadConfig
 import com.astrastream.avpush.core.utils.LogHelper
 import com.astrastream.avpush.presentation.widget.GLSurfaceView
 import java.lang.ref.WeakReference
+import kotlin.math.max
 
 open class GLThread(weakReference: WeakReference<IGLThreadConfig>) : Thread() {
 
@@ -52,6 +53,7 @@ open class GLThread(weakReference: WeakReference<IGLThreadConfig>) : Thread() {
      * 刷新帧率
      */
     private var mDrawFpsRate = 60L
+    private var frameIntervalMs = max(1L, 1000L / mDrawFpsRate)
 
     /**
      * 渲染的 size
@@ -98,7 +100,7 @@ open class GLThread(weakReference: WeakReference<IGLThreadConfig>) : Thread() {
 
                     } else if (thread.getRendererMode() == GLSurfaceView.RENDERERMODE_CONTINUOUSLY) {
                         try {
-                            sleep(1000 / mDrawFpsRate)
+                            sleep(frameIntervalMs)
                         } catch (error: InterruptedException) {
                             LogHelper.e(TAG, error.message)
                         }
@@ -124,6 +126,12 @@ open class GLThread(weakReference: WeakReference<IGLThreadConfig>) : Thread() {
     fun setRendererSize(width: Int, height: Int) {
         this.mWidth = width
         this.mHeight = height
+    }
+
+    fun setRenderFps(fps: Int) {
+        val sanitized = fps.coerceIn(1, 120)
+        mDrawFpsRate = sanitized.toLong()
+        frameIntervalMs = max(1L, 1000L / sanitized)
     }
 
     /**

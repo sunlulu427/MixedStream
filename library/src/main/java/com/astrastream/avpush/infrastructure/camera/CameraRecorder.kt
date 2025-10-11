@@ -26,6 +26,7 @@ class CameraRecorder(context: Context, textureId: Int, private val eglContext: E
         mGLThread = EncodeRendererThread(WeakReference(this))
         mGLThread?.run {
             setRendererSize(mConfiguration.width, mConfiguration.height)
+            setRenderFps(mConfiguration.fps)
             isCreate = true
             isChange = true
             start()

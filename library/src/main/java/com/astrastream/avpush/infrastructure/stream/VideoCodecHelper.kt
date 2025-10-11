@@ -68,9 +68,9 @@ class VideoCodecHelper(private val videoCodec: VideoConfiguration.VideoCodec) {
         var isKeyFrame = false
 
         while (bb.position() < bi.offset + bi.size) {
-            val frame = annexbDemux(bb, bi)
+            val frame = annexbDemux(bb, bi) ?: lengthPrefixedDemux(bb, bi)
             if (frame == null) {
-                LogHelper.e(Contacts.TAG, "annexb not match.")
+                LogHelper.w(Contacts.TAG, "video demux failed, drop remaining buffer")
                 break
             }
 
@@ -197,6 +197,24 @@ class VideoCodecHelper(private val videoCodec: VideoConfiguration.VideoCodec) {
         val size = bb.position() - pos
         val frameBytes = ByteArray(size)
         frameBuffer.get(frameBytes)
+        return frameBytes
+    }
+
+    private fun lengthPrefixedDemux(bb: ByteBuffer, bi: MediaCodec.BufferInfo): ByteArray? {
+        if (bb.remaining() < 4) {
+            return null
+        }
+        val length = bb.int
+        if (length <= 0) {
+            return null
+        }
+        val limit = bi.offset + bi.size
+        if (bb.position() + length > limit) {
+            bb.position(limit)
+            return null
+        }
+        val frameBytes = ByteArray(length)
+        bb.get(frameBytes)
         return frameBytes
     }
 
