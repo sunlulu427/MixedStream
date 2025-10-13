@@ -2,6 +2,7 @@ package com.astrastream.avpush.infrastructure.stream.packer.flv
 
 import com.astrastream.avpush.infrastructure.stream.amf.AmfMap
 import com.astrastream.avpush.infrastructure.stream.amf.AmfString
+import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
 
 /**
@@ -166,12 +167,55 @@ object FlvPackerHelper {
     /**
      * Write first H.265 video tag with HEVC configuration
      */
-    fun writeFirstH265VideoTag(buffer: ByteBuffer, vps: ByteArray, sps: ByteArray, pps: ByteArray) {
-        // Write FLV Video Header for H.265
+    fun writeFirstH265VideoTag(buffer: ByteBuffer, hevcConfig: ByteArray) {
         writeVideoHeader(buffer, FlvVideoFrameType.KEY_FRAME, FlvVideoCodecID.HEVC, FlvVideoHEVCPacketType.SEQUENCE_HEADER)
+        buffer.put(hevcConfig)
+    }
 
-        // HEVC Configuration Record (HEVCDecoderConfigurationRecord)
-        writeHEVCDecoderConfigurationRecord(buffer, vps, sps, pps)
+    /**
+     * Build HEVC decoder configuration record (HEVCDecoderConfigurationRecord)
+     */
+    fun buildHevcDecoderConfigurationRecord(vps: ByteArray, sps: ByteArray, pps: ByteArray): ByteArray {
+        val config = parseHevcConfiguration(sps) ?: HevcDecoderConfiguration()
+        val totalSize = 38 + vps.size + sps.size + pps.size
+        val buffer = ByteBuffer.allocate(totalSize)
+
+        buffer.put(0x01.toByte())
+        val profileByte = ((config.generalProfileSpace and 0x03) shl 6) or
+            ((config.generalTierFlag and 0x01) shl 5) or
+            (config.generalProfileIdc and 0x1F)
+        buffer.put(profileByte.toByte())
+        buffer.putInt(config.generalProfileCompatibilityFlags)
+        for (shift in 40 downTo 0 step 8) {
+            buffer.put(((config.generalConstraintIndicatorFlags shr shift) and 0xFF).toByte())
+        }
+        buffer.put((config.generalLevelIdc and 0xFF).toByte())
+
+        val minSeg = config.minSpatialSegmentationIdc and 0x0FFF
+        buffer.put(((0xF shl 4) or (minSeg shr 8)).toByte())
+        buffer.put((minSeg and 0xFF).toByte())
+
+        buffer.put(((0x3F shl 2) or (config.parallelismType and 0x03)).toByte())
+        buffer.put(((0x3F shl 2) or (config.chromaFormatIdc and 0x03)).toByte())
+        buffer.put(((0x1F shl 3) or (config.bitDepthLumaMinus8 and 0x07)).toByte())
+        buffer.put(((0x1F shl 3) or (config.bitDepthChromaMinus8 and 0x07)).toByte())
+
+        buffer.putShort((config.avgFrameRate and 0xFFFF).toShort())
+
+        val temporalLayers = (config.numTemporalLayers - 1).coerceIn(0, 7)
+        val flagsByte = ((config.constantFrameRate and 0x03) shl 6) or
+            ((temporalLayers and 0x07) shl 3) or
+            ((if (config.temporalIdNested) 1 else 0) shl 2) or
+            (config.lengthSizeMinusOne and 0x03)
+        buffer.put(flagsByte.toByte())
+
+        buffer.put(0x03.toByte())
+
+        putNalArray(buffer, HevcNalType.VPS, vps)
+        putNalArray(buffer, HevcNalType.SPS, sps)
+        putNalArray(buffer, HevcNalType.PPS, pps)
+
+        return buffer.array()
     }
 
     /**
@@ -183,76 +227,202 @@ object FlvPackerHelper {
         buffer.put(data)
     }
 
-    /**
-     * Write HEVC Decoder Configuration Record
-     */
-    private fun writeHEVCDecoderConfigurationRecord(buffer: ByteBuffer, vps: ByteArray, sps: ByteArray, pps: ByteArray) {
-        // HEVCDecoderConfigurationRecord format
-        buffer.put(0x01.toByte()) // Configuration version
+    private fun putNalArray(buffer: ByteBuffer, nalType: Int, data: ByteArray) {
+        val header = ((1 shl 7) or (0 shl 6) or (nalType and 0x3F)).toByte()
+        buffer.put(header)
+        buffer.putShort(1)
+        buffer.putShort(data.size.toShort())
+        buffer.put(data)
+    }
 
-        // Extract profile space, tier flag, and profile idc from SPS
-        val profileSpace = (sps[1].toInt() and 0xC0) shr 6
-        val tierFlag = (sps[1].toInt() and 0x20) shr 5
-        val profileIdc = sps[1].toInt() and 0x1F
-        buffer.put(((profileSpace shl 6) or (tierFlag shl 5) or profileIdc).toByte())
+    private fun parseHevcConfiguration(sps: ByteArray): HevcDecoderConfiguration? {
+        val rbsp = toRbsp(sps) ?: return null
+        if (rbsp.isEmpty()) return null
+        val reader = BitReader(rbsp)
 
-        // Profile compatibility indicators (4 bytes)
-        buffer.put(sps[2])
-        buffer.put(sps[3])
-        buffer.put(sps[4])
-        buffer.put(sps[5])
+        reader.readBits(4) // sps_video_parameter_set_id
+        val maxSubLayersMinus1 = reader.readBits(3)
+        val temporalIdNestedFlag = reader.readBit() == 1
 
-        // Constraint indicator flags (6 bytes)
-        for (i in 6..11) {
-            if (i < sps.size) buffer.put(sps[i]) else buffer.put(0x00.toByte())
+        val profileTierLevel = parseProfileTierLevel(reader, maxSubLayersMinus1) ?: return null
+
+        reader.readUE() // sps_seq_parameter_set_id
+        val chromaFormatIdc = reader.readUE()
+        if (chromaFormatIdc == 3) {
+            reader.readBit() // separate_colour_plane_flag
         }
 
-        // Level idc
-        buffer.put(sps[12])
+        reader.readUE() // pic_width_in_luma_samples
+        reader.readUE() // pic_height_in_luma_samples
 
-        // Min spatial segmentation idc (2 bytes)
-        buffer.put(0xF0.toByte())
-        buffer.put(0x00.toByte())
+        val conformanceWindowFlag = reader.readBit()
+        if (conformanceWindowFlag == 1) {
+            reader.readUE()
+            reader.readUE()
+            reader.readUE()
+            reader.readUE()
+        }
 
-        // Parallelism type (2 bits) + reserved (6 bits)
-        buffer.put(0xFC.toByte())
+        val bitDepthLumaMinus8 = reader.readUE()
+        val bitDepthChromaMinus8 = reader.readUE()
 
-        // Chroma format idc (2 bits) + reserved (6 bits)
-        buffer.put(0xFD.toByte())
+        return HevcDecoderConfiguration(
+            generalProfileSpace = profileTierLevel.generalProfileSpace,
+            generalTierFlag = profileTierLevel.generalTierFlag,
+            generalProfileIdc = profileTierLevel.generalProfileIdc,
+            generalProfileCompatibilityFlags = profileTierLevel.generalProfileCompatibilityFlags,
+            generalConstraintIndicatorFlags = profileTierLevel.generalConstraintIndicatorFlags,
+            generalLevelIdc = profileTierLevel.generalLevelIdc,
+            chromaFormatIdc = chromaFormatIdc.coerceIn(0, 3),
+            bitDepthLumaMinus8 = bitDepthLumaMinus8.coerceIn(0, 7),
+            bitDepthChromaMinus8 = bitDepthChromaMinus8.coerceIn(0, 7),
+            numTemporalLayers = (maxSubLayersMinus1 + 1).coerceIn(1, 8),
+            temporalIdNested = temporalIdNestedFlag
+        )
+    }
 
-        // Bit depth luma minus8 (3 bits) + reserved (5 bits)
-        buffer.put(0xFE.toByte())
+    private fun parseProfileTierLevel(reader: BitReader, maxSubLayersMinus1: Int): ProfileTierLevel? {
+        val generalProfileSpace = reader.readBits(2)
+        val generalTierFlag = reader.readBit()
+        val generalProfileIdc = reader.readBits(5)
 
-        // Bit depth chroma minus8 (3 bits) + reserved (5 bits)
-        buffer.put(0xFE.toByte())
+        var compatibilityFlags = 0
+        repeat(32) {
+            compatibilityFlags = (compatibilityFlags shl 1) or reader.readBit()
+        }
 
-        // Avg frame rate (2 bytes)
-        buffer.put(0x00.toByte())
-        buffer.put(0x00.toByte())
+        var constraintFlags = 0L
+        repeat(48) {
+            constraintFlags = (constraintFlags shl 1) or reader.readBit().toLong()
+        }
 
-        // Constant frame rate (2 bits) + num temporal layers (3 bits) + temporal id nested (1 bit) + length size minus one (2 bits)
-        buffer.put(0x03.toByte()) // Length size minus one = 3 (4 bytes)
+        val generalLevelIdc = reader.readBits(8)
 
-        // Number of arrays
-        buffer.put(0x03.toByte()) // VPS, SPS, PPS
+        val subLayerProfilePresentFlags = IntArray(maxSubLayersMinus1)
+        val subLayerLevelPresentFlags = IntArray(maxSubLayersMinus1)
+        for (i in 0 until maxSubLayersMinus1) {
+            subLayerProfilePresentFlags[i] = reader.readBit()
+            subLayerLevelPresentFlags[i] = reader.readBit()
+        }
 
-        // VPS array
-        buffer.put(0x20.toByte()) // Array completeness (1) + reserved (1) + NAL unit type (6) = VPS (32)
-        buffer.putShort(1) // Number of NAL units
-        buffer.putShort(vps.size.toShort())
-        buffer.put(vps)
+        if (maxSubLayersMinus1 > 0) {
+            repeat(8 - maxSubLayersMinus1) { reader.readBits(2) }
+        }
 
-        // SPS array
-        buffer.put(0x21.toByte()) // NAL unit type = SPS (33)
-        buffer.putShort(1) // Number of NAL units
-        buffer.putShort(sps.size.toShort())
-        buffer.put(sps)
+        for (i in 0 until maxSubLayersMinus1) {
+            if (subLayerProfilePresentFlags[i] == 1) {
+                reader.readBits(2) // sub_layer_profile_space
+                reader.readBits(1) // sub_layer_tier_flag
+                reader.readBits(5) // sub_layer_profile_idc
+                repeat(32) { reader.readBit() }
+                repeat(48) { reader.readBit() }
+            }
+            if (subLayerLevelPresentFlags[i] == 1) {
+                reader.readBits(8) // sub_layer_level_idc
+            }
+        }
 
-        // PPS array
-        buffer.put(0x22.toByte()) // NAL unit type = PPS (34)
-        buffer.putShort(1) // Number of NAL units
-        buffer.putShort(pps.size.toShort())
-        buffer.put(pps)
+        return ProfileTierLevel(
+            generalProfileSpace = generalProfileSpace,
+            generalTierFlag = generalTierFlag,
+            generalProfileIdc = generalProfileIdc,
+            generalProfileCompatibilityFlags = compatibilityFlags,
+            generalConstraintIndicatorFlags = constraintFlags,
+            generalLevelIdc = generalLevelIdc
+        )
+    }
+
+    private fun toRbsp(nal: ByteArray): ByteArray? {
+        if (nal.size <= 2) return null
+        val output = ByteArrayOutputStream()
+        var zeroCount = 0
+        for (i in 2 until nal.size) {
+            val value = nal[i]
+            if (zeroCount >= 2 && value == 0x03.toByte()) {
+                zeroCount = 0
+                continue
+            }
+            output.write(value.toInt())
+            zeroCount = if (value == 0.toByte()) zeroCount + 1 else 0
+        }
+        return output.toByteArray()
+    }
+
+    private class BitReader(private val data: ByteArray) {
+        private var byteOffset = 0
+        private var bitOffset = 0
+
+        fun readBits(numBits: Int): Int {
+            var bits = 0
+            for (i in 0 until numBits) {
+                bits = bits shl 1
+                if (byteOffset >= data.size) {
+                    continue
+                }
+                val current = data[byteOffset].toInt()
+                val bit = (current shr (7 - bitOffset)) and 0x01
+                bits = bits or bit
+                bitOffset++
+                if (bitOffset == 8) {
+                    bitOffset = 0
+                    byteOffset++
+                }
+            }
+            return bits
+        }
+
+        fun readBit(): Int = readBits(1)
+
+        fun readUE(): Int {
+            var leadingZeroBits = 0
+            while (true) {
+                val bit = readBit()
+                if (bit == 0 && leadingZeroBits < 32) {
+                    leadingZeroBits++
+                } else {
+                    if (leadingZeroBits >= 32) {
+                        return 0
+                    }
+                    val prefix = (1 shl leadingZeroBits) - 1
+                    val suffix = if (leadingZeroBits > 0) readBits(leadingZeroBits) else 0
+                    return prefix + suffix
+                }
+            }
+        }
+    }
+
+    private data class ProfileTierLevel(
+        val generalProfileSpace: Int,
+        val generalTierFlag: Int,
+        val generalProfileIdc: Int,
+        val generalProfileCompatibilityFlags: Int,
+        val generalConstraintIndicatorFlags: Long,
+        val generalLevelIdc: Int
+    )
+
+    private data class HevcDecoderConfiguration(
+        val generalProfileSpace: Int = 0,
+        val generalTierFlag: Int = 0,
+        val generalProfileIdc: Int = 1,
+        val generalProfileCompatibilityFlags: Int = 0,
+        val generalConstraintIndicatorFlags: Long = 0,
+        val generalLevelIdc: Int = 120,
+        val minSpatialSegmentationIdc: Int = 0,
+        val parallelismType: Int = 0,
+        val chromaFormatIdc: Int = 1,
+        val bitDepthLumaMinus8: Int = 0,
+        val bitDepthChromaMinus8: Int = 0,
+        val avgFrameRate: Int = 0,
+        val constantFrameRate: Int = 0,
+        val numTemporalLayers: Int = 1,
+        val temporalIdNested: Boolean = true,
+        val lengthSizeMinusOne: Int = 3
+    )
+
+    private object HevcNalType {
+        const val VPS = 32
+        const val SPS = 33
+        const val PPS = 34
     }
 
     /**

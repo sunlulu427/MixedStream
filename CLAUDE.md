@@ -227,7 +227,7 @@ packer.stop()
   - Configuration & preparation: Bind packager and preview in `init()`; `startPreview()` after permissions ready.
   - Streaming: Create and connect `RtmpSender` from address dialog (lazy creation to avoid unsupported ABI crashes).
   - Lifecycle: `onDestroy()` closes `sender`, stops live streaming, releases camera.
-- Permissions & Stability: Camera/recording/storage permissions requested via `BaseActivity.checkPermission()`; no preview start when unauthorized.
+- Permissions & Stability: Camera/recording/storage permissions requested via `LiveActivity.requestRuntimePermissions()`; preview stays pending until granted.
 - Logging: Key path logs unified using `LogHelper`; Debug builds enable logging.
 - UI: Top camera switch button: 40dp semi-transparent circular background (`bg_icon_circle`), 8dp inner padding. Bottom LIVE button: 44dp height, 16sp bold, rounded highlight background (`bg_button_yellow_round`). Watermark: `Watermark("text", color, textSize, null, scale)` where `scale` controls screen ratio, example uses 1.3.
 - Common scenarios: Dynamic bitrate adjustment: `live.setVideoBps(bps)`. Camera switching: `live.switchCamera()`.

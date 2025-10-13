@@ -137,11 +137,13 @@ class RtmpPacker(private val videoConfiguration: VideoConfiguration) : Packer,
     }
 
     private fun writeFirstH265VideoTag(vps: ByteArray?, sps: ByteArray?, pps: ByteArray?) {
-        // Calculate size for HEVC configuration record
-        val configSize = 43 + vps!!.size + sps!!.size + pps!!.size // Base HEVC config size + parameter sets
-        val size = FlvPackerHelper.VIDEO_HEADER_SIZE + configSize
+        if (vps == null || sps == null || pps == null) {
+            return
+        }
+        val hevcConfig = FlvPackerHelper.buildHevcDecoderConfigurationRecord(vps, sps, pps)
+        val size = FlvPackerHelper.VIDEO_HEADER_SIZE + hevcConfig.size
         val buffer = ByteBuffer.allocate(size)
-        FlvPackerHelper.writeFirstH265VideoTag(buffer, vps, sps, pps)
+        FlvPackerHelper.writeFirstH265VideoTag(buffer, hevcConfig)
         packetListener!!.onPacket(buffer.array(), PacketType.FIRST_VIDEO)
     }
 

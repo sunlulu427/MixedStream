@@ -1,13 +1,17 @@
 package com.astrastream.streamer.app
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.os.Build
+import android.os.Bundle
 import android.view.View
 import android.view.WindowManager
 import android.widget.Toast
+import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
+import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.platform.ComposeView
@@ -18,16 +22,17 @@ import androidx.core.view.WindowInsetsControllerCompat
 import com.astrastream.avpush.domain.callback.OnConnectListener
 import com.astrastream.avpush.domain.config.AudioConfiguration
 import com.astrastream.avpush.core.utils.LogHelper
-import com.astrastream.avpush.presentation.widget.AVLiveView
-import com.astrastream.streamer.core.base.BaseActivity
+import com.astrastream.streamer.R
+import com.astrastream.streamer.core.util.SPUtils
 import com.astrastream.streamer.core.util.Utils
 import com.astrastream.streamer.data.LivePreferencesStore
 import com.astrastream.streamer.ui.live.LiveScreen
 import com.astrastream.streamer.ui.live.LiveSessionCoordinator
 import com.astrastream.streamer.ui.live.LiveUiState
 import com.astrastream.streamer.ui.theme.AVLiveTheme
+import com.tbruyelle.rxpermissions2.RxPermissions
 
-class LiveActivity : BaseActivity<View>(), OnConnectListener {
+class LiveActivity : AppCompatActivity(), OnConnectListener {
 
     private val captureDefaults = LiveSessionCoordinator.defaultCaptureOptions()
     private val streamDefaults = LiveSessionCoordinator.defaultStreamOptions()
@@ -49,21 +54,37 @@ class LiveActivity : BaseActivity<View>(), OnConnectListener {
     private val audioConfig = AudioConfiguration()
     private lateinit var coordinator: LiveSessionCoordinator
 
-    override fun initListener() {}
-
-    override fun initData() {}
-
-    override fun init() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        initializeEnvironment()
+        val contentView = createContentView()
+        setContentView(contentView)
         coordinator.ensurePacker()
+        ensurePreview()
+        requestRuntimePermissions()
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        coordinator.liveView?.previewAngle(this)
+    }
+
+    override fun onResume() {
+        super.onResume()
         ensurePreview()
     }
 
-    override fun onContentViewBefore() {
-        super.onContentViewBefore()
+    override fun onDestroy() {
+        super.onDestroy()
+        coordinator.sender?.close()
+        coordinator.liveView?.stopLive()
+        coordinator.liveView?.releaseCamera()
+    }
+
+    private fun initializeEnvironment() {
         Utils.init(application)
         LogHelper.isShowLog = true
-        checkPermission()
-        setNotTitleBar()
+        enableEdgeToEdge()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             window.attributes = window.attributes.apply {
                 layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
@@ -76,7 +97,7 @@ class LiveActivity : BaseActivity<View>(), OnConnectListener {
         }
     }
 
-    override fun getLayoutId(): View = ComposeView(this).apply {
+    private fun createContentView(): View = ComposeView(this).apply {
         coordinator = LiveSessionCoordinator(this@LiveActivity, uiState, audioConfig, preferences)
         setContent {
             AVLiveTheme {
@@ -104,29 +125,45 @@ class LiveActivity : BaseActivity<View>(), OnConnectListener {
         }
     }
 
-    override fun onConfigurationChanged(newConfig: Configuration) {
-        super.onConfigurationChanged(newConfig)
-        coordinator.liveView?.previewAngle(this)
+    @SuppressLint("CheckResult")
+    private fun requestRuntimePermissions() {
+        val key = getString(R.string.OPEN_PERMISSIONS)
+        val permissionsGranted = SPUtils.getInstance().getBoolean(key) && hasCameraPermission()
+        if (permissionsGranted) {
+            return
+        }
+        RxPermissions(this)
+            .request(
+                Manifest.permission.READ_EXTERNAL_STORAGE,
+                Manifest.permission.RECORD_AUDIO,
+                Manifest.permission.CAMERA,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE
+            )
+            .subscribe { allGranted ->
+                if (allGranted) {
+                    SPUtils.getInstance().put(key, true)
+                    Toast.makeText(this, getString(R.string.GET_PERMISSION_ERROR), Toast.LENGTH_SHORT).show()
+                } else {
+                    SPUtils.getInstance().put(key, false)
+                }
+                handlePermissionsUpdated(allGranted)
+            }
     }
 
-    override fun onResume() {
-        super.onResume()
-        ensurePreview()
-    }
-
-    override fun onPermissionsUpdated(allGranted: Boolean) {
-        if (allGranted) ensurePreview() else coordinator.markPreviewPending()
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        coordinator.sender?.close()
-        coordinator.liveView?.stopLive()
-        coordinator.liveView?.releaseCamera()
+    private fun handlePermissionsUpdated(allGranted: Boolean) {
+        if (allGranted) {
+            ensurePreview()
+        } else {
+            coordinator.markPreviewPending()
+        }
     }
 
     private fun handleToggleLive() {
-        if (uiState.value.isStreaming || uiState.value.isConnecting) stopStreaming() else startStreaming()
+        if (uiState.value.isStreaming || uiState.value.isConnecting) {
+            stopStreaming()
+        } else {
+            startStreaming()
+        }
     }
 
     private fun startStreaming() {
