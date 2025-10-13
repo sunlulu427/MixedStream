@@ -1,21 +1,18 @@
 package com.astrastream.streamer.core.base
 
 import android.annotation.SuppressLint
-import android.graphics.Color
 import android.os.Bundle
 import android.os.SystemClock
 import android.view.View
-import android.view.Window
-import android.view.WindowManager
 import android.widget.Chronometer
 import android.widget.Toast
+import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import com.astrastream.streamer.R
 import com.astrastream.streamer.core.util.SPUtils
 import com.tbruyelle.rxpermissions2.RxPermissions
 
 abstract class BaseActivity<T> : AppCompatActivity() {
-    protected val TAG = javaClass.simpleName
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         onContentViewBefore()
@@ -48,18 +45,7 @@ abstract class BaseActivity<T> : AppCompatActivity() {
 
 
     protected fun setNotTitleBar() {
-        window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS or WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION)
-        window.decorView.systemUiVisibility = (View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                or View.SYSTEM_UI_FLAG_FULLSCREEN
-                or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY)
-        window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
-        window.statusBarColor = Color.TRANSPARENT
-        window.navigationBarColor = Color.TRANSPARENT
-        //去掉标题栏
-        supportRequestWindowFeature(Window.FEATURE_NO_TITLE)
+        enableEdgeToEdge()
     }
 
     /**
