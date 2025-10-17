@@ -27,7 +27,7 @@
 - CMake：`library/src/main/cpp/CMakeLists.txt`
 - 目标库：`astra`（SHARED）；链接 `librtmp.a` 和 `log`。
   - STL：`c++_shared`。
-- 支持 ABI：`armeabi-v7a`、`arm64-v8a`（见 Gradle 与 CMake）。
+- 支持 ABI：`arm64-v8a`（见 Gradle 与 CMake）。
 
 ## 配置建议
 - `VideoConfiguration`/`AudioConfiguration`/`CameraConfiguration` 覆盖分辨率、帧率、码率、编码器选择。
