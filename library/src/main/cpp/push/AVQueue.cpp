@@ -1,22 +1,22 @@
-//
-// Created by yangw on 2018-9-14.
-//
-
 #include "AVQueue.h"
 
+#include <cstdlib>
+
 AVQueue::AVQueue() {
-    pthread_mutex_init(&mutexPacket, 0);
-    pthread_cond_init(&condPacket, 0);
+    pthread_mutex_init(&mutexPacket, nullptr);
+    pthread_cond_init(&condPacket, nullptr);
 }
 
 AVQueue::~AVQueue() {
     clearQueue();
     pthread_mutex_destroy(&mutexPacket);
     pthread_cond_destroy(&condPacket);
-
 }
 
-int AVQueue::putRtmpPacket(RTMPPacket *packet) {
+int AVQueue::putRtmpPacket(RTMPPacket* packet) {
+    if (packet == nullptr) {
+        return -1;
+    }
     pthread_mutex_lock(&mutexPacket);
     queuePacket.push(packet);
     pthread_cond_signal(&condPacket);
@@ -24,43 +24,32 @@ int AVQueue::putRtmpPacket(RTMPPacket *packet) {
     return 0;
 }
 
-RTMPPacket *AVQueue::getRtmpPacket() {
+RTMPPacket* AVQueue::getRtmpPacket() {
     pthread_mutex_lock(&mutexPacket);
-
-    RTMPPacket *p = 0;
-    if(!queuePacket.empty())
-    {
-        p = queuePacket.front();
+    RTMPPacket* packet = nullptr;
+    if (!queuePacket.empty()) {
+        packet = queuePacket.front();
         queuePacket.pop();
-    } else{
+    } else {
         pthread_cond_wait(&condPacket, &mutexPacket);
     }
     pthread_mutex_unlock(&mutexPacket);
-    return p;
+    return packet;
 }
 
 void AVQueue::clearQueue() {
-
     pthread_mutex_lock(&mutexPacket);
-    while(true)
-    {
-        if(queuePacket.empty())
-        {
-            break;
-        }
-        RTMPPacket *p = queuePacket.front();
+    while (!queuePacket.empty()) {
+        RTMPPacket* packet = queuePacket.front();
         queuePacket.pop();
-        RTMPPacket_Free(p);
-        p = 0;
+        RTMPPacket_Free(packet);
+        std::free(packet);
     }
     pthread_mutex_unlock(&mutexPacket);
-
 }
 
 void AVQueue::notifyQueue() {
-
     pthread_mutex_lock(&mutexPacket);
     pthread_cond_signal(&condPacket);
     pthread_mutex_unlock(&mutexPacket);
-
 }

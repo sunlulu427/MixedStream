@@ -40,6 +40,13 @@
 - `./gradlew :library:assembleRelease` 生成 AAR。
 - NDK/SDK 版本要求参见根 AGENTS.md。
 
+## Native C++ 编码规范
+- 头/源文件去掉模板化作者注释，首行直接进入 include/定义，保持紧凑空行。
+- 继承层次中所有覆写方法显式使用 `override`（即便是纯虚函数），如果不覆写请避免重复声明。
+- 资源管理遵循所有权明确：`new[]`/`delete[]`、`malloc`/`free` 成对出现，推流队列在析构前清空并释放 `RTMPPacket`。
+- 线程封装通过 `IThread` 统一创建与 `pthread_join` 回收，状态位控制多次 start/stop。
+- JNI 回调需使用 `Scoped` 附着模式管理线程，`jobject` 必须通过 `GlobalRef` 保存并及时释放。
+
 ## 诊断流程（Camera 黑屏）
 - 自动化原则：通过 adb 脚本自行重启并抓日志，避免人工操作。使用根目录 `tools/diagnose_camera.sh`。
 - 重点观察：

@@ -1,24 +1,23 @@
-//
-// Created by 阳坤 on 2020-07-03.
-//
-
 #include "IThread.h"
 
-
-void *_main(void *pVoid) {
-    IThread *thread = static_cast<IThread *>(pVoid);
-    //交于子类实现
+namespace {
+void* threadMain(void* context) {
+    auto* thread = static_cast<IThread*>(context);
     thread->main();
-    return 0;
+    return nullptr;
 }
-
+}  // namespace
 
 void IThread::start() {
-    pthread_create(&this->pId, 0, _main, this);
+    if (pthread_create(&pId, nullptr, threadMain, this) == 0) {
+        running = true;
+    }
 }
 
 void IThread::stop() {
-//    pthread_join(pId,0);
+    if (running) {
+        pthread_join(pId, nullptr);
+        running = false;
+        pId = pthread_t{};
+    }
 }
-
-

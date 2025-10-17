@@ -1,55 +1,68 @@
-//
-// Created by 阳坤 on 2020-07-17.
-//
 #include "PushProxy.h"
 
-
-IPush *PushProxy::getPushEngine() {
-    return this->rtmpPush;
+IPush* PushProxy::getPushEngine() {
+    return rtmpPush;
 }
 
-PushProxy::PushProxy() {
+PushProxy::PushProxy() = default;
+
+PushProxy* PushProxy::getInstance() {
+    static PushProxy proxy;
+    return &proxy;
 }
 
-PushProxy *PushProxy::getInstance() {
-    static PushProxy proxy[1];
-    return &proxy[0];
-}
+void PushProxy::init(const char* url, JavaCallback** callback) {
+    if (rtmpPush) {
+        rtmpPush->stop();
+        delete rtmpPush;
+        rtmpPush = nullptr;
+    }
+    if (javaCallback) {
+        delete javaCallback;
+        javaCallback = nullptr;
+    }
 
-void PushProxy::init(const char *url, JavaCallback **javaCallback) {
-    this->url = url;
-    this->javaCallback = *javaCallback;
-    this->rtmpPush = new RTMPPush(url, javaCallback);
+    javaCallback = callback ? *callback : nullptr;
+    rtmpPush = new RTMPPush(url, callback);
 }
 
 void PushProxy::start() {
-    getPushEngine()->start();
+    auto* engine = getPushEngine();
+    if (engine) {
+        engine->start();
+    }
 }
 
 void PushProxy::stop() {
-    if (getPushEngine()) {
-        getPushEngine()->stop();
-        delete (this->getPushEngine());
+    auto* engine = getPushEngine();
+    if (engine) {
+        engine->stop();
+        delete engine;
+        rtmpPush = nullptr;
     }
-
     if (javaCallback) {
-        delete (javaCallback);
+        delete javaCallback;
+        javaCallback = nullptr;
     }
 }
 
-void PushProxy::pushSpsPps(uint8_t *sps, int sps_len, uint8_t *pps, int pps_len) {
-    getPushEngine()->pushSpsPps(sps, sps_len, pps, pps_len);
+void PushProxy::pushSpsPps(uint8_t* sps, int sps_len, uint8_t* pps, int pps_len) {
+    auto* engine = getPushEngine();
+    if (engine) {
+        engine->pushSpsPps(sps, sps_len, pps, pps_len);
+    }
 }
 
-
-
-void PushProxy::pushVideoData(uint8_t *video, int len, int keyframe) {
-    getPushEngine()->pushVideoData(video, len, keyframe);
+void PushProxy::pushVideoData(uint8_t* video, int len, int keyframe) {
+    auto* engine = getPushEngine();
+    if (engine) {
+        engine->pushVideoData(video, len, keyframe);
+    }
 }
 
-void PushProxy::pushAudioData(uint8_t *audio, int len, int type) {
-    getPushEngine()->pushAudioData(audio, len,type);
+void PushProxy::pushAudioData(uint8_t* audio, int len, int type) {
+    auto* engine = getPushEngine();
+    if (engine) {
+        engine->pushAudioData(audio, len, type);
+    }
 }
-
-
-
