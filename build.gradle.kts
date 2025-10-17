@@ -4,15 +4,6 @@ plugins {
     id("org.jetbrains.kotlin.android") version "1.9.24" apply false
 }
 
-allprojects {
-    repositories {
-        maven(url = uri("https://maven.aliyun.com/repository/public"))
-        google()
-        mavenCentral()
-        maven(url = uri("https://jitpack.io"))
-    }
-}
-
 tasks.register<Delete>("clean") {
     delete(rootProject.buildDir)
 }
