@@ -1,25 +1,29 @@
-#ifndef RTMPPUSH_JAVACALLBACK_H
-#define RTMPPUSH_JAVACALLBACK_H
+#ifndef ASTRASTREAM_JAVACALLBACK_H
+#define ASTRASTREAM_JAVACALLBACK_H
 
 #include <jni.h>
 
-#define THREAD_MAIN 1
-#define THREAD_CHILD 2
+enum class ThreadContext : jint {
+    Main = 1,
+    Worker = 2,
+};
 
-#define RTMP_INIT_ERROR -9
-#define RTMP_SET_URL_ERROR -10
-#define RTMP_CONNECT_ERROR -11
-#define RTMP_CLOSE -12
+enum class RtmpErrorCode : jint {
+    InitFailure = -9,
+    UrlSetupFailure = -10,
+    ConnectFailure = -11,
+    Closed = -12,
+};
 
 class JavaCallback {
 public:
     JavaCallback(JavaVM* vm, JNIEnv* env, jobject obj);
     ~JavaCallback();
 
-    void onConnecting(int threadType);
+    void onConnecting(ThreadContext threadContext);
     void onConnectSuccess();
-    void onConnectFail(int errorCode);
-    void onClose(int threadType);
+    void onConnectFail(RtmpErrorCode errorCode);
+    void onClose(ThreadContext threadContext);
 
 private:
     JNIEnv* jniEnv = nullptr;
@@ -31,4 +35,4 @@ private:
     jmethodID jmid_fail = nullptr;
 };
 
-#endif  // RTMPPUSH_JAVACALLBACK_H
+#endif  // ASTRASTREAM_JAVACALLBACK_H

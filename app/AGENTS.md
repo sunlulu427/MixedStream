@@ -1,35 +1,45 @@
-# Module Guide — app
+# Module Guide — `app` (AstraStream Demo)
 
-## 角色
-- 示例应用，演示推流链路（预览→编码→封包→发送）与权限、UI 交互。
+## Purpose
+- Demonstrates the full Astra streaming pipeline (preview → encode → package → uplink) with runtime permissions, adaptive bitrate controls, and Compose-based UI.
+- Serves as a reference implementation of `AVLiveView` integration and controller orchestration.
 
-## 入口与页面
-- 入口 Activity：`app/src/main/java/com/astrastream/streamer/app/LiveActivity.kt`
-  - 初始化：`onCreate()` 中调用 `initializeEnvironment()`，创建 Compose 视图后立即准备打包器并触发 `ensurePreview()`。
-  - 权限：`requestRuntimePermissions()` 通过 RxPermissions 请求所需权限，并在成功后缓存到 `SPUtils`。
-  - 推流：从地址弹窗中创建并连接 `RtmpSender`（惰性创建，避免不支持 ABI 的崩溃）。
-  - 生命周期：`onDestroy()` 关闭 `sender`、停止直播、释放相机。
+## Entry Points
+- `app/src/main/java/com/astrastream/streamer/app/LiveActivity.kt`
+  - Initialises Compose content in `onCreate()` via `setContent { LiveScreen(...) }` and wires `AVLiveView` through `LiveSessionCoordinator`.
+  - Requests camera/microphone/storage permissions using RxPermissions; caches consent in `SharedPreferences` for re-entry.
+  - Lazily creates `RtmpSender` inside the RTMP dialog to avoid loading native binaries on unsupported ABIs.
+  - Cleans up `sender`, stops the live session, and releases the camera in `onDestroy()`.
 
-## 权限与稳定性
-- 相机/录音/存储权限由 `LiveActivity.requestRuntimePermissions()` 触发，未授权时通过 `coordinator.markPreviewPending()` 暂停预览。
-- 为避免启动崩溃：
-  - 水印设置支持延迟应用（见 library/AGENTS.md），即使未预览也不会崩溃。
-  - `RtmpSender` 在连接前惰性创建，并捕获 `UnsatisfiedLinkError` 给出友好提示。
+## Permissions & Stability
+- `LiveActivity.requestRuntimePermissions()` handles CAMERA, RECORD_AUDIO, and storage permissions. When denied, preview remains pending until granted.
+- Watermark configuration is safe pre-preview: the coordinator defers actual GL calls until the renderer is ready.
+- `RtmpSender` instantiation is wrapped in try/catch to surface friendly errors when the ABI is unsupported.
 
-## 日志
-- 关键路径日志统一使用 `LogHelper`；Debug 构建开启日志。
+## Logging
+- Use `LogHelper` for important lifecycle events (preview start, encoder changes, bitrate updates, RTMP state).
+- Debug builds enable logging by default; release builds should keep output minimal.
 
-## UI
-- 顶部切换摄像头按钮：40dp 半透明圆形背景（`bg_icon_circle`），内边距 8dp。
-- 底部 LIVE 按钮：44dp 高度、16sp 粗体、圆角高亮背景（`bg_button_yellow_round`）。
-- 水印：`Watermark("text", color, textSize, null, scale)` 中 `scale` 控制屏幕占比，示例使用 1.3。
+## UI Overview
+- `LiveScreen` (Compose) is the primary surface. `AndroidView` hosts `AVLiveView`, while Compose manages controls, dialogs, and overlays.
+- Controls include:
+  - Top-right camera toggle (40dp circular button with translucent background).
+  - Bottom-centered LIVE FAB that switches between connect/disconnect states based on session status.
+  - Parameter sheet (Tune icon) exposing publish URL, capture/stream resolutions, encoder options, bitrate sliders, pull URL shortcuts, and watermark settings.
+- Overlay cards show capture/stream resolution, fps, bitrate bounds, GOP, and encoder selection for quick verification.
 
-## 常用场景
-- 动态码率调整：`live.setVideoBps(bps)`。
-- 切换摄像头：`live.switchCamera()`。
+## Common Scenarios
+- Dynamic bitrate: `live.setVideoBps(bps)` responds to slider input.
+- Camera switching: `live.switchCamera()` keeps preview aligned.
+- Watermark updates: `coordinator.updateWatermark(text, scale)` queues changes until GL is ready.
+- Preview-only mode: leaving the publish URL empty keeps the session in preview while allowing parameter tweaks.
 
-## 构建
-- `./gradlew :app:assembleDebug` 生成 APK；安装：`./gradlew :app:installDebug`。
+## Styling Notes
+- Status/navigation bars are transparent; immersive mode keeps the preview full screen (see `enableImmersiveMode()`).
+- Parameter sheet uses Material 3 modal bottom sheet with `LiveUiState` for state hoisting.
+- Watermark defaults to bottom-right alignment with resolution-aware scaling.
 
-## 自动化诊断
-- 使用根目录脚本 `tools/diagnose_camera.sh` 自动完成 adb 重启与关键日志抓取（不依赖人工点按）。
+## Testing Tips
+- Validate camera start/stop with permissions toggled, especially after background/foreground transitions.
+- Verify adaptive bitrate and encoder switches on representative devices (arm64-v8a).
+- When diagnosing preview issues, pair with `tools/diagnose_camera.sh` for reproducible logs.

@@ -1,5 +1,5 @@
-#ifndef RTMPPUSH_PUSHPROXY_H
-#define RTMPPUSH_PUSHPROXY_H
+#ifndef ASTRASTREAM_PUSHPROXY_H
+#define ASTRASTREAM_PUSHPROXY_H
 
 #include <cstdint>
 
@@ -26,4 +26,4 @@ private:
     JavaCallback* javaCallback = nullptr;
 };
 
-#endif  // RTMPPUSH_PUSHPROXY_H
+#endif  // ASTRASTREAM_PUSHPROXY_H

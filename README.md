@@ -1,6 +1,6 @@
-# AVRtmpPushSDK
+# AstraStreaming SDK
 
-AVRtmpPushSDK is a Kotlin + C++ streaming toolkit that delivers end-to-end AV capture, processing, encoding, FLV packaging, and RTMP uplink. The repository contains a demonstration Android app ("**AstraStream**") and a reusable library that powers hardware-accelerated live streaming pipelines.
+AstraStreaming is a Kotlin + C++ streaming toolkit that delivers end-to-end AV capture, processing, encoding, FLV packaging, and RTMP uplink. The repository contains a demonstration Android app ("**AstraStream**") and a reusable library that powers hardware-accelerated live streaming pipelines.
 
 ## Contents
 
@@ -77,8 +77,8 @@ The end-to-end live pipeline is summarised in the PlantUML diagram below. It tra
 ### Clone and Build
 
 ```bash
-git clone git@github.com:sunlulu427/AVRtmpPushSDK.git
-cd AVRtmpPushSDK
+git clone git@github.com:sunlulu427/AstraStreaming.git
+cd AstraStreaming
 
 # assemble demo app & release AAR
 ./gradlew :app:assembleDebug :library:assembleRelease
@@ -88,17 +88,17 @@ The demo Activity (`LiveActivity`) now renders a Material 3 Compose interface (`
 
 ## Stream URL Examples
 
-The parameter面板的“推流地址（可选）”使用原始 RTMP URL，设置后系统会自动生成可复制的拉流地址列表（RTMP 与 HTTP-FLV）。示例：
+The settings sheet exposes an optional **Publish URL** field. Provide an upstream RTMP address and the UI mirrors it into pull URLs (RTMP + HTTP-FLV) for instant playback verification. Example:
 
-- 推流地址：`rtmp://47.100.16.213:1935/live/123333`
-- 拉流地址（RTMP）：`rtmp://47.100.16.213:1935/live/123333`
-- 拉流地址（HTTP-FLV）：`http://47.100.16.213:1935/live/123333.flv`
+- Publish URL: `rtmp://47.100.16.213:1935/live/123333`
+- Pull URL (RTMP): `rtmp://47.100.16.213:1935/live/123333`
+- Pull URL (HTTP-FLV): `http://47.100.16.213:1935/live/123333.flv`
 
-注意事项：
+Notes:
 
-- 推流与拉流的 stream key（上述示例中的 `123333`）必须完全一致，`.flv` 只是播放端的文件名后缀，推流端无需添加。
-- 如果服务端的 HTTP-FLV 监听端口或路径不同，请根据实际部署修改地址；面板中列出的地址来源于推流 URL，并会自动同步。
-- 拉流地址始终显示在可滚动设置列表的底部，便于在调整其他参数后快速复制验证。
+- Publish and pull stream keys must match (`123333` in the example). The `.flv` suffix is only required by HTTP-FLV viewers.
+- If the server exposes HTTP-FLV on a different port or path, adjust the generated value accordingly. The UI simply derives pull URLs from the publish address and keeps them in sync.
+- Pull URLs live at the bottom of the scrollable settings list so they remain easy to copy after tuning other parameters.
 
 ## Live Session Lifecycle
 

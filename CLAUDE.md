@@ -157,7 +157,7 @@ packer.stop()
 
 ### Startup Stability & Common Issues
 - Avoid crashes:
-  - Cause: Creating `RtmpSender()` early in Activity initialization loads `libAVRtmpPush.so`, causing `UnsatisfiedLinkError` crashes on unsupported ABIs (like x86 emulators).
+  - Cause: Creating `RtmpSender()` early in Activity initialization loads `libastra.so`, causing `UnsatisfiedLinkError` crashes on unsupported ABIs (like x86 emulators).
   - Handling: `RtmpSender` uses lazy creation, only instantiated when user initiates streaming, with try/catch fallback for user notification.
 - Watermark timing:
   - Cause: `renderer` in `CameraView` is `lateinit`; calling `setWatermark` before preview starts or GL is ready triggers `lateinit` crashes.
@@ -249,7 +249,7 @@ packer.stop()
   - Camera management: `CameraHolder` unified open/start/stop/release; exception capture and degradation (hardware occupied, no camera, no permissions).
   - Encoding/decoding: Video: `VideoMediaCodec`, `VideoEncoder`; audio similar. Output SPS/PPS transparently passed to packager by `StreamController`.
   - Sending (RTMP): `RtmpSender` calls native via JNI; lazy load native library to avoid unsupported ABI crashes. Reference `docs/video_streaming.puml`.
-- JNI/NDK: CMake: `library/src/main/cpp/CMakeLists.txt`. Target library: `AVRtmpPush` (SHARED); links `librtmp.a` and `log`. STL: `c++_shared`. Supported ABI: `arm64-v8a` (see Gradle and CMake).
+- JNI/NDK: CMake: `library/src/main/cpp/CMakeLists.txt`. Target library: `astra` (SHARED); links `librtmp.a` and `log`. STL: `c++_shared`. Supported ABI: `arm64-v8a` (see Gradle and CMake).
 - Configuration suggestions: `VideoConfiguration`/`AudioConfiguration`/`CameraConfiguration` cover resolution, frame rate, bitrate, encoder selection. Unified human-machine interface via `AVLiveView`, `StreamController` organizes audio/video, packaging and sending.
 - Logging: `LogHelper` outputs key nodes: camera/EGL/Shader/FBO, I frames/bitrate/GOP, queue levels/frame drops, network errors, etc.
 - Build: `./gradlew :library:assembleRelease` generates AAR. NDK/SDK version requirements see root AGENTS.md.

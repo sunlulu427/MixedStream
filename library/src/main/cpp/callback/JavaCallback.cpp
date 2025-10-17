@@ -2,13 +2,20 @@
 
 namespace {
 
-class ScopedEnv {
+class LocalEnv {
 public:
-    explicit ScopedEnv(JavaVM* vm) : vm_(vm) {
+    LocalEnv(JavaVM* vm, JNIEnv* cached, bool preferCached, bool forceAttach)
+        : vm_(vm) {
         if (!vm_) {
             return;
         }
-        if (vm_->GetEnv(reinterpret_cast<void**>(&env_), JNI_VERSION_1_6) != JNI_OK) {
+
+        if (preferCached && cached != nullptr) {
+            env_ = cached;
+            return;
+        }
+
+        if (vm_->GetEnv(reinterpret_cast<void**>(&env_), JNI_VERSION_1_6) != JNI_OK || forceAttach) {
             if (vm_->AttachCurrentThread(&env_, nullptr) == JNI_OK) {
                 attached_ = true;
             } else {
@@ -17,13 +24,14 @@ public:
         }
     }
 
-    ~ScopedEnv() {
-        if (vm_ && attached_) {
+    ~LocalEnv() {
+        if (attached_ && vm_) {
             vm_->DetachCurrentThread();
         }
     }
 
     JNIEnv* get() const { return env_; }
+    explicit operator bool() const { return env_ != nullptr; }
 
 private:
     JavaVM* vm_ = nullptr;
@@ -57,7 +65,7 @@ JavaCallback::~JavaCallback() {
         return;
     }
 
-    ScopedEnv env(javaVM);
+    LocalEnv env(javaVM, jniEnv, false, false);
     if (JNIEnv* scopedEnv = env.get()) {
         scopedEnv->DeleteGlobalRef(jobject1);
     }
@@ -71,45 +79,49 @@ JavaCallback::~JavaCallback() {
     jmid_fail = nullptr;
 }
 
-void JavaCallback::onConnecting(int threadType) {
+void JavaCallback::onConnecting(ThreadContext threadContext) {
     if (!javaVM || !jobject1 || !jmid_connecting) {
         return;
     }
 
-    if (threadType == THREAD_CHILD) {
-        ScopedEnv env(javaVM);
-        JNIEnv* scopedEnv = env.get();
-        if (!scopedEnv) {
-            return;
-        }
-        scopedEnv->CallVoidMethod(jobject1, jmid_connecting);
-    } else if (jniEnv) {
-        jniEnv->CallVoidMethod(jobject1, jmid_connecting);
+    LocalEnv env(
+        javaVM,
+        jniEnv,
+        threadContext == ThreadContext::Main,
+        threadContext == ThreadContext::Worker
+    );
+
+    JNIEnv* scopedEnv = env.get();
+    if (!scopedEnv) {
+        return;
     }
+    scopedEnv->CallVoidMethod(jobject1, jmid_connecting);
 }
 
-void JavaCallback::onClose(int threadType) {
+void JavaCallback::onClose(ThreadContext threadContext) {
     if (!javaVM || !jobject1 || !jmid_close) {
         return;
     }
 
-    if (threadType == THREAD_CHILD) {
-        ScopedEnv env(javaVM);
-        JNIEnv* scopedEnv = env.get();
-        if (!scopedEnv) {
-            return;
-        }
-        scopedEnv->CallVoidMethod(jobject1, jmid_close);
-    } else if (jniEnv) {
-        jniEnv->CallVoidMethod(jobject1, jmid_close);
+    LocalEnv env(
+        javaVM,
+        jniEnv,
+        threadContext == ThreadContext::Main,
+        threadContext == ThreadContext::Worker
+    );
+
+    JNIEnv* scopedEnv = env.get();
+    if (!scopedEnv) {
+        return;
     }
+    scopedEnv->CallVoidMethod(jobject1, jmid_close);
 }
 
 void JavaCallback::onConnectSuccess() {
     if (!javaVM || !jobject1 || !jmid_success) {
         return;
     }
-    ScopedEnv env(javaVM);
+    LocalEnv env(javaVM, jniEnv, false, true);
     JNIEnv* scopedEnv = env.get();
     if (!scopedEnv) {
         return;
@@ -117,14 +129,14 @@ void JavaCallback::onConnectSuccess() {
     scopedEnv->CallVoidMethod(jobject1, jmid_success);
 }
 
-void JavaCallback::onConnectFail(int errorCode) {
+void JavaCallback::onConnectFail(RtmpErrorCode errorCode) {
     if (!javaVM || !jobject1 || !jmid_fail) {
         return;
     }
-    ScopedEnv env(javaVM);
+    LocalEnv env(javaVM, jniEnv, false, true);
     JNIEnv* scopedEnv = env.get();
     if (!scopedEnv) {
         return;
     }
-    scopedEnv->CallVoidMethod(jobject1, jmid_fail, errorCode);
+    scopedEnv->CallVoidMethod(jobject1, jmid_fail, static_cast<jint>(errorCode));
 }

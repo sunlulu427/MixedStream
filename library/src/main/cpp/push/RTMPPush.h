@@ -1,5 +1,5 @@
-#ifndef RTMPPUSH_RTMPPUSH_H
-#define RTMPPUSH_RTMPPUSH_H
+#ifndef ASTRASTREAM_RTMPPUSH_H
+#define ASTRASTREAM_RTMPPUSH_H
 
 #include <cstdint>
 
@@ -40,4 +40,4 @@ private:
     long mStartTime = 0;
 };
 
-#endif  // RTMPPUSH_RTMPPUSH_H
+#endif  // ASTRASTREAM_RTMPPUSH_H

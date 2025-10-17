@@ -1,12 +1,11 @@
-#ifndef RTMPPUSH_IPUSH_H
-#define RTMPPUSH_IPUSH_H
+#ifndef ASTRASTREAM_IPUSH_H
+#define ASTRASTREAM_IPUSH_H
 
 #include <cstdint>
 
 #include "IThread.h"
 
 class IPush : public IThread {
-public:
 public:
     ~IPush() override = default;
 
@@ -18,4 +17,4 @@ public:
     virtual void pushVideoData(uint8_t* video, int len, int type) = 0;
 };
 
-#endif  // RTMPPUSH_IPUSH_H
+#endif  // ASTRASTREAM_IPUSH_H

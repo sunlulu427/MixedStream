@@ -19,20 +19,20 @@ RTMPPush::~RTMPPush() {
 }
 
 void RTMPPush::start() {
-    IThread::start();
+    startWorker();
 }
 
 void RTMPPush::stop() {
     isPusher = 0;
-    if (!mQueue) {
-        IThread::stop();
-        return;
+    if (mQueue) {
+        mQueue->notifyQueue();
     }
-    mQueue->notifyQueue();
-    IThread::stop();
-    mQueue->clearQueue();
-    delete mQueue;
-    mQueue = nullptr;
+    joinWorker();
+    if (mQueue) {
+        mQueue->clearQueue();
+        delete mQueue;
+        mQueue = nullptr;
+    }
     delete[] mRtmpUrl;
     mRtmpUrl = nullptr;
 }
@@ -123,7 +123,7 @@ void RTMPPush::pushVideoData(uint8_t* data, int data_len, int /*type*/) {
 
 void RTMPPush::onConnecting() {
     if (mCallback) {
-        mCallback->onConnecting(THREAD_CHILD);
+        mCallback->onConnecting(ThreadContext::Worker);
     }
 
     if (mRtmp) {
@@ -133,7 +133,7 @@ void RTMPPush::onConnecting() {
     mRtmp = RTMP_Alloc();
     if (!mRtmp) {
         if (mCallback) {
-            mCallback->onConnectFail(RTMP_INIT_ERROR);
+            mCallback->onConnectFail(RtmpErrorCode::InitFailure);
         }
         release();
         return;
@@ -143,7 +143,7 @@ void RTMPPush::onConnecting() {
     const int setupResult = RTMP_SetupURL(mRtmp, mRtmpUrl);
     if (!setupResult) {
         if (mCallback) {
-            mCallback->onConnectFail(RTMP_SET_URL_ERROR);
+            mCallback->onConnectFail(RtmpErrorCode::UrlSetupFailure);
         }
         release();
         return;
@@ -154,7 +154,7 @@ void RTMPPush::onConnecting() {
     const int connectResult = RTMP_Connect(mRtmp, nullptr);
     if (!connectResult) {
         if (mCallback) {
-            mCallback->onConnectFail(RTMP_CONNECT_ERROR);
+            mCallback->onConnectFail(RtmpErrorCode::ConnectFailure);
         }
         release();
         return;
@@ -163,7 +163,7 @@ void RTMPPush::onConnecting() {
     const int streamResult = RTMP_ConnectStream(mRtmp, 0);
     if (!streamResult) {
         if (mCallback) {
-            mCallback->onConnectFail(RTMP_CONNECT_ERROR);
+            mCallback->onConnectFail(RtmpErrorCode::ConnectFailure);
         }
         release();
         return;

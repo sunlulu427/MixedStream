@@ -1,5 +1,5 @@
-#ifndef AVLIVEPUSHER_QUEUE_H
-#define AVLIVEPUSHER_QUEUE_H
+#ifndef ASTRASTREAM_AVQUEUE_H
+#define ASTRASTREAM_AVQUEUE_H
 
 #include <pthread.h>
 #include <queue>
@@ -24,4 +24,4 @@ private:
     pthread_cond_t condPacket{};
 };
 
-#endif  // AVLIVEPUSHER_QUEUE_H
+#endif  // ASTRASTREAM_AVQUEUE_H
