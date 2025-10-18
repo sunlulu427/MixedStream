@@ -7,6 +7,7 @@ import com.astrastream.avpush.domain.callback.IController
 import com.astrastream.avpush.domain.callback.OnAudioEncodeListener
 import com.astrastream.avpush.domain.config.AudioConfiguration
 import com.astrastream.avpush.infrastructure.codec.AudioEncoder
+import com.astrastream.avpush.core.utils.LogHelper
 import java.nio.ByteBuffer
 
 class AudioController(private val audioConfiguration: AudioConfiguration) : IController,
@@ -43,6 +44,7 @@ class AudioController(private val audioConfiguration: AudioConfiguration) : ICon
      * 触发 开始
      */
     override fun start() {
+        LogHelper.d(javaClass.simpleName) { "audio processor start" }
         mAudioProcessor.startRecording()
     }
 
@@ -50,6 +52,7 @@ class AudioController(private val audioConfiguration: AudioConfiguration) : ICon
      * 触发 暂停
      */
     override fun pause() {
+        LogHelper.d(javaClass.simpleName) { "audio processor pause" }
         mAudioProcessor.setPause(true)
     }
 
@@ -57,6 +60,7 @@ class AudioController(private val audioConfiguration: AudioConfiguration) : ICon
      * 触发恢复
      */
     override fun resume() {
+        LogHelper.d(javaClass.simpleName) { "audio processor resume" }
         mAudioProcessor.setPause(false)
     }
 
@@ -64,6 +68,7 @@ class AudioController(private val audioConfiguration: AudioConfiguration) : ICon
      * 触发停止
      */
     override fun stop() {
+        LogHelper.d(javaClass.simpleName) { "audio processor stop" }
         mAudioProcessor.stop()
         mAudioProcessor.release()
 
@@ -80,6 +85,7 @@ class AudioController(private val audioConfiguration: AudioConfiguration) : ICon
      * 当开始采集
      */
     override fun onStart(sampleRate: Int, channels: Int, sampleFormat: Int) {
+        LogHelper.d(javaClass.simpleName) { "audio recorder started sampleRate=$sampleRate channels=$channels format=$sampleFormat" }
         mAudioEncoder.start()
     }
 
@@ -88,11 +94,13 @@ class AudioController(private val audioConfiguration: AudioConfiguration) : ICon
      */
     override fun setMute(isMute: Boolean) {
         super.setMute(isMute)
+        LogHelper.d(javaClass.simpleName) { "audio mute toggled: $isMute" }
         mAudioProcessor.setMute(isMute)
     }
 
     override fun onStop() {
         super.onStop()
+        LogHelper.d(javaClass.simpleName) { "audio recorder stop callback" }
         mAudioEncoder.stop()
     }
 
@@ -100,6 +108,7 @@ class AudioController(private val audioConfiguration: AudioConfiguration) : ICon
      * 当采集出现错误
      */
     override fun onError(meg: String?) {
+        LogHelper.e(javaClass.simpleName, meg)
         mAudioDataListener?.onError(meg)
     }
 

@@ -1,17 +1,17 @@
 package com.astrastream.avpush.application.pipeline
 
-import android.os.SystemClock
 import com.astrastream.avpush.core.pipeline.PipelinePad
 import com.astrastream.avpush.core.pipeline.PipelineRole
 import com.astrastream.avpush.core.pipeline.PipelineStage
 import com.astrastream.avpush.core.pipeline.frame.EncodedAudioFrame
 import com.astrastream.avpush.core.pipeline.frame.EncodedVideoFrame
 import com.astrastream.avpush.core.utils.LogHelper
+import com.astrastream.avpush.core.utils.NativeStats
 import com.astrastream.avpush.core.utils.prepareForCodec
 import com.astrastream.avpush.domain.config.AudioConfiguration
 import com.astrastream.avpush.domain.config.VideoConfiguration
 import com.astrastream.avpush.infrastructure.stream.sender.Sender
-import kotlin.math.roundToInt
+import android.os.SystemClock
 
 
 class TransportNode(
@@ -28,19 +28,20 @@ class TransportNode(
     private var videoConfiguration: VideoConfiguration? = null
     private var audioSpecificConfig: ByteArray? = null
     private var statsListener: ((Int, Int) -> Unit)? = null
-    private var statsWindowBytes = 0L
-    private var statsWindowFrames = 0
-    private var statsWindowStart = SystemClock.elapsedRealtime()
+    private val statsHandle: Long = NativeStats.create()
+    private var statsReleased = false
 
     fun updateAudioConfiguration(configuration: AudioConfiguration, asc: ByteArray?) {
         audioConfiguration = configuration
         audioSpecificConfig = asc
         configureSender()
+        LogHelper.i(name) { "audio configuration applied: sampleRate=${configuration.sampleRate}, channels=${configuration.channelCount}" }
     }
 
     fun updateVideoConfiguration(configuration: VideoConfiguration) {
         videoConfiguration = configuration
         configureSender()
+        LogHelper.i(name) { "video configuration applied: ${configuration.width}x${configuration.height}@${configuration.fps}" }
     }
 
     fun setStatsListener(listener: ((Int, Int) -> Unit)?) {
@@ -48,21 +49,29 @@ class TransportNode(
     }
 
     override fun start() {
+        LogHelper.d(name) { "transport pipeline starting" }
         resetStats()
     }
 
     override fun pause() {
+        LogHelper.d(name) { "transport pipeline paused" }
     }
 
     override fun resume() {
+        LogHelper.d(name) { "transport pipeline resumed" }
     }
 
     override fun stop() {
+        LogHelper.d(name) { "transport pipeline stopped" }
         resetStats()
     }
 
     override fun release() {
-        resetStats()
+        LogHelper.d(name) { "releasing transport pipeline" }
+        if (!statsReleased) {
+            NativeStats.release(statsHandle)
+            statsReleased = true
+        }
     }
 
     private fun configureSender() {
@@ -89,21 +98,17 @@ class TransportNode(
     }
 
     private fun accumulateStats(bytes: Int) {
-        statsWindowBytes += bytes
-        statsWindowFrames += 1
-        val now = SystemClock.elapsedRealtime()
-        val elapsed = now - statsWindowStart
-        if (elapsed >= 1000) {
-            val bitrateKbps = ((statsWindowBytes * 8f) / elapsed).roundToInt()
-            val fps = ((statsWindowFrames * 1000f) / elapsed).roundToInt()
-            statsListener?.invoke(bitrateKbps.coerceAtLeast(0), fps.coerceAtLeast(0))
-            resetStats(now)
+        if (statsReleased) return
+        val stats = NativeStats.onVideoSample(statsHandle, bytes, SystemClock.elapsedRealtime())
+        if (stats != null && stats.size == 2) {
+            statsListener?.invoke(stats[0].coerceAtLeast(0), stats[1].coerceAtLeast(0))
+            LogHelper.d(name) { "video stats bitrate=${stats[0]}kbps fps=${stats[1]}" }
         }
     }
 
     private fun resetStats(referenceTime: Long = SystemClock.elapsedRealtime()) {
-        statsWindowBytes = 0
-        statsWindowFrames = 0
-        statsWindowStart = referenceTime
+        if (!statsReleased) {
+            NativeStats.reset(statsHandle, referenceTime)
+        }
     }
 }

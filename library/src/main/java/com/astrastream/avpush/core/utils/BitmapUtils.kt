@@ -15,18 +15,6 @@ import kotlin.math.roundToInt
 
 object BitmapUtils {
 
-    @Deprecated(
-        message = "Use createTextBitmap instead.",
-        replaceWith = ReplaceWith("createTextBitmap(contents, context, testSize.toFloat(), testColor, bg)")
-    )
-    fun creatBitmap(
-        contents: String,
-        context: Context,
-        testSize: Int,
-        testColor: Int,
-        bg: Int
-    ): Bitmap = createTextBitmap(contents, context, testSize.toFloat(), testColor, bg)
-
     fun createTextBitmap(
         text: CharSequence,
         context: Context,

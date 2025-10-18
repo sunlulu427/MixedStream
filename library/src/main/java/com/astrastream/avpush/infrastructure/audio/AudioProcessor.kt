@@ -39,6 +39,10 @@ class AudioProcessor : ThreadImpl() {
             throw IllegalStateException(error)
         }
 
+        LogHelper.d(javaClass.simpleName) {
+            "init audio processor source=$audioSource sampleRate=$sampleRateInHz channels=$channelConfig format=$audioFormat bufferSize=$bufferSize"
+        }
+
         readSize = bufferSize
 
         audioRecord = try {
@@ -64,8 +68,10 @@ class AudioProcessor : ThreadImpl() {
         super.setPause(pause)
         if (pause) {
             recordListener?.onPause()
+            LogHelper.d(javaClass.simpleName) { "audio processor paused" }
         } else {
             recordListener?.onResume()
+            LogHelper.d(javaClass.simpleName) { "audio processor resumed" }
         }
     }
 
@@ -74,12 +80,14 @@ class AudioProcessor : ThreadImpl() {
         super.start { mainLoop() }
         audioRecord?.startRecording()
         recordListener?.onStart(currentSampleRate, currentChannelConfig, currentEncoding)
+        LogHelper.d(javaClass.simpleName) { "AudioRecord started" }
     }
 
     override fun stop() {
         super.stop()
         audioRecord?.takeIf { it.state == AudioRecord.STATE_INITIALIZED }?.stop()
         recordListener?.onStop()
+        LogHelper.d(javaClass.simpleName) { "AudioRecord stopped" }
     }
 
     fun setMute(muted: Boolean) {
@@ -104,17 +112,17 @@ class AudioProcessor : ThreadImpl() {
                 recordListener?.onPcmData(data.copyOf(read))
             }
         }
+        LogHelper.d(javaClass.simpleName) { "audio capture loop finished" }
     }
 
     fun addRecordListener(listener: OnRecordListener) {
         recordListener = listener
     }
 
-    fun getBufferSize(): Int = bufferSize
-
     fun release() {
         audioRecord?.release()
         audioRecord = null
+        LogHelper.d(javaClass.simpleName) { "AudioRecord released" }
     }
 
     interface OnRecordListener {

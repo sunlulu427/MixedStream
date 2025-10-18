@@ -35,16 +35,19 @@ class StreamController : LiveStreamSession {
 
     override fun setAudioConfigure(audioConfiguration: AudioConfiguration) {
         this.audioConfiguration = audioConfiguration
+        LogHelper.d(tag) { "audio configuration updated: sampleRate=${audioConfiguration.sampleRate}, channels=${audioConfiguration.channelCount}" }
         applyAudioConfiguration()
     }
 
     override fun setVideoConfigure(videoConfiguration: VideoConfiguration) {
         this.videoConfiguration = videoConfiguration
+        LogHelper.d(tag) { "video configuration updated: ${videoConfiguration.width}x${videoConfiguration.height}@${videoConfiguration.fps}" }
         applyVideoConfiguration()
     }
 
     override fun setSender(sender: Sender) {
         this.sender = sender
+        LogHelper.d(tag) { "sender attached: ${sender.javaClass.simpleName}" }
         applyVideoConfiguration()
         applyAudioConfiguration()
     }
@@ -58,6 +61,7 @@ class StreamController : LiveStreamSession {
         this.appContext = context.applicationContext
         this.textureId = textureId
         this.eglContext = eglContext
+        LogHelper.d(tag) { "preparing stream controller with texture=$textureId" }
         buildPipeline()
     }
 
@@ -69,33 +73,40 @@ class StreamController : LiveStreamSession {
         if (pipeline == null || pipeline?.isEmpty() == true) {
             buildPipeline()
         }
+        LogHelper.d(tag) { "starting streaming session" }
         pipeline?.start()
         statsListener?.onVideoStats(0, videoConfiguration.fps)
     }
 
     override fun pause() {
+        LogHelper.d(tag) { "pausing streaming session" }
         pipeline?.pause()
     }
 
     override fun resume() {
+        LogHelper.d(tag) { "resuming streaming session" }
         pipeline?.resume()
     }
 
     override fun stop() {
+        LogHelper.d(tag) { "stopping streaming session" }
         disposePipeline(true)
         statsListener?.onVideoStats(0, 0)
     }
 
     override fun setMute(isMute: Boolean) {
+        LogHelper.d(tag) { "mute toggled: $isMute" }
         audioNode?.setMute(isMute)
     }
 
     override fun setVideoBps(bps: Int) {
+        LogHelper.d(tag) { "setting video bitrate=$bps" }
         videoNode?.setVideoBitrate(bps)
     }
 
     override fun setWatermark(watermark: Watermark) {
         this.watermark = watermark
+        LogHelper.d(tag) { "watermark updated" }
         videoNode?.setWatermark(watermark)
     }
 
@@ -117,6 +128,7 @@ class StreamController : LiveStreamSession {
         applyVideoConfiguration()
         applyAudioConfiguration()
         pipeline = StreamingPipeline().add(audioNode).add(videoNode).add(transportNode)
+        LogHelper.d(tag) { "pipeline initialised" }
     }
 
     private fun handleAudioOutputFormat(outputFormat: MediaFormat?) {
@@ -125,11 +137,13 @@ class StreamController : LiveStreamSession {
         val asc = ByteArray(ascBuffer.remaining())
         ascBuffer.get(asc)
         audioSpecificConfig = asc
+        LogHelper.d(tag) { "audio specific config extracted (${asc.size} bytes)" }
         applyAudioConfiguration()
     }
 
     private fun handleVideoOutputFormat(outputFormat: MediaFormat?) {
         if (outputFormat == null) return
+        LogHelper.d(tag) { "video output format reported: ${outputFormat.toString()}" }
     }
 
     private fun handleError(message: String?) {
@@ -162,5 +176,6 @@ class StreamController : LiveStreamSession {
         audioNode = null
         videoNode = null
         transportNode = null
+        LogHelper.d(tag) { "pipeline disposed" }
     }
 }

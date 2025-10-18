@@ -5,6 +5,7 @@ import android.graphics.Bitmap
 import android.graphics.Color
 import com.astrastream.avpush.R
 import com.astrastream.avpush.core.utils.BitmapUtils
+import com.astrastream.avpush.core.utils.LogHelper
 import com.astrastream.avpush.domain.callback.IRenderer
 import com.astrastream.avpush.infrastructure.camera.ShaderHelper
 import com.astrastream.avpush.infrastructure.camera.Watermark
@@ -71,6 +72,7 @@ class EncodeRenderer(private val context: Context, private val textureId: Int) :
         cachedBitmap?.let { nativeUpdateWatermarkTexture(handle, it) }
         nativeUpdateWatermarkCoords(handle, watermarkCoords)
         attemptApplyWatermark()
+        LogHelper.d(javaClass.simpleName) { "surface created width=$width height=$height" }
     }
 
     override fun onSurfaceChange(width: Int, height: Int) {
@@ -83,6 +85,7 @@ class EncodeRenderer(private val context: Context, private val textureId: Int) :
             pendingWatermark = currentWatermark
         }
         attemptApplyWatermark()
+        LogHelper.d(javaClass.simpleName) { "surface changed width=$width height=$height" }
     }
 
     override fun onDraw() {
@@ -112,6 +115,7 @@ class EncodeRenderer(private val context: Context, private val textureId: Int) :
         nativeUpdateWatermarkCoords(handle, watermarkCoords)
         nativeUpdateWatermarkTexture(handle, bitmap)
         currentWatermark = watermark
+        LogHelper.d(javaClass.simpleName) { "watermark applied scale=${watermark.scale}" }
         return true
     }
 
@@ -191,6 +195,7 @@ class EncodeRenderer(private val context: Context, private val textureId: Int) :
         if (nativeHandle != 0L) {
             nativeDestroy(nativeHandle)
             nativeHandle = 0L
+            LogHelper.d(javaClass.simpleName) { "renderer released" }
         }
     }
 

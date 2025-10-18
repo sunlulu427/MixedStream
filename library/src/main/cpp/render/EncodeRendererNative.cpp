@@ -7,6 +7,8 @@
 #include <array>
 #include <cstring>
 
+#include "NativeLogger.h"
+
 namespace {
 
 #define GL_CHECK_ERROR(label)                                                                    \
@@ -54,7 +56,7 @@ void EncodeRendererNative::initialize(const std::string& vertexSource,
     glDeleteShader(fragmentShader);
 
     if (program_ == 0) {
-        __android_log_print(ANDROID_LOG_ERROR, "EncodeRendererNative", "Failed to create program");
+        astra::logLine(4, "EncodeRendererNative", "Failed to create shader program");
         return;
     }
 
@@ -118,8 +120,7 @@ void EncodeRendererNative::draw() {
 
 void EncodeRendererNative::updateWatermarkCoords(const std::vector<float>& coords) {
     if (coords.size() < kQuadVertexCount * kCoordsPerVertex) {
-        __android_log_print(ANDROID_LOG_WARN, "EncodeRendererNative",
-                            "Watermark coords are insufficient");
+        astra::logLine(3, "EncodeRendererNative", "Watermark coordinates insufficient");
         return;
     }
 
@@ -147,22 +148,19 @@ void EncodeRendererNative::updateWatermarkTexture(JNIEnv* env, jobject bitmap) {
 
     AndroidBitmapInfo info{};
     if (AndroidBitmap_getInfo(env, bitmap, &info) != ANDROID_BITMAP_RESULT_SUCCESS) {
-        __android_log_print(ANDROID_LOG_ERROR, "EncodeRendererNative",
-                            "Failed to get bitmap info");
+        astra::logLine(4, "EncodeRendererNative", "Failed to get watermark bitmap info");
         return;
     }
 
     if (info.format != ANDROID_BITMAP_FORMAT_RGB_565 &&
         info.format != ANDROID_BITMAP_FORMAT_RGBA_8888) {
-        __android_log_print(ANDROID_LOG_WARN, "EncodeRendererNative",
-                            "Unsupported bitmap format %d", info.format);
+        astra::logLine(3, "EncodeRendererNative", "Unsupported bitmap format");
         return;
     }
 
     void* pixels = nullptr;
     if (AndroidBitmap_lockPixels(env, bitmap, &pixels) != ANDROID_BITMAP_RESULT_SUCCESS) {
-        __android_log_print(ANDROID_LOG_ERROR, "EncodeRendererNative",
-                            "Unable to lock bitmap pixels");
+        astra::logLine(4, "EncodeRendererNative", "Unable to lock watermark bitmap pixels");
         return;
     }
 
@@ -262,6 +260,7 @@ void EncodeRendererNative::destroyProgram() {
         program_ = 0;
         positionLocation_ = -1;
         texCoordLocation_ = -1;
+        astra::logLine(1, "EncodeRendererNative", "Shader program destroyed");
     }
 }
 

@@ -1,13 +1,14 @@
 package com.astrastream.avpush.application.pipeline
 
-import android.media.MediaCodec
-import android.media.MediaFormat
 import com.astrastream.avpush.application.controller.VideoController
 import com.astrastream.avpush.core.pipeline.PipelineRole
 import com.astrastream.avpush.core.pipeline.PipelineSource
 import com.astrastream.avpush.core.pipeline.frame.EncodedVideoFrame
+import com.astrastream.avpush.core.utils.LogHelper
 import com.astrastream.avpush.domain.callback.IController
 import com.astrastream.avpush.infrastructure.camera.Watermark
+import android.media.MediaCodec
+import android.media.MediaFormat
 import java.nio.ByteBuffer
 
 
@@ -25,19 +26,23 @@ class VideoCaptureNode(
     }
 
     override fun start() {
+        LogHelper.d(name) { "starting video capture" }
         stopped = false
         controller.start()
     }
 
     override fun pause() {
+        LogHelper.d(name) { "pausing video capture" }
         controller.pause()
     }
 
     override fun resume() {
+        LogHelper.d(name) { "resuming video capture" }
         controller.resume()
     }
 
     override fun stop() {
+        LogHelper.d(name) { "stopping video capture" }
         controller.stop()
         stopped = true
     }
@@ -46,6 +51,7 @@ class VideoCaptureNode(
         if (!stopped) {
             controller.stop()
         }
+        LogHelper.d(name) { "releasing video capture node" }
         super.release()
     }
 
@@ -55,18 +61,22 @@ class VideoCaptureNode(
     }
 
     override fun onVideoOutformat(outputFormat: MediaFormat?) {
+        LogHelper.i(name) { "video codec output format changed: ${outputFormat?.toString() ?: "null"}" }
         onOutputFormat(outputFormat)
     }
 
     override fun onError(error: String?) {
+        LogHelper.e(name, error)
         onError(error)
     }
 
     fun setVideoBitrate(bps: Int) {
+        LogHelper.d(name) { "set video bitrate=$bps" }
         controller.setVideoBps(bps)
     }
 
     fun setWatermark(watermark: Watermark) {
+        LogHelper.d(name) { "applying watermark: ${watermark.scale}" }
         controller.setWatermark(watermark)
     }
 }

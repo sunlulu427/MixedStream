@@ -82,7 +82,8 @@ class LiveActivity : AppCompatActivity(), OnConnectListener {
 
     private fun initializeEnvironment() {
         Utils.init(application)
-        LogHelper.isShowLog = true
+        LogHelper.initialize(applicationContext)
+        LogHelper.enable(true)
         enableEdgeToEdge()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             window.attributes = window.attributes.apply {

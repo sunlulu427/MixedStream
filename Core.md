@@ -24,6 +24,11 @@
 - H.265/HEVC support includes length-prefixed NALU handling and encoder profile configuration to resolve previously broken push streams.
 - The GL render thread stabilises preview/stream FPS at the configured value (default 30 fps) and avoids device-specific overshoot (e.g., 50+ fps) that otherwise bursts bitrate.
 
+## Logging & Diagnostics
+- Runtime logs are persisted to `<external-files>/logs/astra.log` via the native logger. Initialise logging once from the host app (e.g., `LogHelper.initialize(context)`) before starting preview/streaming.
+- Capture, encode, and transport nodes emit lifecycle markers, format transitions, bitrate/FPS samples, and error messages to the same log. The native GL renderer records shader setup and watermark texture updates.
+- Retrieve artefacts with `adb pull /sdcard/Android/data/<package>/files/logs/astra.log` when analysing customer reproductions.
+
 ## Watermark Rendering
 - `FboRenderer` (preview) and `EncodeRenderer` (stream) composite watermarks in off-screen FBOs, ensuring the preview matches the encoded output.
 - Default sizing uses normalised coordinates: watermark height 10–30% of the frame, width derived from bitmap aspect ratio, with ~5% horizontal and ~6% vertical padding from the bottom-right corner.
