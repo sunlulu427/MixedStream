@@ -1,12 +1,11 @@
 package com.astrastream.avpush.infrastructure.codec
 
+import android.media.AudioRecord
 import android.media.MediaCodec
 import android.media.MediaCodecInfo
 import android.media.MediaCodecList
 import android.media.MediaFormat
-import com.astrastream.avpush.infrastructure.audio.AudioUtils
 import com.astrastream.avpush.domain.config.AudioConfiguration
-
 import java.nio.ByteBuffer
 
 class AudioMediaCodec {
@@ -40,8 +39,11 @@ class AudioMediaCodec {
             //采样率
             format.setInteger(MediaFormat.KEY_SAMPLE_RATE, configuration.sampleRate)
             //缓冲区大小
-            val maxInputSize =
-                AudioUtils.getMinBufferSize(configuration.sampleRate, configuration.channelCount, configuration.encoding)
+            val maxInputSize = AudioRecord.getMinBufferSize(
+                configuration.sampleRate,
+                configuration.channelCount,
+                configuration.encoding
+            )
             //最大的缓冲区
             format.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, maxInputSize)
             //通道数量

@@ -1,6 +1,7 @@
 #ifndef ASTRASTREAM_FLVMUXER_H
 #define ASTRASTREAM_FLVMUXER_H
 
+#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <optional>
@@ -42,11 +43,11 @@ public:
     void setVideoConfig(const VideoConfig& config);
     void setAudioConfig(const AudioConfig& config);
 
-    const VideoConfig& videoConfig() const { return videoConfig_; }
-    const AudioConfig& audioConfig() const { return audioConfig_; }
+    [[nodiscard]] const VideoConfig& videoConfig() const { return videoConfig_; }
+    [[nodiscard]] const AudioConfig& audioConfig() const { return audioConfig_; }
 
-    bool videoSequenceReady() const;
-    bool audioSequenceReady() const;
+    [[nodiscard]] bool videoSequenceReady() const;
+    [[nodiscard]] bool audioSequenceReady() const;
 
     bool hasSentVideoSequence() const { return videoSequenceSent_; }
     bool hasSentAudioSequence() const { return audioSequenceSent_; }
@@ -56,11 +57,11 @@ public:
     void markAudioSequenceSent() { audioSequenceSent_ = true; }
     void markMetadataSent() { metadataSent_ = true; }
 
-    std::optional<std::vector<uint8_t>> buildMetadataTag() const;
-    std::optional<std::vector<uint8_t>> buildVideoSequenceHeader();
-    std::optional<std::vector<uint8_t>> buildAudioSequenceHeader() const;
+    [[nodiscard]] std::optional<std::vector<uint8_t>> buildMetadataTag() const;
+    [[nodiscard]] std::optional<std::vector<uint8_t>> buildVideoSequenceHeader();
+    [[nodiscard]] std::optional<std::vector<uint8_t>> buildAudioSequenceHeader() const;
 
-    ParsedVideoFrame parseVideoFrame(const uint8_t* data, size_t size);
+    [[nodiscard]] ParsedVideoFrame parseVideoFrame(const uint8_t* data, size_t size);
     std::vector<uint8_t> buildVideoTag(const ParsedVideoFrame& frame) const;
     std::vector<uint8_t> buildAudioTag(const uint8_t* data, size_t size) const;
 
@@ -81,7 +82,7 @@ private:
     static void writeTagHeader(std::vector<uint8_t>& buffer,
                                uint8_t tagType,
                                uint32_t dataSize);
-    static uint8_t buildAudioHeader(const AudioConfig& config, bool isSequence);
+    static std::array<uint8_t, 2> buildAudioHeader(const AudioConfig& config, bool isSequence);
     static uint8_t buildVideoHeader(VideoCodecId codec,
                                     bool isKeyFrame,
                                     bool isSequence);

@@ -164,7 +164,7 @@ class LiveSessionCoordinator(
     fun confirmUrl(url: String, onValid: () -> Unit) {
         val clean = url.trim()
         if (clean.isEmpty()) {
-            Toast.makeText(context, "推流地址不能为空", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Publish URL cannot be empty", Toast.LENGTH_SHORT).show()
             return
         }
         state.value = state.value.copy(

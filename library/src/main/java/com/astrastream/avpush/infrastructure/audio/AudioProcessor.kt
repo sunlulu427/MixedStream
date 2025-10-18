@@ -1,136 +1,132 @@
 package com.astrastream.avpush.infrastructure.audio
 
-import com.astrastream.avpush.core.Contacts
-import com.astrastream.avpush.infrastructure.audio.AudioUtils.AUDIO_CHANNEL_CONFIG
-import com.astrastream.avpush.infrastructure.audio.AudioUtils.AUDIO_FROMAT
-import com.astrastream.avpush.infrastructure.audio.AudioUtils.SAMPLE_RATE_IN_HZ
-import com.astrastream.avpush.infrastructure.audio.AudioUtils.getBufferSize
+import android.media.AudioFormat
+import android.media.AudioRecord
+import android.media.MediaRecorder
+import com.astrastream.avpush.core.STREAM_LOG_TAG
 import com.astrastream.avpush.core.concurrency.ThreadImpl
 import com.astrastream.avpush.core.utils.LogHelper
 import java.util.Arrays
 
 class AudioProcessor : ThreadImpl() {
-    /**
-     * 读取大小
-     */
-    private var mReadSize = 1024;
-    /**
-     * 录制监听
-     */
-    private var mRecordListener: OnRecordListener? = null
+    private val lock = Object()
+    private var recordListener: OnRecordListener? = null
+    private var audioRecord: AudioRecord? = null
+    private var bufferSize = 0
+    private var readSize = 1024
+    private var isMuted = false
 
-    /**
-     * Java 中的锁
-     */
-    private val mLock = Object()
+    private var currentSource = MediaRecorder.AudioSource.MIC
+    private var currentSampleRate = 44100
+    private var currentChannelConfig = AudioFormat.CHANNEL_IN_MONO
+    private var currentEncoding = AudioFormat.ENCODING_PCM_16BIT
 
-    /**
-     * 是否禁言
-     */
-    private var isMute = false
-
-    /**
-     * 初始化
-     */
     fun init(
-        audioSource: Int = AudioUtils.AUDIO_SOURCE,
-        sampleRateInHz: Int = AudioUtils.SAMPLE_RATE_IN_HZ,
-        channelConfig: Int = AudioUtils.AUDIO_CHANNEL_CONFIG,
-        audioFormat: Int = AudioUtils.AUDIO_FROMAT
+        audioSource: Int = MediaRecorder.AudioSource.MIC,
+        sampleRateInHz: Int = 44100,
+        channelConfig: Int = AudioFormat.CHANNEL_IN_MONO,
+        audioFormat: Int = AudioFormat.ENCODING_PCM_16BIT
     ) {
-        try {
-            if (AudioUtils.initAudioRecord(
-                    audioSource,
-                    sampleRateInHz,
-                    channelConfig,
-                    audioFormat
-                )
-            ) {
-                mReadSize = getBufferSize()
+        release()
+        currentSource = audioSource
+        currentSampleRate = sampleRateInHz
+        currentChannelConfig = channelConfig
+        currentEncoding = audioFormat
+
+        bufferSize = AudioRecord.getMinBufferSize(sampleRateInHz, channelConfig, audioFormat)
+        if (bufferSize == AudioRecord.ERROR || bufferSize == AudioRecord.ERROR_BAD_VALUE) {
+            val error = "Invalid AudioRecord buffer size"
+            recordListener?.onError(error)
+            throw IllegalStateException(error)
+        }
+
+        readSize = bufferSize
+
+        audioRecord = try {
+            AudioRecord(
+                audioSource,
+                sampleRateInHz,
+                channelConfig,
+                audioFormat,
+                bufferSize
+            ).also {
+                if (it.state != AudioRecord.STATE_INITIALIZED) {
+                    throw IllegalStateException("AudioRecord initialization failed")
+                }
             }
         } catch (error: Exception) {
-            mRecordListener?.onError(error.message)
-            LogHelper.e(Contacts.TAG, error.message)
+            recordListener?.onError(error.message)
+            LogHelper.e(STREAM_LOG_TAG, error.message)
+            throw error
         }
     }
 
     override fun setPause(pause: Boolean) {
         super.setPause(pause)
         if (pause) {
-            mRecordListener?.onPause()
+            recordListener?.onPause()
         } else {
-            mLock.notifyAll()
-            mRecordListener?.onResume()
+            synchronized(lock) { lock.notifyAll() }
+            recordListener?.onResume()
         }
     }
 
-
-    /**
-     * 开始执行
-     */
-    fun startRcording() {
-        super.start { main() }
-        AudioUtils.startRecord()
-        mRecordListener?.onStart()
+    fun startRecording() {
+        if (audioRecord?.state != AudioRecord.STATE_INITIALIZED) return
+        super.start { mainLoop() }
+        audioRecord?.startRecording()
+        recordListener?.onStart(currentSampleRate, currentChannelConfig, currentEncoding)
     }
-
 
     override fun stop() {
         super.stop()
-        AudioUtils.stopRecord()
-        mRecordListener?.onStop()
+        audioRecord?.takeIf { it.state == AudioRecord.STATE_INITIALIZED }?.stop()
+        recordListener?.onStop()
     }
 
-    /**
-     * 设置禁言
-     */
-    fun setMute(mute: Boolean) {
-        this.isMute = mute
+    fun setMute(muted: Boolean) {
+        isMuted = muted
     }
 
-    fun isMute() = isMute
-
-    /**
-     * 子线程执行的函数入口
-     */
-    fun main() {
-        val data = ByteArray(mReadSize);
+    private fun mainLoop() {
+        val data = ByteArray(readSize)
         while (isRunning()) {
-            val name = Thread.currentThread().name
-            synchronized(mLock) {
-
+            synchronized(lock) {
                 if (isPause()) {
-                    mLock.wait()
-                }
-
-                if (isMute()) {
-                    Arrays.fill(data, 0)
-                    mRecordListener?.onPcmData(data)
+                    lock.wait()
                     return@synchronized
                 }
 
+                if (isMuted) {
+                    Arrays.fill(data, 0)
+                    recordListener?.onPcmData(data)
+                    return@synchronized
+                }
 
-                if (AudioUtils.read(data.size, data) > 0) {
-                    mRecordListener?.onPcmData(data)
+                val record = audioRecord ?: return@synchronized
+                val read = record.read(data, 0, data.size)
+                if (read > 0) {
+                    recordListener?.onPcmData(data.copyOf(read))
                 }
             }
         }
     }
 
-
     fun addRecordListener(listener: OnRecordListener) {
-        mRecordListener = listener
+        recordListener = listener
+    }
+
+    fun getBufferSize(): Int = bufferSize
+
+    fun release() {
+        audioRecord?.release()
+        audioRecord = null
     }
 
     interface OnRecordListener {
-        fun onStart(
-            sampleRate: Int = SAMPLE_RATE_IN_HZ,
-            channels: Int = AUDIO_CHANNEL_CONFIG,
-            sampleFormat: Int = AUDIO_FROMAT
-        )
-
-        fun onError(meg: String?)
-        fun onPcmData(byteArray: ByteArray);
+        fun onStart(sampleRate: Int, channels: Int, sampleFormat: Int)
+        fun onError(message: String?)
+        fun onPcmData(byteArray: ByteArray)
         fun onPause() {}
         fun onResume() {}
         fun onStop() {}

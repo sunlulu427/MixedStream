@@ -78,18 +78,18 @@ fun LiveScreen(
                     elevation = FloatingActionButtonDefaults.elevation(defaultElevation = 4.dp),
                     icon = {
                         if (state.isStreaming) {
-                            Icon(imageVector = Icons.Rounded.Stop, contentDescription = "停止推流")
+                            Icon(imageVector = Icons.Rounded.Stop, contentDescription = "Stop streaming")
                         } else {
-                            Icon(imageVector = Icons.Rounded.PlayArrow, contentDescription = "开始推流")
+                            Icon(imageVector = Icons.Rounded.PlayArrow, contentDescription = "Start streaming")
                         }
                     },
                     text = {
                         Text(
                             text = when {
-                                state.isStreaming -> "结束直播"
-                                state.isConnecting -> "连接中..."
-                                state.streamUrl.isBlank() -> "填写推流地址"
-                                else -> "开始直播"
+                                state.isStreaming -> "End Live"
+                                state.isConnecting -> "Connecting..."
+                                state.streamUrl.isBlank() -> "Set publish URL"
+                                else -> "Start Live"
                             }
                         )
                     }

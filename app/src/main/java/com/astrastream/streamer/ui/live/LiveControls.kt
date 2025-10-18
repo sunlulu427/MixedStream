@@ -99,24 +99,24 @@ fun StreamingStatsOverlay(state: LiveUiState, modifier: Modifier = Modifier) {
         color = MaterialTheme.colorScheme.surface.copy(alpha = 0.75f)
     ) {
         val status = when {
-            state.isConnecting -> "连接中"
-            state.isStreaming -> "直播中"
-            else -> "预览中"
+            state.isConnecting -> "Connecting"
+            state.isStreaming -> "Live"
+            else -> "Preview"
         }
         Column(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            Text(text = "状态: $status", style = MaterialTheme.typography.labelLarge)
-            Text(text = "采集: ${state.captureResolution.label} @ ${state.videoFps}fps", style = MaterialTheme.typography.bodySmall)
-            Text(text = "推流: ${state.streamResolution.label}", style = MaterialTheme.typography.bodySmall)
-            Text(text = "当前码率: ${state.currentBitrate} kbps (目标 ${state.targetBitrate})", style = MaterialTheme.typography.bodySmall)
-            Text(text = "实际帧率: ${state.currentFps} fps", style = MaterialTheme.typography.bodySmall)
+            Text(text = "Status: $status", style = MaterialTheme.typography.labelLarge)
+            Text(text = "Capture: ${state.captureResolution.label} @ ${state.videoFps} fps", style = MaterialTheme.typography.bodySmall)
+            Text(text = "Stream: ${state.streamResolution.label}", style = MaterialTheme.typography.bodySmall)
+            Text(text = "Bitrate: ${state.currentBitrate} kbps (target ${state.targetBitrate})", style = MaterialTheme.typography.bodySmall)
+            Text(text = "Actual FPS: ${state.currentFps}", style = MaterialTheme.typography.bodySmall)
             Text(text = "GOP: ${state.gop}", style = MaterialTheme.typography.bodySmall)
-            Text(text = "编码: ${state.encoder.description}", style = MaterialTheme.typography.bodySmall)
+            Text(text = "Encoder: ${state.encoder.description}", style = MaterialTheme.typography.bodySmall)
             if (state.streamUrl.isNotBlank()) {
                 Text(
-                    text = "地址: ${state.streamUrl}",
+                    text = "URL: ${state.streamUrl}",
                     style = MaterialTheme.typography.bodySmall,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
@@ -131,7 +131,7 @@ fun StreamUrlDialog(initialValue: String, onDismiss: () -> Unit, onConfirm: (Str
     val text = remember { mutableStateOf(initialValue) }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(text = "推流地址") },
+        title = { Text(text = "Publish URL") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text(text = "Enter an RTMP publish URL", style = MaterialTheme.typography.bodyMedium)
@@ -145,10 +145,10 @@ fun StreamUrlDialog(initialValue: String, onDismiss: () -> Unit, onConfirm: (Str
             }
         },
         confirmButton = {
-            TextButton(onClick = { onConfirm(text.value) }) { Text(text = "确定") }
+            TextButton(onClick = { onConfirm(text.value) }) { Text(text = "Confirm") }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text(text = "取消") }
+            TextButton(onClick = onDismiss) { Text(text = "Cancel") }
         }
     )
 }
@@ -191,12 +191,12 @@ fun ParameterPanel(
                     .verticalScroll(scrollState),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Text(text = "直播参数", style = MaterialTheme.typography.titleMedium, fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold)
+                Text(text = "Live parameters", style = MaterialTheme.typography.titleMedium, fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold)
 
                 OutlinedTextField(
                     value = state.streamUrl,
                     onValueChange = onStreamUrlChanged,
-                    label = { Text("推流地址（可选）") },
+                    label = { Text("Publish URL (optional)") },
                     placeholder = { Text("rtmp://host/app/stream") },
                     singleLine = false,
                     minLines = 1,
@@ -206,7 +206,7 @@ fun ParameterPanel(
                 )
 
                 ResolutionDropdown(
-                    label = "采集分辨率",
+                    label = "Capture resolution",
                     options = captureOptions,
                     selected = state.captureResolution,
                     onSelected = onCaptureResolutionSelected,
@@ -214,7 +214,7 @@ fun ParameterPanel(
                 )
 
                 ResolutionDropdown(
-                    label = "推流分辨率",
+                    label = "Stream resolution",
                     options = streamOptions,
                     selected = state.streamResolution,
                     onSelected = onStreamResolutionSelected,
@@ -233,10 +233,10 @@ fun ParameterPanel(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(text = "推流码率", style = MaterialTheme.typography.bodyMedium)
+                    Text(text = "Target bitrate", style = MaterialTheme.typography.bodyMedium)
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
                         IconButton(onClick = { onBitrateChanged(state.targetBitrate - 100) }, enabled = controlsEnabled) {
-                            Icon(Icons.Rounded.Remove, contentDescription = "降低码率")
+                            Icon(Icons.Rounded.Remove, contentDescription = "Decrease bitrate")
                         }
                         OutlinedTextField(
                             value = state.targetBitrate.toString(),
@@ -247,7 +247,7 @@ fun ParameterPanel(
                             modifier = Modifier.width(96.dp)
                         )
                         IconButton(onClick = { onBitrateChanged(state.targetBitrate + 100) }, enabled = controlsEnabled) {
-                            Icon(Icons.Rounded.Add, contentDescription = "提升码率")
+                            Icon(Icons.Rounded.Add, contentDescription = "Increase bitrate")
                         }
                     }
                 }
@@ -264,7 +264,7 @@ fun ParameterPanel(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(text = "显示实时信息", style = MaterialTheme.typography.bodyMedium)
+                Text(text = "Show live statistics", style = MaterialTheme.typography.bodyMedium)
                 Switch(checked = state.showStats, onCheckedChange = onStatsToggle)
             }
         }
@@ -289,13 +289,13 @@ private fun PullStreamList(urls: List<String>, modifier: Modifier = Modifier) {
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text(
-                text = "拉流地址",
+                text = "Playback URLs",
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold
             )
             if (!hasUrl) {
                 Text(
-                    text = "暂无可用拉流地址",
+                    text = "No playback URL available",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                 )
@@ -329,9 +329,9 @@ private fun PullStreamList(urls: List<String>, modifier: Modifier = Modifier) {
                                 }
                                 IconButton(onClick = {
                                     clipboard.setText(AnnotatedString(url))
-                                    Toast.makeText(context, "已复制", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, "Copied", Toast.LENGTH_SHORT).show()
                                 }) {
-                                    Icon(imageVector = Icons.Rounded.ContentCopy, contentDescription = "复制地址")
+                                    Icon(imageVector = Icons.Rounded.ContentCopy, contentDescription = "Copy address")
                                 }
                             }
                         }
@@ -445,7 +445,7 @@ fun EncoderDropdown(
         OutlinedTextField(
             value = selected.description,
             onValueChange = {},
-            label = { Text("编码器") },
+            label = { Text("Encoder") },
             readOnly = true,
             enabled = enabled,
             modifier = Modifier
@@ -464,9 +464,9 @@ fun EncoderDropdown(
                             Text(option.description, style = MaterialTheme.typography.bodyMedium)
                             Text(
                                 text = when {
-                                    option.videoCodec == VideoConfiguration.VideoCodec.H265 -> "更高压缩率，更低带宽"
-                                    option.videoCodec == VideoConfiguration.VideoCodec.H264 -> "兼容性更好，更稳定"
-                                    else -> "CPU编码，功耗较高"
+                                    option.videoCodec == VideoConfiguration.VideoCodec.H265 -> "High compression, lower bandwidth"
+                                    option.videoCodec == VideoConfiguration.VideoCodec.H264 -> "Highest compatibility"
+                                    else -> "Software codec, higher power usage"
                                 },
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -495,7 +495,7 @@ fun EncoderSegmentedControl(
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Text(
-            text = "编码器",
+            text = "Encoder",
             style = MaterialTheme.typography.labelMedium,
             color = if (enabled) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
         )

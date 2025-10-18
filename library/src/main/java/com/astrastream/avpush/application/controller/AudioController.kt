@@ -43,7 +43,7 @@ class AudioController(private val audioConfiguration: AudioConfiguration) : ICon
      * 触发 开始
      */
     override fun start() {
-        mAudioProcessor.startRcording()
+        mAudioProcessor.startRecording()
     }
 
     /**
@@ -65,6 +65,7 @@ class AudioController(private val audioConfiguration: AudioConfiguration) : ICon
      */
     override fun stop() {
         mAudioProcessor.stop()
+        mAudioProcessor.release()
 
     }
 

@@ -333,9 +333,9 @@ std::optional<std::vector<uint8_t>> FlvMuxer::buildAudioSequenceHeader() const {
     std::vector<uint8_t> payload;
     payload.reserve(2 + audioConfig_.asc.size());
 
-    uint8_t header = buildAudioHeader(audioConfig_, true);
-    payload.push_back(header);
-    payload.push_back(0x00);  // AAC sequence header
+    const auto header = buildAudioHeader(audioConfig_, true);
+    payload.push_back(header[0]);
+    payload.push_back(header[1]);
     payload.insert(payload.end(), audioConfig_.asc.begin(), audioConfig_.asc.end());
     return payload;
 }
@@ -435,18 +435,20 @@ std::vector<uint8_t> FlvMuxer::buildAudioTag(const uint8_t* data, size_t size) c
         return payload;
     }
     payload.reserve(2 + size);
-    payload.push_back(buildAudioHeader(audioConfig_, false));
-    payload.push_back(0x01);  // AAC raw data packet type
+    const auto header = buildAudioHeader(audioConfig_, false);
+    payload.push_back(header[0]);
+    payload.push_back(header[1]);
     payload.insert(payload.end(), data, data + size);
     return payload;
 }
 
-uint8_t FlvMuxer::buildAudioHeader(const AudioConfig& config, bool isSequence) {
-    uint8_t header = 0;
-    header |= static_cast<uint8_t>((kFlvSoundFormatAac & 0x0F) << 4);
-    header |= static_cast<uint8_t>((kFlvSoundRate44k & 0x03) << 2);
-    header |= static_cast<uint8_t>((kFlvSoundSize16Bit & 0x01) << 1);
-    header |= static_cast<uint8_t>(kFlvSoundTypeStereo & 0x01);
+std::array<uint8_t, 2> FlvMuxer::buildAudioHeader(const AudioConfig& /*config*/, bool isSequence) {
+    std::array<uint8_t, 2> header{};
+    header[0] = static_cast<uint8_t>((kFlvSoundFormatAac & 0x0F) << 4);
+    header[0] |= static_cast<uint8_t>((kFlvSoundRate44k & 0x03) << 2);
+    header[0] |= static_cast<uint8_t>((kFlvSoundSize16Bit & 0x01) << 1);
+    header[0] |= static_cast<uint8_t>(kFlvSoundTypeStereo & 0x01);
+    header[1] = static_cast<uint8_t>(isSequence ? 0x00 : 0x01);
     return header;
 }
 

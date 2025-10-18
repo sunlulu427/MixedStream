@@ -2,6 +2,7 @@
 #define ASTRASTREAM_PUSHPROXY_H
 
 #include <cstdint>
+#include <optional>
 
 #include "../push/RTMPPush.h"
 #include "IPush.h"
@@ -25,6 +26,8 @@ private:
 
     RTMPPush* rtmpPush = nullptr;
     JavaCallback* javaCallback = nullptr;
+    std::optional<astra::VideoConfig> pendingVideoConfig;
+    std::optional<astra::AudioConfig> pendingAudioConfig;
 };
 
 #endif  // ASTRASTREAM_PUSHPROXY_H

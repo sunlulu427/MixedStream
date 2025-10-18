@@ -2,7 +2,7 @@ package com.astrastream.avpush.infrastructure.stream.sender.rtmp
 
 import android.media.AudioFormat
 import android.media.MediaCodec
-import com.astrastream.avpush.core.Contacts
+import com.astrastream.avpush.core.RtmpErrorCode
 import com.astrastream.avpush.domain.callback.OnConnectListener
 import com.astrastream.avpush.domain.config.AudioConfiguration
 import com.astrastream.avpush.domain.config.VideoConfiguration
@@ -69,14 +69,14 @@ class RtmpSender : Sender {
     }
 
     fun onError(errorCode: Int) {
-        listener?.onFail(errorCode.toReadableMessage())
-    }
-
-    private fun Int.toReadableMessage(): String = when (this) {
-        Contacts.RTMP_CONNECT_ERROR -> "RTMP server connection failed"
-        Contacts.RTMP_INIT_ERROR -> "RTMP native initialization failed"
-        Contacts.RTMP_SET_URL_ERROR -> "RTMP URL setup failed"
-        else -> "Unknown streaming error"
+        val readable = RtmpErrorCode.fromCode(errorCode)?.let { code ->
+            when (code) {
+                RtmpErrorCode.CONNECT_FAILURE -> "RTMP server connection failed"
+                RtmpErrorCode.INIT_FAILURE -> "RTMP native initialization failed"
+                RtmpErrorCode.URL_SETUP_FAILURE -> "RTMP URL setup failed"
+            }
+        } ?: "Unknown streaming error"
+        listener?.onFail(readable)
     }
 
     private external fun nativeConnect(url: String?)

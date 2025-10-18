@@ -24,15 +24,24 @@ void PushProxy::init(const char* url, JavaCallback** callback) {
 
     javaCallback = callback ? *callback : nullptr;
     rtmpPush = new RTMPPush(url, callback);
+
+    if (pendingVideoConfig.has_value()) {
+        rtmpPush->configureVideo(pendingVideoConfig.value());
+    }
+    if (pendingAudioConfig.has_value()) {
+        rtmpPush->configureAudio(pendingAudioConfig.value());
+    }
 }
 
 void PushProxy::configureVideo(const astra::VideoConfig& config) {
+    pendingVideoConfig = config;
     if (auto* engine = getPushEngine()) {
         engine->configureVideo(config);
     }
 }
 
 void PushProxy::configureAudio(const astra::AudioConfig& config) {
+    pendingAudioConfig = config;
     if (auto* engine = getPushEngine()) {
         engine->configureAudio(config);
     }
