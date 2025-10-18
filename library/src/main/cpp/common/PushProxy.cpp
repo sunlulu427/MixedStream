@@ -26,6 +26,18 @@ void PushProxy::init(const char* url, JavaCallback** callback) {
     rtmpPush = new RTMPPush(url, callback);
 }
 
+void PushProxy::configureVideo(const astra::VideoConfig& config) {
+    if (auto* engine = getPushEngine()) {
+        engine->configureVideo(config);
+    }
+}
+
+void PushProxy::configureAudio(const astra::AudioConfig& config) {
+    if (auto* engine = getPushEngine()) {
+        engine->configureAudio(config);
+    }
+}
+
 void PushProxy::start() {
     auto* engine = getPushEngine();
     if (engine) {
@@ -46,23 +58,14 @@ void PushProxy::stop() {
     }
 }
 
-void PushProxy::pushSpsPps(uint8_t* sps, int sps_len, uint8_t* pps, int pps_len) {
-    auto* engine = getPushEngine();
-    if (engine) {
-        engine->pushSpsPps(sps, sps_len, pps, pps_len);
+void PushProxy::pushVideoFrame(const uint8_t* data, size_t length, int64_t pts) {
+    if (auto* engine = getPushEngine()) {
+        engine->pushVideoFrame(data, length, pts);
     }
 }
 
-void PushProxy::pushVideoData(uint8_t* video, int len, int keyframe) {
-    auto* engine = getPushEngine();
-    if (engine) {
-        engine->pushVideoData(video, len, keyframe);
-    }
-}
-
-void PushProxy::pushAudioData(uint8_t* audio, int len, int type) {
-    auto* engine = getPushEngine();
-    if (engine) {
-        engine->pushAudioData(audio, len, type);
+void PushProxy::pushAudioFrame(const uint8_t* data, size_t length, int64_t pts) {
+    if (auto* engine = getPushEngine()) {
+        engine->pushAudioFrame(data, length, pts);
     }
 }

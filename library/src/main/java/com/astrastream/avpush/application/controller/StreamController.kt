@@ -8,8 +8,6 @@ import com.astrastream.avpush.domain.callback.IController
 import com.astrastream.avpush.infrastructure.camera.Watermark
 import com.astrastream.avpush.domain.config.AudioConfiguration
 import com.astrastream.avpush.domain.config.VideoConfiguration
-import com.astrastream.avpush.infrastructure.stream.PacketType
-import com.astrastream.avpush.infrastructure.stream.packer.Packer
 import com.astrastream.avpush.infrastructure.stream.sender.Sender
 import com.astrastream.avpush.core.utils.LogHelper
 import java.nio.ByteBuffer
@@ -17,7 +15,7 @@ import javax.microedition.khronos.egl.EGLContext
 import kotlin.math.roundToInt
 
 class StreamController : LiveStreamSession, IController.OnAudioDataListener,
-    IController.OnVideoDataListener, Packer.OnPacketListener {
+    IController.OnVideoDataListener {
     private val TAG = javaClass.simpleName
 
     /**
@@ -45,14 +43,6 @@ class StreamController : LiveStreamSession, IController.OnAudioDataListener,
      */
     private var mVideoConfiguration = VideoConfiguration()
 
-    /**
-     * 打包器
-     */
-    private var mPacker: Packer? = null
-
-    /**
-     * 发送器
-     */
     private var mSender: Sender? = null
     private var statsListener: LiveStreamSession.StatsListener? = null
     private var statsWindowBytes = 0L
@@ -62,6 +52,7 @@ class StreamController : LiveStreamSession, IController.OnAudioDataListener,
     private var mContext: Context? = null
     private var mTextureId = 0
     private var mEGLContext: EGLContext? = null
+    private var audioSpecificConfig: ByteArray? = null
 
 
     /**
@@ -69,6 +60,7 @@ class StreamController : LiveStreamSession, IController.OnAudioDataListener,
      */
     override fun setAudioConfigure(audioConfiguration: AudioConfiguration) {
         this.mAudioConfiguration = audioConfiguration
+        mSender?.configureAudio(mAudioConfiguration, audioSpecificConfig)
     }
 
     /**
@@ -76,21 +68,20 @@ class StreamController : LiveStreamSession, IController.OnAudioDataListener,
      */
     override fun setVideoConfigure(videoConfiguration: VideoConfiguration) {
         this.mVideoConfiguration = videoConfiguration
+        mSender?.configureVideo(mVideoConfiguration)
     }
 
 
     /**
      * 设置打包器
      */
-    override fun setPacker(packer: Packer) {
-        this.mPacker = packer
-    }
-
     /**
      * 设置发送器
      */
     override fun setSender(sender: Sender) {
         this.mSender = sender
+        sender.configureVideo(mVideoConfiguration)
+        sender.configureAudio(mAudioConfiguration, audioSpecificConfig)
     }
 
     override fun setStatsListener(listener: LiveStreamSession.StatsListener?) {
@@ -113,22 +104,24 @@ class StreamController : LiveStreamSession, IController.OnAudioDataListener,
             mAudioController = AudioController(mAudioConfiguration)
             mVideoController =
                 VideoController(context, mTextureId, mEGLContext, mVideoConfiguration)
-            mPacker?.setPacketListener(this)
             mAudioController?.setAudioDataListener(this)
             mVideoController?.setVideoDataListener(this)
             mWatermark?.let { watermark ->
                 mVideoController?.setWatermark(watermark)
             }
+            mSender?.configureVideo(mVideoConfiguration)
+            mSender?.configureAudio(mAudioConfiguration, audioSpecificConfig)
         }
     }
 
     override fun start() {
-        if (mPacker == null || mSender == null) {
-            LogHelper.w(TAG, "start ignored: packer or sender not ready")
+        if (mSender == null) {
+            LogHelper.w(TAG, "start ignored: sender not ready")
             return
         }
-        if (mAudioController == null || mVideoController == null)
+        if (mAudioController == null || mVideoController == null) {
             init()
+        }
         resetStats()
         statsListener?.onVideoStats(0, mVideoConfiguration.fps)
         mAudioController?.start()
@@ -170,29 +163,24 @@ class StreamController : LiveStreamSession, IController.OnAudioDataListener,
      * 音频编码之后的数据交于打包器处理
      */
     override fun onAudioData(bb: ByteBuffer, bi: MediaCodec.BufferInfo) {
-        mPacker?.onAudioData(bb, bi)
+        mSender?.pushAudio(bb, bi)
     }
 
     /**
      * 音频输出格式
      */
     override fun onAudioOutformat(outputFormat: MediaFormat?) {
+        val ascBuffer = outputFormat?.getByteBuffer("csd-0") ?: return
+        val asc = ByteArray(ascBuffer.remaining())
+        ascBuffer.get(asc)
+        audioSpecificConfig = asc
+        mSender?.configureAudio(mAudioConfiguration, audioSpecificConfig)
     }
 
     /**
      * 视频输出格式
      */
     override fun onVideoOutformat(outputFormat: MediaFormat?) {
-        if (mVideoConfiguration.codec == VideoConfiguration.VideoCodec.H265) {
-            return
-        }
-        val spsb = outputFormat?.getByteBuffer("csd-0") ?: return
-        val sps = ByteArray(spsb.remaining())
-        spsb.get(sps, 0, sps.size)
-        val ppsb = outputFormat.getByteBuffer("csd-1") ?: return
-        val pps = ByteArray(ppsb.remaining())
-        ppsb.get(pps, 0, pps.size)
-        mPacker?.onVideoSpsPpsData(sps, pps, PacketType.SPS_PPS)
     }
 
     /**
@@ -213,22 +201,9 @@ class StreamController : LiveStreamSession, IController.OnAudioDataListener,
                 statsWindowStart = now
             }
         }
-        mPacker?.onVideoData(bb, bi)
-    }
-
-    /**
-     * 打包完成的数据，准备发送
-     */
-    override fun onPacket(byteArray: ByteArray, packetType: PacketType) {
-        mSender?.onData(byteArray, packetType)
-    }
-
-    override fun onPacket(sps: ByteArray?, pps: ByteArray?, packetType: PacketType) {
-        if (sps == null || pps == null) {
-            LogHelper.w(TAG, "drop video config packet: missing sps/pps")
-            return
+        if (bb != null && bi != null) {
+            mSender?.pushVideo(bb, bi)
         }
-        mSender?.onData(sps, pps, packetType)
     }
 
     override fun setWatermark(watermark: Watermark) {

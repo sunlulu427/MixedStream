@@ -12,7 +12,6 @@ import com.astrastream.avpush.domain.config.AudioConfiguration
 import com.astrastream.avpush.domain.config.CameraConfiguration
 import com.astrastream.avpush.domain.config.VideoConfiguration
 import com.astrastream.avpush.application.controller.LiveStreamSession
-import com.astrastream.avpush.infrastructure.stream.packer.rtmp.RtmpPacker
 import com.astrastream.avpush.infrastructure.stream.sender.rtmp.RtmpSender
 import com.astrastream.avpush.core.utils.LogHelper
 import com.astrastream.avpush.presentation.widget.AVLiveView
@@ -36,7 +35,6 @@ class LiveSessionCoordinator(
     val encoderOptions = defaultEncoderOptions()
     private val safeCaptureOption = captureOptions.first()
 
-    var packer: RtmpPacker? = null
     var sender: RtmpSender? = null
     var liveView: AVLiveView? = null
     private var previewStarted = false
@@ -50,7 +48,6 @@ class LiveSessionCoordinator(
     fun attachLiveView(view: AVLiveView) {
         if (liveView === view) return
         liveView = view
-        packer?.let(view::setPacker)
         sender?.let(view::setSender)
         view.setAudioConfigure(audioConfiguration)
         view.setStatsListener(this)
@@ -58,24 +55,6 @@ class LiveSessionCoordinator(
         view.setOnCameraErrorListener { message -> onCameraError(message) }
         applyStreamConfiguration(view)
         if (previewRequested) startPreview()
-    }
-
-    fun ensurePacker() {
-        if (packer == null) {
-            // Use current video configuration or default to H.264
-            val current = state.value
-            val videoConfig = VideoConfiguration(
-                width = current.streamResolution.width,
-                height = current.streamResolution.height,
-                fps = current.videoFps,
-                maxBps = current.maxBitrate,
-                minBps = current.minBitrate,
-                ifi = current.gop,
-                mediaCodec = current.encoder.useHardware,
-                codec = current.encoder.videoCodec
-            )
-            packer = RtmpPacker(videoConfig).also { current -> liveView?.setPacker(current) }
-        }
     }
 
     fun ensureSender(onError: (String) -> Unit): Boolean {
@@ -86,10 +65,10 @@ class LiveSessionCoordinator(
             liveView?.setSender(newSender)
             true
         } catch (error: UnsatisfiedLinkError) {
-            onError("当前设备架构不支持推流组件，请使用 ARM 真机")
+            onError("Streaming is not supported on this device ABI. Please use an ARM device")
             false
         } catch (t: Throwable) {
-            onError("推流模块初始化失败: ${t.message}")
+            onError("Failed to initialise streaming module: ${t.message}")
             false
         }
     }
@@ -100,7 +79,7 @@ class LiveSessionCoordinator(
             LogHelper.w(tag, "startPreview skipped: camera permission missing")
             previewRequested = true
             if (!permissionWarningShown) {
-                Toast.makeText(context, "请先授予相机权限", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "Camera permission required", Toast.LENGTH_SHORT).show()
                 permissionWarningShown = true
             }
             return

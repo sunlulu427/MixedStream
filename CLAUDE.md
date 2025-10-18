@@ -69,13 +69,11 @@ live.startPreview()
 
 // 3. Start streaming (optional)
 sender.connect(rtmpUrl)
-packer.start()
 live.startLive()
 
 // 4. Stop streaming
 live.stopLive()
 sender.close()
-packer.stop()
 ```
 
 ### Stability Notes
@@ -124,7 +122,7 @@ packer.stop()
 - `docs/`: Design and process documentation (PlantUML/PNG). Build scripts: root `build.gradle`, module `*/build.gradle`, `settings.gradle`.
 
 ### Architecture Overview
-- Pipeline: Capture/Rendering (`camera/*`, `camera/renderer/*`) → Encoding/Decoding (`mediacodec/*`) → Packaging (FLV, `stream/packer/*`) → Sending (RTMP, `stream/sender/*`) → Native `librtmp`.
+- Pipeline: Capture/Rendering (`camera/*`, `camera/renderer/*`) → Encoding/Decoding (`mediacodec/*`) → Native FLV/AMF muxing (`src/main/cpp/stream/*`) → Sending (RTMP, `stream/sender/*`) → Native `librtmp`.
 - Dependencies: `app` depends on `library` only at the demo layer; `library` calls `src/main/cpp` through JNI and links precompiled `librtmp`.
 - Key components: Control layer (`controller/*`), audio/video pipelines (`camera/*`, `mediacodec/*`), packaging/sending (`stream/*`), configuration/callbacks (`config/*`, `callback/*`), UI components (`widget/AVLiveView`).
 
@@ -238,7 +236,7 @@ packer.stop()
 - Architecture layers:
   - Capture/rendering: `camera/*`, `camera/renderer/*`, `widget/*` (see `docs/video_capture.puml`, `docs/video_render.puml`)
   - Encoding/decoding: `mediacodec/*` (see `docs/video_encode.puml`)
-  - Packaging: `stream/packer/*`
+  - Native packaging: `src/main/cpp/stream/*`
   - Sending: `stream/sender/*` (including `rtmp`)
   - Controllers: `controller/*`
   - Configuration/callbacks: `config/*`, `callback/*`

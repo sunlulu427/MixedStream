@@ -1,8 +1,20 @@
 package com.astrastream.avpush.infrastructure.stream.sender
 
-import com.astrastream.avpush.infrastructure.stream.PacketType
+import android.media.MediaCodec
+import com.astrastream.avpush.domain.callback.OnConnectListener
+import com.astrastream.avpush.domain.config.AudioConfiguration
+import com.astrastream.avpush.domain.config.VideoConfiguration
+import java.nio.ByteBuffer
 
 interface Sender {
-    fun onData(data: ByteArray, type: PacketType)
-    fun onData(sps: ByteArray, pps: ByteArray, type: PacketType) {}
+    fun setDataSource(source: String)
+    fun setOnConnectListener(listener: OnConnectListener?)
+    fun connect()
+    fun close()
+
+    fun configureVideo(config: VideoConfiguration)
+    fun configureAudio(config: AudioConfiguration, audioSpecificConfig: ByteArray?)
+
+    fun pushVideo(buffer: ByteBuffer, info: MediaCodec.BufferInfo)
+    fun pushAudio(buffer: ByteBuffer, info: MediaCodec.BufferInfo)
 }

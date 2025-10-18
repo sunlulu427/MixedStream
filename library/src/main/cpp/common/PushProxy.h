@@ -11,11 +11,12 @@ public:
     static PushProxy* getInstance();
 
     void init(const char* url, JavaCallback** javaCallback);
+    void configureVideo(const astra::VideoConfig& config);
+    void configureAudio(const astra::AudioConfig& config);
     void start();
     void stop();
-    void pushSpsPps(uint8_t* sps, int sps_len, uint8_t* pps, int pps_len);
-    void pushAudioData(uint8_t* audio, int len, int type);
-    void pushVideoData(uint8_t* video, int len, int keyframe);
+    void pushVideoFrame(const uint8_t* data, size_t length, int64_t pts);
+    void pushAudioFrame(const uint8_t* data, size_t length, int64_t pts);
 
 private:
     PushProxy();

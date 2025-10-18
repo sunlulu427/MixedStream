@@ -4,7 +4,6 @@ import android.content.Context
 import com.astrastream.avpush.infrastructure.camera.Watermark
 import com.astrastream.avpush.domain.config.AudioConfiguration
 import com.astrastream.avpush.domain.config.VideoConfiguration
-import com.astrastream.avpush.infrastructure.stream.packer.Packer
 import com.astrastream.avpush.infrastructure.stream.sender.Sender
 import javax.microedition.khronos.egl.EGLContext
 
@@ -20,8 +19,6 @@ interface LiveStreamSession {
     fun setAudioConfigure(audioConfiguration: AudioConfiguration)
 
     fun setVideoConfigure(videoConfiguration: VideoConfiguration)
-
-    fun setPacker(packer: Packer)
 
     fun setSender(sender: Sender)
 

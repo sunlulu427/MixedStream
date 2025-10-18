@@ -12,9 +12,9 @@
 - Build scripts: root `build.gradle.kts`, module-level `*/build.gradle.kts`, `settings.gradle.kts`.
 
 ## Architecture Highlights
-- Pipeline: capture/render (`camera/*`, `camera/renderer/*`) → encode (`mediacodec/*`) → package (FLV, `stream/packer/*`) → transport (RTMP, `stream/sender/*`) → native `librtmp`.
+- Pipeline: capture/render (`camera/*`, `camera/renderer/*`) → encode (`mediacodec/*`) → native FLV/AMF packaging → transport (RTMP, `stream/sender/*`) → `librtmp`.
 - Dependencies: the demo app only consumes the SDK. The SDK talks to native code exclusively through JNI abstractions and links against the prebuilt `librtmp` static library.
-- Key components: controllers (`controller/*`), AV pipeline (`camera/*`, `mediacodec/*`), packer/sender (`stream/*`), configuration callbacks (`config/*`, `callback/*`), and UI widgets (`widget/AVLiveView`).
+- Key components: controllers (`controller/*`), AV pipeline (`camera/*`, `mediacodec/*`), sender/native bridge (`stream/*`, `src/main/cpp`), configuration callbacks (`config/*`, `callback/*`), and UI widgets (`widget/AVLiveView`).
 
 ## Clean Architecture Checklist
 - **Inward Dependencies**: high-level policy (controllers, configuration contracts) never depends on concrete hardware/API implementations.
@@ -26,9 +26,9 @@
 ## Usage Snapshot (see `README`/`Core.md` for details)
 1. Place `com.astrastream.avpush.widget.AVLiveView` in the layout.
 2. Configure audio, video, and camera parameters through the exposed setters.
-3. Start sequence: `startPreview()` → `sender.connect()` → `packer.start()` → `live.startLive()`.
+3. Start sequence: `startPreview()` → `sender.connect()` → `live.startLive()`.
 4. Adjust bitrate dynamically with `live.setVideoBps(bps)`.
-5. Stop sequence: `live.stopLive()` → `sender.close()` → `packer.stop()`.
+5. Stop sequence: `live.stopLive()` → `sender.close()`.
 
 ## Diagram & Documentation Rules
 - Store all architecture diagrams inside `docs/*.puml`.
@@ -88,5 +88,5 @@
 ## Quick Start Recap
 1. Add `AVLiveView` to the layout (configure `fps`, `preview_width/height`, bitrate bounds in XML if desired).
 2. Configure audio/video/camera parameters in code, then call `live.startPreview()` (after camera permission is granted).
-3. Create `RtmpSender`, call `setDataSource(url)` and `connect()`. Once `onConnected` fires: `packer.start()` + `live.startLive()`.
-4. Stop with `live.stopLive()`, `sender.close()`, `packer.stop()`.
+3. Create `RtmpSender`, call `setDataSource(url)` and `connect()`. Once `onConnected` fires: `live.startLive()`.
+4. Stop with `live.stopLive()` and `sender.close()`.

@@ -10,7 +10,6 @@ import com.astrastream.avpush.domain.config.CameraConfiguration
 import com.astrastream.avpush.domain.config.VideoConfiguration
 import com.astrastream.avpush.application.controller.LiveStreamSession
 import com.astrastream.avpush.application.controller.StreamController
-import com.astrastream.avpush.infrastructure.stream.packer.Packer
 import com.astrastream.avpush.infrastructure.stream.sender.Sender
 
 class AVLiveView @JvmOverloads constructor(
@@ -27,7 +26,6 @@ class AVLiveView @JvmOverloads constructor(
     private var mVideoMinRate = 400
     private var mVideoMaxRate = 1800
     private var currentWatermark: Watermark? = null
-    private var currentPacker: Packer? = null
     private var currentSender: Sender? = null
     private var statsListener: LiveStreamSession.StatsListener? = null
     private var previewSizeListener: ((Int, Int) -> Unit)? = null
@@ -105,14 +103,6 @@ class AVLiveView @JvmOverloads constructor(
         super.setWatermark(watermark)
         currentWatermark = watermark
         streamSession.setWatermark(watermark)
-    }
-
-    /**
-     * 设置打包器
-     */
-    fun setPacker(packer: Packer) {
-        currentPacker = packer
-        streamSession.setPacker(packer)
     }
 
     /**
@@ -200,7 +190,6 @@ class AVLiveView @JvmOverloads constructor(
         streamSession = session
         streamSession.setAudioConfigure(mAudioConfiguration)
         streamSession.setVideoConfigure(mVideoConfiguration)
-        currentPacker?.let { streamSession.setPacker(it) }
         currentSender?.let { streamSession.setSender(it) }
         currentWatermark?.let { streamSession.setWatermark(it) }
         statsListener?.let { streamSession.setStatsListener(it) }

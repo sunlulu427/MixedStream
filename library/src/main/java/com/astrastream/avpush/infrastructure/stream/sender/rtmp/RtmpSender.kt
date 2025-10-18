@@ -1,13 +1,17 @@
 package com.astrastream.avpush.infrastructure.stream.sender.rtmp
 
+import android.media.AudioFormat
+import android.media.MediaCodec
 import com.astrastream.avpush.core.Contacts
 import com.astrastream.avpush.domain.callback.OnConnectListener
-import com.astrastream.avpush.infrastructure.stream.PacketType
+import com.astrastream.avpush.domain.config.AudioConfiguration
+import com.astrastream.avpush.domain.config.VideoConfiguration
 import com.astrastream.avpush.infrastructure.stream.sender.Sender
+import java.nio.ByteBuffer
 
 class RtmpSender : Sender {
     private var listener: OnConnectListener? = null
-    private var mRtmpUrl: String? = null
+    private var rtmpUrl: String? = null
 
     companion object {
         init {
@@ -15,89 +19,70 @@ class RtmpSender : Sender {
         }
     }
 
+    override fun setDataSource(source: String) {
+        rtmpUrl = source
+    }
 
-    override fun onData(data: ByteArray, type: PacketType) {
-        if (type == PacketType.FIRST_AUDIO || type == PacketType.AUDIO) {
-            //音频数据
-            pushAudio(data, data.size, type.type)
-        } else if (type == PacketType.FIRST_VIDEO ||
-            type == PacketType.KEY_FRAME || type == PacketType.VIDEO
-        ) {
-            //视频数据
-            pushVideo(data, data.size, type.type)
+    override fun setOnConnectListener(listener: OnConnectListener?) {
+        this.listener = listener
+    }
+
+    override fun connect() {
+        nativeConnect(rtmpUrl)
+    }
+
+    override fun close() {
+        nativeClose()
+        listener?.onClose()
+    }
+
+    override fun configureVideo(config: VideoConfiguration) {
+        val codecOrdinal = when (config.codec) {
+            VideoConfiguration.VideoCodec.H264 -> 0
+            VideoConfiguration.VideoCodec.H265 -> 1
         }
+        nativeConfigureVideo(config.width, config.height, config.fps, codecOrdinal)
     }
 
-
-    fun setDataSource(source: String) {
-        mRtmpUrl = source
+    override fun configureAudio(config: AudioConfiguration, audioSpecificConfig: ByteArray?) {
+        val sampleSizeBits = when (config.encoding) {
+            AudioFormat.ENCODING_PCM_8BIT -> 8
+            else -> 16
+        }
+        nativeConfigureAudio(config.sampleRate, config.channelCount, sampleSizeBits, audioSpecificConfig)
     }
 
-    fun connect() {
-        NativeRtmpConnect(mRtmpUrl)
-
+    override fun pushVideo(buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
+        nativePushVideoFrame(buffer, info.offset, info.size, info.presentationTimeUs)
     }
 
-    fun close() {
-        NativeRtmpClose()
-        onClose()
+    override fun pushAudio(buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
+        nativePushAudioFrame(buffer, info.offset, info.size, info.presentationTimeUs)
     }
 
-    fun setOnConnectListener(lis: OnConnectListener) {
-        listener = lis
-    }
-
-
-    /**
-     * C++ 层调用
-     * 开始链接
-     */
     fun onConnecting() {
         listener?.onConnecting()
     }
 
-    /**
-     * C++ 层调用
-     * 连接成功
-     */
     fun onConnected() {
         listener?.onConnected()
     }
 
-    /**
-     * C++ 层调用
-     * 关闭成功
-     */
-    fun onClose() {
-        listener?.onClose()
-    }
-
-
-    /**
-     * C++ 层调用
-     * 推送失败
-     */
     fun onError(errorCode: Int) {
-        listener?.onFail(errorCode2errorMessage(errorCode))
+        listener?.onFail(errorCode.toReadableMessage())
     }
 
-    private fun errorCode2errorMessage(errorCode: Int): String {
-
-        var message = "未知错误，请联系管理员!"
-        if (errorCode == Contacts.RTMP_CONNECT_ERROR) {
-            message = "RTMP server connect fail!"
-        } else if (errorCode == Contacts.RTMP_INIT_ERROR) {
-            message = "RTMP native init fail!"
-        } else if (errorCode == Contacts.RTMP_SET_URL_ERROR) {
-            message = "RTMP url set fail!"
-        }
-        return message
+    private fun Int.toReadableMessage(): String = when (this) {
+        Contacts.RTMP_CONNECT_ERROR -> "RTMP server connection failed"
+        Contacts.RTMP_INIT_ERROR -> "RTMP native initialization failed"
+        Contacts.RTMP_SET_URL_ERROR -> "RTMP URL setup failed"
+        else -> "Unknown streaming error"
     }
 
-
-    private external fun NativeRtmpConnect(url: String?);
-    private external fun NativeRtmpClose();
-    private external fun pushAudio(data: ByteArray, size: Int, type: Int)
-    private external fun pushVideo(data: ByteArray, size: Int, isKeyFrame: Int)
-    private external fun pushSpsPps(sps: ByteArray, size: Int, pps: ByteArray, size1: Int)
+    private external fun nativeConnect(url: String?)
+    private external fun nativeClose()
+    private external fun nativeConfigureVideo(width: Int, height: Int, fps: Int, codecOrdinal: Int)
+    private external fun nativeConfigureAudio(sampleRate: Int, channels: Int, sampleSizeBits: Int, asc: ByteArray?)
+    private external fun nativePushVideoFrame(buffer: ByteBuffer, offset: Int, size: Int, ptsUs: Long)
+    private external fun nativePushAudioFrame(buffer: ByteBuffer, offset: Int, size: Int, ptsUs: Long)
 }

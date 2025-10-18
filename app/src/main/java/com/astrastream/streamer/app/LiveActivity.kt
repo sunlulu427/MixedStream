@@ -59,7 +59,6 @@ class LiveActivity : AppCompatActivity(), OnConnectListener {
         initializeEnvironment()
         val contentView = createContentView()
         setContentView(contentView)
-        coordinator.ensurePacker()
         ensurePreview()
         requestRuntimePermissions()
     }
@@ -182,7 +181,6 @@ class LiveActivity : AppCompatActivity(), OnConnectListener {
 
     private fun stopStreaming() {
         coordinator.liveView?.stopLive()
-        coordinator.packer?.stop()
         coordinator.sender?.close()
         coordinator.markStreamingStopped(uiState.value.videoFps)
     }
@@ -207,7 +205,6 @@ class LiveActivity : AppCompatActivity(), OnConnectListener {
     override fun onConnecting() = coordinator.markConnecting()
 
     override fun onConnected() {
-        coordinator.packer?.start()
         coordinator.liveView?.startLive()
         coordinator.liveView?.setVideoBps(uiState.value.targetBitrate)
         coordinator.markStreamingStarted(uiState.value.targetBitrate, uiState.value.videoFps)

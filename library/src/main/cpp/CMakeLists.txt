@@ -11,11 +11,13 @@ set(JNI_ROOT ${SRC_ROOT}/jni)
 set(PUSH_ROOT ${SRC_ROOT}/push)
 set(COMMON_ROOT ${SRC_ROOT}/common)
 set(CALLBACK_ROOT ${SRC_ROOT}/callback)
+set(STREAM_ROOT ${SRC_ROOT}/stream)
 
 file(GLOB JNI_SOURCES CONFIGURE_DEPENDS ${JNI_ROOT}/*.cpp)
 file(GLOB PUSH_SOURCES CONFIGURE_DEPENDS ${PUSH_ROOT}/*.cpp)
 file(GLOB COMMON_SOURCES CONFIGURE_DEPENDS ${COMMON_ROOT}/*.cpp)
 file(GLOB CALLBACK_SOURCES CONFIGURE_DEPENDS ${CALLBACK_ROOT}/*.cpp)
+file(GLOB STREAM_SOURCES CONFIGURE_DEPENDS ${STREAM_ROOT}/*.cpp)
 
 add_library(
         astra
@@ -24,6 +26,7 @@ add_library(
         ${PUSH_SOURCES}
         ${COMMON_SOURCES}
         ${CALLBACK_SOURCES}
+        ${STREAM_SOURCES}
 )
 
 target_include_directories(
@@ -34,6 +37,7 @@ target_include_directories(
         ${PUSH_ROOT}
         ${COMMON_ROOT}
         ${CALLBACK_ROOT}
+        ${STREAM_ROOT}
 )
 
 add_library(rtmp STATIC IMPORTED)

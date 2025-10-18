@@ -3,18 +3,17 @@
 ## Layering Overview
 - Capture/Render: `camera/*`, `camera/renderer/*`, `widget/*` (see `docs/video_capture.puml`, `docs/video_render.puml`).
 - Encode: `mediacodec/*` (see `docs/video_encode.puml`).
-- Package: `stream/packer/*` (FLV muxing).
-- Transport: `stream/sender/*` (RTMP sender and native bridge).
+- Transport: `stream/sender/*` (RTMP sender + JNI bridge) backed by native FLV/AMF muxing.
 - Controllers: `controller/*` coordinate the pipeline end-to-end.
 - Config/Callback: `config/*`, `callback/*` define host-facing contracts.
-- Native: `src/main/cpp/*` (JNI glue + `librtmp` static library).
+- Native: `src/main/cpp/*` (muxing, queueing, RTMP glue, `librtmp` static library).
 
 ## Key Considerations
 - **GLSurface & Render Thread**: EGL must be created on the render thread. Avoid GL calls from the UI thread.
 - **Watermark Application**: `CameraView.setWatermark()` buffers requests until GL is ready; watermarks are applied once `onSurfaceCreated` fires to prevent `lateinit` crashes.
 - **FBO Rendering**: `FboRenderer` manages off-screen rendering. Create textures only after the EGL context is live.
 - **Camera Management**: `CameraHolder` centralises open/start/stop/release and downgrades gracefully when hardware is busy or unavailable.
-- **Codec Output**: `VideoMediaCodec`/`VideoEncoder` (and audio counterparts) forward SPS/PPS frames to the packer through `StreamController`.
+- **Codec Output**: Encoded buffers flow from `VideoMediaCodec`/`AudioMediaCodec` through `StreamController` to `RtmpSender`, which forwards raw frames to the native muxer.
 - **RTMP Sender**: `RtmpSender` calls into native code lazily, avoiding ABI mismatches. Refer to `docs/video_streaming.puml` for flow details.
 
 ## Native Build
@@ -24,7 +23,7 @@
 
 ## Configuration Tips
 - Use `VideoConfiguration`/`AudioConfiguration`/`CameraConfiguration` to define resolution, frame rate, bitrate, and encoder preferences.
-- `AVLiveView` hosts the full user interaction surface while `StreamController` orchestrates audio, video, packaging, and transport.
+- `AVLiveView` hosts the full user interaction surface while `StreamController` orchestrates audio, video, and transport.
 
 ## Logging
 - Keep `LogHelper` statements at key checkpoints: camera/EGL/shader/FBO lifecycle, I-frame cadence, bitrate adjustments, queue depth, network retries/errors.

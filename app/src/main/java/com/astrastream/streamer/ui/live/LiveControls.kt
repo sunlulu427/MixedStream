@@ -134,7 +134,7 @@ fun StreamUrlDialog(initialValue: String, onDismiss: () -> Unit, onConfirm: (Str
         title = { Text(text = "推流地址") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text(text = "请输入 RTMP 推流地址", style = MaterialTheme.typography.bodyMedium)
+                Text(text = "Enter an RTMP publish URL", style = MaterialTheme.typography.bodyMedium)
                 OutlinedTextField(
                     value = text.value,
                     onValueChange = { text.value = it },

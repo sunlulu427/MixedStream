@@ -124,11 +124,11 @@ LogHelper.i("LiveSessionCoordinator", "camera preview ready with 720x1280")
 Typical runtime sequence:
 
 1. Configure audio, video, and camera parameters (defaults to 720 × 1280 @ 30 fps)
-2. Attach packer (`FLV`) and sender (`RTMP`)
-3. Call `startPreview()` to spin up camera GL pipeline
-4. Open RTMP connection and invoke `startLive()`
+2. Configure the RTMP sender (native FLV/AMF muxing is handled in C++)
+3. Call `startPreview()` to spin up the camera GL pipeline
+4. Open the RTMP connection and invoke `startLive()`
 5. Use `setVideoBps()` for adaptive bitrate, `setMute()` for audio mute
-6. Stop via `live.stopLive()`, `sender.close()`, `packer.stop()`
+6. Stop via `live.stopLive()` and `sender.close()`
 
 Watermarks can be queued before GL initialization—`AVLiveView` applies them once the renderer is ready.
 
@@ -153,7 +153,7 @@ Watermarks can be queued before GL initialization—`AVLiveView` applies them on
 
 ## Extensibility
 
-Implement `LiveStreamSession` to swap streaming strategies (e.g., different packer, custom sender) without touching UI code:
+Implement `LiveStreamSession` to swap streaming strategies (for example, a file recorder or alternate sender) without touching UI code:
 
 ```kotlin
 class FileRecordingSession : LiveStreamSession { /* ... */ }

@@ -6,6 +6,7 @@
 #include "AVQueue.h"
 #include "IPush.h"
 #include "JavaCallback.h"
+#include "../stream/FlvMuxer.h"
 
 #include <android/log.h>
 
@@ -24,20 +25,28 @@ public:
     void start() override;
     void stop() override;
     void main() override;
-    void pushSpsPps(uint8_t* sps, int sps_len, uint8_t* pps, int pps_len) override;
-    void pushAudioData(uint8_t* audio, int len, int type) override;
-    void pushVideoData(uint8_t* video, int len, int type) override;
+    void configureVideo(const astra::VideoConfig& config) override;
+    void configureAudio(const astra::AudioConfig& config) override;
+    void pushVideoFrame(const uint8_t* data, size_t length, int64_t pts) override;
+    void pushAudioFrame(const uint8_t* data, size_t length, int64_t pts) override;
 
     void onConnecting();
     void release();
 
 private:
+    void enqueuePacket(const uint8_t* data, size_t length, uint8_t packetType, uint32_t timestamp, uint8_t channel);
+    void ensureHeaders();
+
+    astra::FlvMuxer muxer_;
     RTMP* mRtmp = nullptr;
     char* mRtmpUrl = nullptr;
     AVQueue* mQueue = nullptr;
     JavaCallback* mCallback = nullptr;
     int isPusher = 0;
     long mStartTime = 0;
+    uint32_t lastVideoTimestamp_ = 0;
+    uint32_t lastAudioTimestamp_ = 0;
+    bool headersRequested_ = false;
 };
 
 #endif  // ASTRASTREAM_RTMPPUSH_H
