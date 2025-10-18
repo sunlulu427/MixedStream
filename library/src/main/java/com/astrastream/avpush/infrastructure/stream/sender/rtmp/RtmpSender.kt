@@ -68,6 +68,10 @@ class RtmpSender : Sender {
         listener?.onConnected()
     }
 
+    fun onClose() {
+        listener?.onClose()
+    }
+
     fun onError(errorCode: Int) {
         val readable = RtmpErrorCode.fromCode(errorCode)?.let { code ->
             when (code) {
