@@ -1,219 +1,166 @@
 package com.astrastream.avpush.application.controller
 
 import android.content.Context
-import android.media.MediaCodec
 import android.media.MediaFormat
-import android.os.SystemClock
-import com.astrastream.avpush.domain.callback.IController
-import com.astrastream.avpush.infrastructure.camera.Watermark
+import com.astrastream.avpush.application.pipeline.AudioCaptureNode
+import com.astrastream.avpush.application.pipeline.TransportNode
+import com.astrastream.avpush.application.pipeline.VideoCaptureNode
+import com.astrastream.avpush.core.pipeline.StreamingPipeline
+import com.astrastream.avpush.core.utils.LogHelper
 import com.astrastream.avpush.domain.config.AudioConfiguration
 import com.astrastream.avpush.domain.config.VideoConfiguration
+import com.astrastream.avpush.infrastructure.camera.Watermark
 import com.astrastream.avpush.infrastructure.stream.sender.Sender
-import com.astrastream.avpush.core.utils.LogHelper
-import java.nio.ByteBuffer
 import javax.microedition.khronos.egl.EGLContext
-import kotlin.math.roundToInt
 
-class StreamController : LiveStreamSession, IController.OnAudioDataListener,
-    IController.OnVideoDataListener {
-    private val TAG = javaClass.simpleName
+class StreamController : LiveStreamSession {
 
-    /**
-     * 水印
-     */
-    private var mWatermark: Watermark? = null
+    private val tag = javaClass.simpleName
 
-    /**
-     * 音频数据的管理
-     */
-    private var mAudioController: IController? = null
-
-    /**
-     * 视频数据的管理
-     */
-    private var mVideoController: VideoController? = null
-
-    /**
-     * 音频采集编码默认配置
-     */
-    private var mAudioConfiguration = AudioConfiguration()
-
-    /**
-     * 视频编码默认配置
-     */
-    private var mVideoConfiguration = VideoConfiguration()
-
-    private var mSender: Sender? = null
+    private var watermark: Watermark? = null
+    private var audioConfiguration = AudioConfiguration()
+    private var videoConfiguration = VideoConfiguration()
+    private var sender: Sender? = null
     private var statsListener: LiveStreamSession.StatsListener? = null
-    private var statsWindowBytes = 0L
-    private var statsWindowFrames = 0
-    private var statsWindowStart = SystemClock.elapsedRealtime()
 
-    private var mContext: Context? = null
-    private var mTextureId = 0
-    private var mEGLContext: EGLContext? = null
+    private var appContext: Context? = null
+    private var textureId: Int = 0
+    private var eglContext: EGLContext? = null
     private var audioSpecificConfig: ByteArray? = null
 
+    private var pipeline: StreamingPipeline? = null
+    private var audioNode: AudioCaptureNode? = null
+    private var videoNode: VideoCaptureNode? = null
+    private var transportNode: TransportNode? = null
 
-    /**
-     * 设置音频编码和采集的参数
-     */
     override fun setAudioConfigure(audioConfiguration: AudioConfiguration) {
-        this.mAudioConfiguration = audioConfiguration
-        mSender?.configureAudio(mAudioConfiguration, audioSpecificConfig)
+        this.audioConfiguration = audioConfiguration
+        applyAudioConfiguration()
     }
 
-    /**
-     * 设置视频的编码参数
-     */
     override fun setVideoConfigure(videoConfiguration: VideoConfiguration) {
-        this.mVideoConfiguration = videoConfiguration
-        mSender?.configureVideo(mVideoConfiguration)
+        this.videoConfiguration = videoConfiguration
+        applyVideoConfiguration()
     }
 
-
-    /**
-     * 设置打包器
-     */
-    /**
-     * 设置发送器
-     */
     override fun setSender(sender: Sender) {
-        this.mSender = sender
-        sender.configureVideo(mVideoConfiguration)
-        sender.configureAudio(mAudioConfiguration, audioSpecificConfig)
+        this.sender = sender
+        applyVideoConfiguration()
+        applyAudioConfiguration()
     }
 
     override fun setStatsListener(listener: LiveStreamSession.StatsListener?) {
         statsListener = listener
+        bindStatsListener()
     }
 
-
-    /**
-     *  @see start 之前必须调用 prepare
-     */
     override fun prepare(context: Context, textureId: Int, eglContext: EGLContext?) {
-        this.mContext = context.applicationContext
-        this.mTextureId = textureId
-        this.mEGLContext = eglContext
-        init()
-    }
-
-    private fun init() {
-        mContext?.let { context ->
-            mAudioController = AudioController(mAudioConfiguration)
-            mVideoController =
-                VideoController(context, mTextureId, mEGLContext, mVideoConfiguration)
-            mAudioController?.setAudioDataListener(this)
-            mVideoController?.setVideoDataListener(this)
-            mWatermark?.let { watermark ->
-                mVideoController?.setWatermark(watermark)
-            }
-            mSender?.configureVideo(mVideoConfiguration)
-            mSender?.configureAudio(mAudioConfiguration, audioSpecificConfig)
-        }
+        this.appContext = context.applicationContext
+        this.textureId = textureId
+        this.eglContext = eglContext
+        buildPipeline()
     }
 
     override fun start() {
-        if (mSender == null) {
-            LogHelper.w(TAG, "start ignored: sender not ready")
+        if (sender == null) {
+            LogHelper.w(tag, "start ignored: sender not ready")
             return
         }
-        if (mAudioController == null || mVideoController == null) {
-            init()
+        if (pipeline == null || pipeline?.isEmpty() == true) {
+            buildPipeline()
         }
-        resetStats()
-        statsListener?.onVideoStats(0, mVideoConfiguration.fps)
-        mAudioController?.start()
-        mVideoController?.start()
+        pipeline?.start()
+        statsListener?.onVideoStats(0, videoConfiguration.fps)
     }
 
     override fun pause() {
-        mAudioController?.pause()
-        mVideoController?.pause()
+        pipeline?.pause()
     }
 
     override fun resume() {
-        mAudioController?.resume()
-        mVideoController?.resume()
+        pipeline?.resume()
     }
 
     override fun stop() {
-        mAudioController?.stop()
-        mVideoController?.stop()
-        mAudioController = null
-        mVideoController = null
-        resetStats()
+        disposePipeline(true)
         statsListener?.onVideoStats(0, 0)
     }
 
     override fun setMute(isMute: Boolean) {
-        mAudioController?.setMute(isMute)
+        audioNode?.setMute(isMute)
     }
 
     override fun setVideoBps(bps: Int) {
-        mVideoController?.setVideoBps(bps)
-    }
-
-    override fun onError(error: String?) {
-        LogHelper.e(TAG, error)
-    }
-
-    /**
-     * 音频编码之后的数据交于打包器处理
-     */
-    override fun onAudioData(bb: ByteBuffer, bi: MediaCodec.BufferInfo) {
-        mSender?.pushAudio(bb, bi)
-    }
-
-    /**
-     * 音频输出格式
-     */
-    override fun onAudioOutformat(outputFormat: MediaFormat?) {
-        val ascBuffer = outputFormat?.getByteBuffer("csd-0") ?: return
-        val asc = ByteArray(ascBuffer.remaining())
-        ascBuffer.get(asc)
-        audioSpecificConfig = asc
-        mSender?.configureAudio(mAudioConfiguration, audioSpecificConfig)
-    }
-
-    /**
-     * 视频输出格式
-     */
-    override fun onVideoOutformat(outputFormat: MediaFormat?) {
-    }
-
-    /**
-     * 视频编码数据交于打包
-     */
-    override fun onVideoData(bb: ByteBuffer?, bi: MediaCodec.BufferInfo?) {
-        bi?.let {
-            statsWindowBytes += it.size
-            statsWindowFrames += 1
-            val now = SystemClock.elapsedRealtime()
-            val elapsed = now - statsWindowStart
-            if (elapsed >= 1000) {
-                val bitrateKbps = ((statsWindowBytes * 8f) / elapsed).roundToInt()
-                val fps = ((statsWindowFrames * 1000f) / elapsed).roundToInt()
-                statsListener?.onVideoStats(bitrateKbps.coerceAtLeast(0), fps.coerceAtLeast(0))
-                statsWindowBytes = 0
-                statsWindowFrames = 0
-                statsWindowStart = now
-            }
-        }
-        if (bb != null && bi != null) {
-            mSender?.pushVideo(bb, bi)
-        }
+        videoNode?.setVideoBitrate(bps)
     }
 
     override fun setWatermark(watermark: Watermark) {
-        mWatermark = watermark
-        mVideoController?.setWatermark(watermark)
+        this.watermark = watermark
+        videoNode?.setWatermark(watermark)
     }
 
-    private fun resetStats() {
-        statsWindowBytes = 0
-        statsWindowFrames = 0
-        statsWindowStart = SystemClock.elapsedRealtime()
+    private fun buildPipeline() {
+        val context = appContext ?: return
+        disposePipeline(true)
+        val audioController = AudioController(audioConfiguration)
+        val videoController = VideoController(context, textureId, eglContext, videoConfiguration)
+        val transportNode = TransportNode { sender }
+        val audioNode = AudioCaptureNode(audioController, ::handleAudioOutputFormat, ::handleError)
+        val videoNode = VideoCaptureNode(videoController, ::handleVideoOutputFormat, ::handleError)
+        audioNode.connect(transportNode.audioPad)
+        videoNode.connect(transportNode.videoPad)
+        this.audioNode = audioNode
+        this.videoNode = videoNode
+        this.transportNode = transportNode
+        watermark?.let(videoNode::setWatermark)
+        bindStatsListener()
+        applyVideoConfiguration()
+        applyAudioConfiguration()
+        pipeline = StreamingPipeline().add(audioNode).add(videoNode).add(transportNode)
+    }
+
+    private fun handleAudioOutputFormat(outputFormat: MediaFormat?) {
+        val ascBuffer = outputFormat?.getByteBuffer("csd-0")?.duplicate() ?: return
+        ascBuffer.position(0)
+        val asc = ByteArray(ascBuffer.remaining())
+        ascBuffer.get(asc)
+        audioSpecificConfig = asc
+        applyAudioConfiguration()
+    }
+
+    private fun handleVideoOutputFormat(outputFormat: MediaFormat?) {
+        if (outputFormat == null) return
+    }
+
+    private fun handleError(message: String?) {
+        LogHelper.e(tag, message)
+    }
+
+    private fun applyAudioConfiguration() {
+        sender?.configureAudio(audioConfiguration, audioSpecificConfig)
+        transportNode?.updateAudioConfiguration(audioConfiguration, audioSpecificConfig)
+    }
+
+    private fun applyVideoConfiguration() {
+        sender?.configureVideo(videoConfiguration)
+        transportNode?.updateVideoConfiguration(videoConfiguration)
+    }
+
+    private fun bindStatsListener() {
+        transportNode?.setStatsListener { bitrate, fps -> statsListener?.onVideoStats(bitrate, fps) }
+    }
+
+    private fun disposePipeline(shutdown: Boolean) {
+        pipeline?.let {
+            if (shutdown) {
+                it.shutdown()
+            } else {
+                it.release()
+            }
+        }
+        pipeline = null
+        audioNode = null
+        videoNode = null
+        transportNode = null
     }
 }

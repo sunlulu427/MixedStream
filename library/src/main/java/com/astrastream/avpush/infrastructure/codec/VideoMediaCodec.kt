@@ -4,11 +4,10 @@ import android.media.MediaCodec
 import android.media.MediaCodec.CONFIGURE_FLAG_ENCODE
 import android.media.MediaCodecInfo
 import android.media.MediaFormat
-import android.os.Build
 import android.util.Log
-import com.astrastream.avpush.support.blacklist.BlackListHelper
-import com.astrastream.avpush.domain.config.VideoConfiguration
 import com.astrastream.avpush.core.utils.LogHelper
+import com.astrastream.avpush.domain.config.VideoConfiguration
+import com.astrastream.avpush.support.blacklist.BlackListHelper
 
 object VideoMediaCodec {
     private val TAG = this.javaClass.simpleName
@@ -36,15 +35,13 @@ object VideoMediaCodec {
             format.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, videoConfiguration.ifi)
             format.setInteger(MediaFormat.KEY_BITRATE_MODE, MediaCodecInfo.EncoderCapabilities.BITRATE_MODE_CBR)
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                when (videoConfiguration.codec) {
-                    VideoConfiguration.VideoCodec.H265 -> {
-                        format.setInteger(MediaFormat.KEY_PROFILE, MediaCodecInfo.CodecProfileLevel.HEVCProfileMain)
-                    }
-                    VideoConfiguration.VideoCodec.H264 -> {
-                        format.setInteger(MediaFormat.KEY_PROFILE, MediaCodecInfo.CodecProfileLevel.AVCProfileHigh)
-                        format.setInteger(MediaFormat.KEY_LEVEL, MediaCodecInfo.CodecProfileLevel.AVCLevel4)
-                    }
+            when (videoConfiguration.codec) {
+                VideoConfiguration.VideoCodec.H265 -> {
+                    format.setInteger(MediaFormat.KEY_PROFILE, MediaCodecInfo.CodecProfileLevel.HEVCProfileMain)
+                }
+                VideoConfiguration.VideoCodec.H264 -> {
+                    format.setInteger(MediaFormat.KEY_PROFILE, MediaCodecInfo.CodecProfileLevel.AVCProfileHigh)
+                    format.setInteger(MediaFormat.KEY_LEVEL, MediaCodecInfo.CodecProfileLevel.AVCLevel4)
                 }
             }
 

@@ -5,9 +5,9 @@ import android.content.Context
 import android.graphics.ImageFormat
 import android.hardware.Camera
 import android.util.Log
-import com.astrastream.avpush.support.blacklist.BlackListHelper
-import com.astrastream.avpush.domain.config.CameraConfiguration
 import com.astrastream.avpush.core.utils.LogHelper
+import com.astrastream.avpush.domain.config.CameraConfiguration
+import com.astrastream.avpush.support.blacklist.BlackListHelper
 
 object CameraUtils {
 
@@ -30,7 +30,6 @@ object CameraUtils {
             sCamera!!.release()
             sCamera = null
         }
-
     }
 
     /**

@@ -1,9 +1,7 @@
 package com.astrastream.avpush.infrastructure.codec
 
 import android.media.MediaCodec
-
 import com.astrastream.avpush.domain.config.VideoConfiguration
-
 import java.nio.ByteBuffer
 
 
@@ -11,7 +9,7 @@ interface IVideoCodec {
     /**
      * 初始化编码器
      */
-    fun prepare(videoConfiguration: VideoConfiguration = VideoConfiguration()){};
+    fun prepare(videoConfiguration: VideoConfiguration = VideoConfiguration()) {}
 
     /**
      * start 编码

@@ -6,15 +6,9 @@ import com.astrastream.avpush.presentation.widget.GLSurfaceView
 import java.lang.ref.WeakReference
 import kotlin.math.max
 
-open class GLThread(weakReference: WeakReference<IGLThreadConfig>) : Thread() {
+open class GLThread(private val weakReference: WeakReference<IGLThreadConfig>) : Thread() {
 
     private var TAG = this.javaClass.simpleName
-
-    /**
-     * 避免内存泄漏
-     */
-    private lateinit var mWeakRerence: WeakReference<IGLThreadConfig>
-
     /**
      * EGL 环境搭建帮助类
      */
@@ -61,17 +55,13 @@ open class GLThread(weakReference: WeakReference<IGLThreadConfig>) : Thread() {
     private var mWidth = 1080
     private var mHeight = 1920;
 
-    init {
-        mWeakRerence = weakReference
-    }
-
     override fun run() {
         super.run()
         //实例化 EGL 环境搭建的帮组类
         mEGLHelper = EglHelper()
         //初始化 EGL
-        mWeakRerence.get()?.let { thread ->
-            mEGLHelper.initEgl(thread.getSurface(), thread.getEGLContext())
+        weakReference.get()?.let { thread ->
+            mEGLHelper.create(thread.getSurface(), thread.getEGLContext())
 
             while (true) {
                 if (isExit) {
@@ -119,7 +109,6 @@ open class GLThread(weakReference: WeakReference<IGLThreadConfig>) : Thread() {
         }
     }
 
-
     /**
      * 渲染窗口的大小
      */
@@ -141,7 +130,7 @@ open class GLThread(weakReference: WeakReference<IGLThreadConfig>) : Thread() {
         if (!isCreate) {
             return
         }
-        mWeakRerence.get()?.let { view ->
+        weakReference.get()?.let { view ->
             this.isCreate = false
             view.getRenderer()?.onSurfaceCreate(width, height)
         }
@@ -154,7 +143,7 @@ open class GLThread(weakReference: WeakReference<IGLThreadConfig>) : Thread() {
         if (!isChange) {
             return
         }
-        mWeakRerence.get()?.let { view ->
+        weakReference.get()?.let { view ->
             this.isChange = false
             view.getRenderer()?.onSurfaceChange(width, height)
         }
@@ -179,7 +168,7 @@ open class GLThread(weakReference: WeakReference<IGLThreadConfig>) : Thread() {
      * 渲染器可以开始绘制了
      */
     private fun onDraw() {
-        mWeakRerence.get()?.let { view ->
+        weakReference.get()?.let { view ->
             view.getRenderer()?.onDraw()
             if (!isStart)
                 view.getRenderer()?.onDraw()
@@ -201,10 +190,6 @@ open class GLThread(weakReference: WeakReference<IGLThreadConfig>) : Thread() {
         }
     }
 
-
-    /**
-     * 销毁的时候调用
-     */
     fun onDestory() {
         this.isExit = true
         //避免线程睡眠这里重新刷新一次
@@ -216,10 +201,7 @@ open class GLThread(weakReference: WeakReference<IGLThreadConfig>) : Thread() {
      * 释放资源
      */
     private fun release() {
-        mEGLHelper.let { eglHelper ->
-            eglHelper.destoryEgl()
-        }
-        mWeakRerence.clear()
+        mEGLHelper.release()
+        weakReference.clear()
     }
-
 }

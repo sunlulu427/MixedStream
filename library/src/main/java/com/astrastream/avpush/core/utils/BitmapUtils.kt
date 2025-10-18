@@ -5,99 +5,96 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
-import android.graphics.Matrix
 import android.graphics.Paint
 import android.graphics.Typeface
-import android.view.Gravity
+import android.util.TypedValue
 import android.view.View
-import android.widget.LinearLayout
 import android.widget.TextView
+import kotlin.math.roundToInt
 
 
 object BitmapUtils {
-    /**
-     * 将文字 生成 文字图片 生成显示编码的Bitmap,目前这个方法是可用的
-     * 
-     * @param contents
-     * @param context
-     * @return
-     */
+
+    @Deprecated(
+        message = "Use createTextBitmap instead.",
+        replaceWith = ReplaceWith("createTextBitmap(contents, context, testSize.toFloat(), testColor, bg)")
+    )
     fun creatBitmap(
         contents: String,
         context: Context,
         testSize: Int,
         testColor: Int,
         bg: Int
+    ): Bitmap = createTextBitmap(contents, context, testSize.toFloat(), testColor, bg)
+
+    fun createTextBitmap(
+        text: CharSequence,
+        context: Context,
+        textSizeSp: Float,
+        textColor: Int,
+        backgroundColor: Int = Color.TRANSPARENT,
+        typeface: Typeface? = null
     ): Bitmap {
-        val scale = context.resources.displayMetrics.scaledDensity
-        val tv = TextView(context)
-        val layoutParams = LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.WRAP_CONTENT,
-            LinearLayout.LayoutParams.WRAP_CONTENT
-        )
-        tv.layoutParams = layoutParams
-        tv.text = contents
-        tv.textSize = scale * testSize
-        tv.gravity = Gravity.CENTER_HORIZONTAL
-        tv.isDrawingCacheEnabled = true
-        tv.setTextColor(testColor)
-        tv.measure(
-            View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
-            View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
-        )
-        tv.layout(0, 0, tv.measuredWidth, tv.measuredHeight)
-        tv.setBackgroundColor(bg)
-        tv.buildDrawingCache()
-        return tv.drawingCache
+        val textView = TextView(context).apply {
+            this.text = text
+            setTextColor(textColor)
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, textSizeSp)
+            gravity = android.view.Gravity.CENTER
+            this.typeface = typeface ?: Typeface.create("sans-serif", Typeface.BOLD)
+        }
+        measureView(textView)
+        val width = textView.measuredWidth.coerceAtLeast(1)
+        val height = textView.measuredHeight.coerceAtLeast(1)
+        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+        canvas.drawColor(backgroundColor)
+        textView.draw(canvas)
+        return bitmap
     }
 
     fun createBitmapByCanvas(
         text: String,
-        textSize: Float,
+        textSizePx: Float,
         textColor: Int,
         bg: Int = Color.TRANSPARENT,
         typeface: Typeface? = null
     ): Bitmap {
-        // 设置画笔属性
-        val paint = Paint(Paint.ANTI_ALIAS_FLAG).also {
-            it.textSize = textSize
-            it.color = textColor
-            it.textAlign = Paint.Align.LEFT
-            it.typeface = typeface ?: Typeface.create("sans-serif", Typeface.BOLD)
+        val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = textColor
+            textSize = textSizePx
+            textAlign = Paint.Align.LEFT
+            this.typeface = typeface ?: Typeface.create("sans-serif", Typeface.BOLD)
         }
-        // 测量文字的宽度和高度
-        val baseLine = -paint.ascent()
-        val width = (paint.measureText(text) + 0.5f).toInt()
-        val height = (baseLine + paint.descent() + 0.5f).toInt()
-
-        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-        //将 bitmap和canvas关联
+        val baseline = -paint.ascent()
+        val measuredWidth = paint.measureText(text).roundToInt().coerceAtLeast(1)
+        val measuredHeight = (baseline + paint.descent()).roundToInt().coerceAtLeast(1)
+        val bitmap = Bitmap.createBitmap(measuredWidth, measuredHeight, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
-        canvas.drawText(text, 0f, baseLine, paint)
         canvas.drawColor(bg)
+        canvas.drawText(text, 0f, baseline, paint)
         return bitmap
     }
 
     fun changeBitmapSize(context: Context, src: Int, width: Float, height: Float): Bitmap {
-        val bitmap = BitmapFactory.decodeResource(context.applicationContext.resources, src)
-        return getBitmap(bitmap, width, height)
+        val options = BitmapFactory.Options().apply { inScaled = false }
+        val original = BitmapFactory.decodeResource(context.applicationContext.resources, src, options)
+        return scaleBitmap(original, width, height)
     }
 
-    private fun getBitmap(bitmap: Bitmap, width: Float, height: Float): Bitmap {
-        var bitmap1 = bitmap
-        val oldWidth = bitmap1.width
-        val oldHeight = bitmap1.height
-        //设置想要的大小
+    private fun scaleBitmap(bitmap: Bitmap, width: Float, height: Float): Bitmap {
+        val targetWidth = width.roundToInt().coerceAtLeast(1)
+        val targetHeight = height.roundToInt().coerceAtLeast(1)
+        if (bitmap.width == targetWidth && bitmap.height == targetHeight) {
+            return bitmap
+        }
+        return Bitmap.createScaledBitmap(bitmap, targetWidth, targetHeight, true)
+    }
 
-        //计算压缩的比率
-        val scaleWidth = (width) / oldWidth
-        val scaleHeight = (height) / oldHeight
-
-        //获取想要缩放的matrix
-        val matrix = Matrix()
-        matrix.postScale(scaleWidth, scaleHeight)
-        //获取新的bitmap
-        bitmap1 = Bitmap.createBitmap(bitmap, 0, 0, oldWidth, oldHeight, matrix, true)
-        return bitmap1
+    private fun measureView(view: View) {
+        view.measure(
+            View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+            View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
+        )
+        view.layout(0, 0, view.measuredWidth, view.measuredHeight)
     }
 }

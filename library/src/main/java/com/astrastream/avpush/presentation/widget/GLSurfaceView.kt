@@ -5,17 +5,22 @@ import android.util.AttributeSet
 import android.view.Surface
 import android.view.SurfaceHolder
 import android.view.SurfaceView
+import com.astrastream.avpush.core.utils.LogHelper
 import com.astrastream.avpush.domain.callback.IGLThreadConfig
 import com.astrastream.avpush.domain.callback.IRenderer
-import com.astrastream.avpush.infrastructure.camera.GLThread
 import com.astrastream.avpush.domain.config.RendererConfiguration
-import com.astrastream.avpush.core.utils.LogHelper
+import com.astrastream.avpush.infrastructure.camera.GLThread
 import java.lang.ref.WeakReference
 import javax.microedition.khronos.egl.EGLContext
 
-
-open class GLSurfaceView : SurfaceView, SurfaceHolder.Callback, IGLThreadConfig {
-
+open class GLSurfaceView @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0
+) : SurfaceView(context, attrs, defStyleAttr), SurfaceHolder.Callback, IGLThreadConfig {
+    init {
+        holder.addCallback(this)
+    }
 
     val TAG = javaClass.simpleName
 
@@ -57,16 +62,6 @@ open class GLSurfaceView : SurfaceView, SurfaceHolder.Callback, IGLThreadConfig 
      * 渲染器
      */
     var mRenderer: IRenderer? = null
-
-    constructor(context: Context?) : this(context, null)
-    constructor(context: Context?, attrs: AttributeSet?) : this(context, attrs, 0)
-    constructor(context: Context?, attrs: AttributeSet?, defStyleAttr: Int) : super(
-        context,
-        attrs,
-        defStyleAttr
-    ) {
-        holder.addCallback(this)
-    }
 
     override fun surfaceCreated(holder: SurfaceHolder) {
         if (mSurface == null) {
@@ -148,6 +143,6 @@ open class GLSurfaceView : SurfaceView, SurfaceHolder.Callback, IGLThreadConfig 
         /**
          * 获取 EGL 上下文环境
          */
-        fun getEGLContext(): EGLContext? = mEGLHelper.getEglContext()
+        fun getEGLContext(): EGLContext? = mEGLHelper.eglContext
     }
 }

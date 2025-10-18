@@ -3,13 +3,13 @@ package com.astrastream.avpush.infrastructure.camera
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
-import android.graphics.Color
 import android.graphics.Paint
 import android.opengl.GLES20
+import androidx.core.graphics.createBitmap
+import androidx.core.graphics.toColorInt
 import com.astrastream.avpush.core.utils.LogHelper
 import java.io.InputStreamReader
 import java.nio.ByteBuffer
-
 
 object ShaderHelper {
 
@@ -64,9 +64,9 @@ object ShaderHelper {
     }
 
 
-    fun createTextImage(text: String, textSize: Int, textColor: String, bgColor: String?, padding: Int): Bitmap {
+    fun createTextImage(text: String, textSize: Int, textColor: String, bgColor: String, padding: Int): Bitmap {
         val paint = Paint()
-        paint.color = Color.parseColor(textColor)
+        paint.color = textColor.toColorInt()
         paint.textSize = textSize.toFloat()
         paint.style = Paint.Style.FILL
         paint.isAntiAlias = true
@@ -76,16 +76,12 @@ object ShaderHelper {
         val top = paint.fontMetrics.top
         val bottom = paint.fontMetrics.bottom
 
-        val bm = Bitmap.createBitmap(
-            (width + padding * 2).toInt(),
-            (bottom - top + padding * 2).toInt(),
-            Bitmap.Config.ARGB_8888
+        val bm = createBitmap(
+            width = (width + padding * 2).toInt(),
+            height = (bottom - top + padding * 2).toInt()
         )
         val canvas = Canvas(bm)
-
-        canvas.drawColor(Color.parseColor(bgColor))
-
-
+        canvas.drawColor(bgColor.toColorInt())
         canvas.drawText(text, padding.toFloat(), -top + padding, paint)
         return bm
     }

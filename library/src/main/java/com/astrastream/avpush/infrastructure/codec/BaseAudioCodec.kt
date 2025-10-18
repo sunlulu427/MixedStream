@@ -3,9 +3,8 @@ package com.astrastream.avpush.infrastructure.codec
 import android.media.MediaCodec
 import android.media.MediaFormat
 import android.util.Log
-import com.astrastream.avpush.domain.config.AudioConfiguration
 import com.astrastream.avpush.core.utils.LogHelper
-
+import com.astrastream.avpush.domain.config.AudioConfiguration
 import java.nio.ByteBuffer
 
 abstract class BaseAudioCodec(private val mAudioConfiguration: AudioConfiguration?) : IAudioCodec {
@@ -31,38 +30,37 @@ abstract class BaseAudioCodec(private val mAudioConfiguration: AudioConfiguratio
      * 将数据入队 java.lang.IllegalStateException
      */
     @Synchronized
-    override fun enqueueCodec(input: ByteArray?) {
-        if (mMediaCodec == null || input == null) {
-            return
-        }
-        val inputBuffers = mMediaCodec!!.inputBuffers
-        val outputBuffers = mMediaCodec!!.outputBuffers
-        val inputBufferIndex = mMediaCodec!!.dequeueInputBuffer(12000)
+    override fun enqueueCodec(input: ByteArray) {
+        val codec = mMediaCodec ?: return
+        val inputBuffers = codec.inputBuffers
+        val outputBuffers = codec.outputBuffers
+        val inputBufferIndex = codec.dequeueInputBuffer(12000)
 
         if (inputBufferIndex >= 0) {
             val inputBuffer = inputBuffers[inputBufferIndex]
             inputBuffer.clear()
             inputBuffer.put(input)
-            mMediaCodec!!.queueInputBuffer(inputBufferIndex, 0, input.size, 0, 0)
+            codec.queueInputBuffer(inputBufferIndex, 0, input.size, 0, 0)
         }
 
-        var outputBufferIndex = mMediaCodec!!.dequeueOutputBuffer(mBufferInfo, 12000)
+        var outputBufferIndex = codec.dequeueOutputBuffer(mBufferInfo, 12000)
         if (outputBufferIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
-            onAudioOutformat(mMediaCodec?.outputFormat)
+            onAudioOutformat(codec.outputFormat)
         }
 
         while (outputBufferIndex >= 0) {
             val outputBuffer = outputBuffers[outputBufferIndex]
 
-            if (mPts == 0L)
-                mPts = System.nanoTime() / 1000;
+            if (mPts == 0L) {
+                mPts = System.nanoTime() / 1000
+            }
 
             mBufferInfo.presentationTimeUs = System.nanoTime() / 1000 - mPts;
 
             LogHelper.e(TAG, "音频时间戳：${mBufferInfo.presentationTimeUs / 1000_000}")
             onAudioData(outputBuffer, mBufferInfo)
-            mMediaCodec!!.releaseOutputBuffer(outputBufferIndex, false)
-            outputBufferIndex = mMediaCodec!!.dequeueOutputBuffer(mBufferInfo, 0)
+            codec.releaseOutputBuffer(outputBufferIndex, false)
+            outputBufferIndex = codec.dequeueOutputBuffer(mBufferInfo, 0)
         }
     }
 

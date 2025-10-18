@@ -5,27 +5,45 @@ import com.astrastream.avpush.domain.callback.ILog
 
 object LogHelper : ILog {
 
-    var isShowLog = false
+    @Volatile
+    var isShowLog: Boolean = false
 
+    override fun i(tag: String, info: String?) = log(Log.INFO, tag, info)
 
-    override fun i(tag: String, info: String?) {
-        if (isShowLog)
-            Log.i(tag, info.orEmpty())
+    override fun e(tag: String, info: String?) = log(Log.ERROR, tag, info)
 
+    override fun w(tag: String, info: String?) = log(Log.WARN, tag, info)
+
+    override fun d(tag: String, info: String?) = log(Log.DEBUG, tag, info)
+
+    inline fun i(tag: String, crossinline block: () -> String) {
+        if (isShowLog) log(Log.INFO, tag, block())
     }
 
-    override fun e(tag: String, info: String?) {
-        if (isShowLog)
-            Log.e(tag, info.orEmpty())
+    inline fun e(tag: String, crossinline block: () -> String) {
+        if (isShowLog) log(Log.ERROR, tag, block())
     }
 
-    override fun w(tag: String, info: String?) {
-        if (isShowLog)
-            Log.w(tag, info.orEmpty())
+    inline fun w(tag: String, crossinline block: () -> String) {
+        if (isShowLog) log(Log.WARN, tag, block())
     }
 
-    override fun d(tag: String, info: String?) {
-        if (isShowLog)
-            Log.d(tag, info.orEmpty())
+    inline fun d(tag: String, crossinline block: () -> String) {
+        if (isShowLog) log(Log.DEBUG, tag, block())
+    }
+
+    fun e(tag: String, throwable: Throwable, message: String? = null) {
+        if (!isShowLog) return
+        val content = buildString {
+            if (!message.isNullOrBlank()) append(message).append('\n')
+            append(Log.getStackTraceString(throwable))
+        }
+        Log.println(Log.ERROR, tag, content)
+    }
+
+    @PublishedApi
+    internal fun log(priority: Int, tag: String, message: String?) {
+        if (!isShowLog) return
+        Log.println(priority, tag, message.orEmpty())
     }
 }
