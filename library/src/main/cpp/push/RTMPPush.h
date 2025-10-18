@@ -1,7 +1,9 @@
 #ifndef ASTRASTREAM_RTMPPUSH_H
 #define ASTRASTREAM_RTMPPUSH_H
 
+#include <cstddef>
 #include <cstdint>
+#include <vector>
 
 #include "AVQueue.h"
 #include "IPush.h"
