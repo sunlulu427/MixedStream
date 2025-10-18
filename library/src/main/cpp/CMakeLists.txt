@@ -12,12 +12,14 @@ set(PUSH_ROOT ${SRC_ROOT}/push)
 set(COMMON_ROOT ${SRC_ROOT}/common)
 set(CALLBACK_ROOT ${SRC_ROOT}/callback)
 set(STREAM_ROOT ${SRC_ROOT}/stream)
+set(RENDER_ROOT ${SRC_ROOT}/render)
 
 file(GLOB JNI_SOURCES CONFIGURE_DEPENDS ${JNI_ROOT}/*.cpp)
 file(GLOB PUSH_SOURCES CONFIGURE_DEPENDS ${PUSH_ROOT}/*.cpp)
 file(GLOB COMMON_SOURCES CONFIGURE_DEPENDS ${COMMON_ROOT}/*.cpp)
 file(GLOB CALLBACK_SOURCES CONFIGURE_DEPENDS ${CALLBACK_ROOT}/*.cpp)
 file(GLOB STREAM_SOURCES CONFIGURE_DEPENDS ${STREAM_ROOT}/*.cpp)
+file(GLOB RENDER_SOURCES CONFIGURE_DEPENDS ${RENDER_ROOT}/*.cpp)
 
 add_library(
         astra
@@ -27,6 +29,7 @@ add_library(
         ${COMMON_SOURCES}
         ${CALLBACK_SOURCES}
         ${STREAM_SOURCES}
+        ${RENDER_SOURCES}
 )
 
 target_include_directories(
@@ -38,6 +41,7 @@ target_include_directories(
         ${COMMON_ROOT}
         ${CALLBACK_ROOT}
         ${STREAM_ROOT}
+        ${RENDER_ROOT}
 )
 
 add_library(rtmp STATIC IMPORTED)
@@ -48,10 +52,14 @@ set_target_properties(
 )
 
 find_library(android_log log)
+find_library(GLESv2_lib GLESv2)
+find_library(jnigraphics_lib jnigraphics)
 
 target_link_libraries(
         astra
         PRIVATE
         rtmp
         ${android_log}
+        ${GLESv2_lib}
+        ${jnigraphics_lib}
 )

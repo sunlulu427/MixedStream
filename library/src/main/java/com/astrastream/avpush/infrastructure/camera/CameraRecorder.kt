@@ -36,6 +36,8 @@ class CameraRecorder(context: Context, textureId: Int, private val eglContext: E
     override fun stop() {
         super.stop()
         mGLThread?.onDestory()
+        mGLThread = null
+        mRenderer.release()
     }
 
 

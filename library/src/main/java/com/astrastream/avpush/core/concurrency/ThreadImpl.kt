@@ -1,50 +1,75 @@
 package com.astrastream.avpush.core.concurrency
 
 import com.astrastream.avpush.core.utils.LogHelper
+import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.concurrent.thread
 
 open class ThreadImpl : IThread {
 
-    private var isPause = false
-
-    private var isRuning = false
-
-    private var TAG = javaClass.simpleName
-
+    private val running = AtomicBoolean(false)
+    private val paused = AtomicBoolean(false)
+    private val pauseLock = Object()
+    private var worker: Thread? = null
+    private val tag = javaClass.simpleName
 
     override fun start(main: () -> Unit) {
-        if (isRunning())return
-        isRuning = true
-        isPause = false
-        Thread {
-            main()
-            LogHelper.d(TAG, "thread start!")
-        }.start()
+        if (!running.compareAndSet(false, true)) {
+            return
+        }
+        paused.set(false)
+        worker = thread(start = true, isDaemon = true, name = "Astra-$tag") {
+            try {
+                main()
+            } catch (error: Throwable) {
+                LogHelper.e(tag, error, "worker crashed")
+            } finally {
+                running.set(false)
+                paused.set(false)
+                synchronized(pauseLock) { pauseLock.notifyAll() }
+                LogHelper.d(tag) { "thread finished" }
+            }
+        }
     }
 
-    /**
-     * 线程停止
-     */
     override fun stop() {
-        isRuning = false
-        isPause = true
-        LogHelper.d(TAG, "thread stop!")
+        if (!running.get()) {
+            return
+        }
+        running.set(false)
+        paused.set(false)
+        synchronized(pauseLock) { pauseLock.notifyAll() }
+        val joiningThread = worker
+        if (joiningThread != null && Thread.currentThread() != joiningThread) {
+            try {
+                joiningThread.join()
+            } catch (_: InterruptedException) {
+            }
+        }
+        worker = null
+        LogHelper.d(tag) { "thread stop" }
     }
 
-    /**
-     * 设置停止
-     */
     override fun setPause(pause: Boolean) {
-        this.isPause = pause
-        LogHelper.d(TAG, "thread pause:${pause}!")
+        if (!running.get()) {
+            return
+        }
+        paused.set(pause)
+        if (!pause) {
+            synchronized(pauseLock) { pauseLock.notifyAll() }
+        }
+        LogHelper.d(tag) { "thread pause=$pause" }
     }
 
-    /**
-     * 是否停止
-     */
-    override fun isPause(): Boolean = isPause
+    override fun isPause(): Boolean = paused.get()
 
-    /**
-     * 是否执行
-     */
-    override fun isRunning(): Boolean = isRuning
+    override fun isRunning(): Boolean = running.get()
+
+    protected fun awaitIfPaused() {
+        if (!paused.get()) return
+        synchronized(pauseLock) {
+            while (paused.get() && running.get()) {
+                pauseLock.wait()
+            }
+        }
+    }
 }

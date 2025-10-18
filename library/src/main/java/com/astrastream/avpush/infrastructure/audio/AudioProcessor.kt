@@ -9,7 +9,6 @@ import com.astrastream.avpush.core.utils.LogHelper
 import java.util.Arrays
 
 class AudioProcessor : ThreadImpl() {
-    private val lock = Object()
     private var recordListener: OnRecordListener? = null
     private var audioRecord: AudioRecord? = null
     private var bufferSize = 0
@@ -66,7 +65,6 @@ class AudioProcessor : ThreadImpl() {
         if (pause) {
             recordListener?.onPause()
         } else {
-            synchronized(lock) { lock.notifyAll() }
             recordListener?.onResume()
         }
     }
@@ -91,23 +89,19 @@ class AudioProcessor : ThreadImpl() {
     private fun mainLoop() {
         val data = ByteArray(readSize)
         while (isRunning()) {
-            synchronized(lock) {
-                if (isPause()) {
-                    lock.wait()
-                    return@synchronized
-                }
+            awaitIfPaused()
+            if (!isRunning()) break
 
-                if (isMuted) {
-                    Arrays.fill(data, 0)
-                    recordListener?.onPcmData(data)
-                    return@synchronized
-                }
+            val record = audioRecord ?: continue
+            if (isMuted) {
+                Arrays.fill(data, 0)
+                recordListener?.onPcmData(data.copyOf())
+                continue
+            }
 
-                val record = audioRecord ?: return@synchronized
-                val read = record.read(data, 0, data.size)
-                if (read > 0) {
-                    recordListener?.onPcmData(data.copyOf(read))
-                }
+            val read = record.read(data, 0, data.size)
+            if (read > 0) {
+                recordListener?.onPcmData(data.copyOf(read))
             }
         }
     }
