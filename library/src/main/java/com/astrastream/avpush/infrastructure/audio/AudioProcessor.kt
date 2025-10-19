@@ -1,11 +1,12 @@
 package com.astrastream.avpush.infrastructure.audio
 
+import android.annotation.SuppressLint
 import android.media.AudioFormat
 import android.media.AudioRecord
 import android.media.MediaRecorder
-import com.astrastream.avpush.core.STREAM_LOG_TAG
-import com.astrastream.avpush.core.concurrency.ThreadImpl
-import com.astrastream.avpush.core.utils.LogHelper
+import com.astrastream.avpush.runtime.STREAM_LOG_TAG
+import com.astrastream.avpush.runtime.ThreadImpl
+import com.astrastream.avpush.runtime.LogHelper
 import java.util.Arrays
 
 class AudioProcessor : ThreadImpl() {
@@ -20,6 +21,7 @@ class AudioProcessor : ThreadImpl() {
     private var currentChannelConfig = AudioFormat.CHANNEL_IN_MONO
     private var currentEncoding = AudioFormat.ENCODING_PCM_16BIT
 
+    @SuppressLint("MissingPermission")
     fun init(
         audioSource: Int = MediaRecorder.AudioSource.MIC,
         sampleRateInHz: Int = 44100,

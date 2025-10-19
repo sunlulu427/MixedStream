@@ -2,7 +2,7 @@ package com.astrastream.avpush.infrastructure.stream.sender.rtmp
 
 import android.media.AudioFormat
 import android.media.MediaCodec
-import com.astrastream.avpush.core.RtmpErrorCode
+import com.astrastream.avpush.runtime.RtmpErrorCode
 import com.astrastream.avpush.domain.callback.OnConnectListener
 import com.astrastream.avpush.domain.config.AudioConfiguration
 import com.astrastream.avpush.domain.config.VideoConfiguration

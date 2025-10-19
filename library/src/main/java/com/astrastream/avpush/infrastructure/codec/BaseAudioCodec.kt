@@ -3,7 +3,7 @@ package com.astrastream.avpush.infrastructure.codec
 import android.media.MediaCodec
 import android.media.MediaFormat
 import android.util.Log
-import com.astrastream.avpush.core.utils.LogHelper
+import com.astrastream.avpush.runtime.LogHelper
 import com.astrastream.avpush.domain.config.AudioConfiguration
 import java.nio.ByteBuffer
 

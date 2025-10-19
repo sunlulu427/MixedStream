@@ -21,7 +21,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import com.astrastream.avpush.domain.callback.OnConnectListener
 import com.astrastream.avpush.domain.config.AudioConfiguration
-import com.astrastream.avpush.core.utils.LogHelper
+import com.astrastream.avpush.runtime.LogHelper
 import com.astrastream.streamer.R
 import com.astrastream.streamer.core.util.SPUtils
 import com.astrastream.streamer.core.util.Utils

@@ -5,7 +5,7 @@ import android.graphics.SurfaceTexture
 import android.hardware.Camera
 import android.os.SystemClock
 import android.util.Log
-import com.astrastream.avpush.core.utils.LogHelper
+import com.astrastream.avpush.runtime.LogHelper
 import com.astrastream.avpush.domain.camera.CameraDescriptor
 import com.astrastream.avpush.domain.camera.CameraDevice
 import com.astrastream.avpush.domain.config.CameraConfiguration

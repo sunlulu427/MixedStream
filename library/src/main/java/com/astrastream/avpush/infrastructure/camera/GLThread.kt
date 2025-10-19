@@ -1,7 +1,7 @@
 package com.astrastream.avpush.infrastructure.camera
 
 import com.astrastream.avpush.domain.callback.IGLThreadConfig
-import com.astrastream.avpush.core.utils.LogHelper
+import com.astrastream.avpush.runtime.LogHelper
 import com.astrastream.avpush.presentation.widget.GLSurfaceView
 import java.lang.ref.WeakReference
 import kotlin.math.max

@@ -1,17 +1,15 @@
 package com.astrastream.avpush.infrastructure.camera.renderer
 
-
 import android.content.Context
 import android.graphics.SurfaceTexture
 import android.opengl.GLES11Ext
 import android.opengl.GLES20
 import android.opengl.Matrix
 import android.os.SystemClock
-import com.astrastream.avpush.R
 import com.astrastream.avpush.domain.callback.IRenderer
 import com.astrastream.avpush.infrastructure.camera.ShaderHelper
 import com.astrastream.avpush.infrastructure.camera.Watermark
-import com.astrastream.avpush.core.utils.LogHelper
+import com.astrastream.avpush.runtime.LogHelper
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
@@ -170,9 +168,8 @@ class CameraRenderer(private val context: Context) : IRenderer {
         mFboRenderer.onSurfaceCreate(width, height)
 
         //1. 获取顶点/片元源代码资源
-        val vertexSource = ShaderHelper.getRawShaderResource(context, R.raw.vertex_shader_matrix)
-        val fragmentSource =
-            ShaderHelper.getRawShaderResource(context, R.raw.fragment_shader_camera)
+        val vertexSource = ShaderHelper.getScript(ShaderHelper.Script.CAMERA_VERTEX)
+        val fragmentSource = ShaderHelper.getScript(ShaderHelper.Script.CAMERA_FRAGMENT)
 
         //2. 为 顶点和片元创建一个执行程序
         program = ShaderHelper.createProgram(vertexSource, fragmentSource)

@@ -5,7 +5,7 @@ import android.util.AttributeSet
 import android.view.Surface
 import android.view.SurfaceHolder
 import android.view.SurfaceView
-import com.astrastream.avpush.core.utils.LogHelper
+import com.astrastream.avpush.runtime.LogHelper
 import com.astrastream.avpush.domain.callback.IGLThreadConfig
 import com.astrastream.avpush.domain.callback.IRenderer
 import com.astrastream.avpush.domain.config.RendererConfiguration

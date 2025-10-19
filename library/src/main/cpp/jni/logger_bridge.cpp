@@ -5,7 +5,7 @@
 #include "NativeLogger.h"
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_astrastream_avpush_core_utils_NativeLogger_nativeInit(
+Java_com_astrastream_avpush_runtime_NativeLogger_nativeInit(
         JNIEnv* env, jobject /*thiz*/, jstring path) {
     if (path == nullptr) {
         return;
@@ -19,7 +19,7 @@ Java_com_astrastream_avpush_core_utils_NativeLogger_nativeInit(
 }
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_astrastream_avpush_core_utils_NativeLogger_nativeWrite(
+Java_com_astrastream_avpush_runtime_NativeLogger_nativeWrite(
         JNIEnv* env, jobject /*thiz*/, jint level, jstring tag, jstring message) {
     const char* tagChars = tag != nullptr ? env->GetStringUTFChars(tag, nullptr) : nullptr;
     const char* msgChars = message != nullptr ? env->GetStringUTFChars(message, nullptr) : nullptr;

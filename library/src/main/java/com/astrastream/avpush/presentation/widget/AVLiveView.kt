@@ -8,8 +8,8 @@ import com.astrastream.avpush.infrastructure.camera.Watermark
 import com.astrastream.avpush.domain.config.AudioConfiguration
 import com.astrastream.avpush.domain.config.CameraConfiguration
 import com.astrastream.avpush.domain.config.VideoConfiguration
-import com.astrastream.avpush.application.controller.LiveStreamSession
-import com.astrastream.avpush.application.controller.StreamController
+import com.astrastream.avpush.stream.controller.LiveStreamSession
+import com.astrastream.avpush.stream.controller.StreamController
 import com.astrastream.avpush.infrastructure.stream.sender.Sender
 
 class AVLiveView @JvmOverloads constructor(

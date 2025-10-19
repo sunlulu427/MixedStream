@@ -1,64 +1,51 @@
 package com.astrastream.avpush.infrastructure.camera
 
-import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.opengl.GLES20
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.toColorInt
-import com.astrastream.avpush.core.utils.LogHelper
-import java.io.InputStreamReader
+import com.astrastream.avpush.runtime.LogHelper
+import com.astrastream.avpush.runtime.NativeShaders
 import java.nio.ByteBuffer
 
 object ShaderHelper {
 
-    private var TAG = this.javaClass.simpleName
-    /**
-     * 从资源文件中加载着色器源代码
-     */
-    fun getRawShaderResource(context: Context?, id: Int): String {
-        context ?: return ""
-        val inputStream = context.resources.openRawResource(id)
-        return InputStreamReader(inputStream).readText()
+    enum class Script(val id: Int) {
+        BASIC_VERTEX(0),
+        BASIC_FRAGMENT(1),
+        CAMERA_VERTEX(2),
+        CAMERA_FRAGMENT(3)
     }
 
-    /**
-     * 加载 着色器 代码
-     */
+    private val tag = ShaderHelper::class.java.simpleName
+
+    fun getScript(script: Script): String = NativeShaders.script(script.id)
+
     @Synchronized
     private fun loadShader(shaderType: Int, source: String): Int {
-        //1、创建着色器
         var shader = GLES20.glCreateShader(shaderType)
         if (shader == 0) return -1
-        //2、加载着色器源码
         GLES20.glShaderSource(shader, source)
-        //3. 编译着色器
         GLES20.glCompileShader(shader)
-        //4. 检查是否编译成功
         val compile = IntArray(1)
         GLES20.glGetShaderiv(shader, GLES20.GL_COMPILE_STATUS, compile, 0)
         if (compile[0] != GLES20.GL_TRUE) {
-            LogHelper.e(TAG, "shader compile error");
-            GLES20.glDeleteShader(shader);
-            shader = -1;
+            LogHelper.e(tag, "shader compile error")
+            GLES20.glDeleteShader(shader)
+            shader = -1
         }
-        return shader;
+        return shader
     }
 
-    /**
-     * 创建一个 着色器 的执行程序代码
-     */
-    fun createProgram(vertecSource: String, frameSource: String): Int {
-        val vertexShader = loadShader(GLES20.GL_VERTEX_SHADER, vertecSource)
-        val fragmentShader = loadShader(GLES20.GL_FRAGMENT_SHADER, frameSource)
+    fun createProgram(vertexSource: String, fragmentSource: String): Int {
+        val vertexShader = loadShader(GLES20.GL_VERTEX_SHADER, vertexSource)
+        val fragmentShader = loadShader(GLES20.GL_FRAGMENT_SHADER, fragmentSource)
         if (vertexShader == -1 || fragmentShader == -1) return -1
-        //1. 创建一个渲染程序
         val program = GLES20.glCreateProgram()
-        //2. 将着色器程序添加到渲染程序中
         GLES20.glAttachShader(program, vertexShader)
         GLES20.glAttachShader(program, fragmentShader)
-        //3. 链接程序
         GLES20.glLinkProgram(program)
         return program
     }

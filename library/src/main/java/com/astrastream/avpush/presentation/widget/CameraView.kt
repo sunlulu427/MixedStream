@@ -9,7 +9,7 @@ import com.astrastream.avpush.domain.callback.ICameraOpenListener
 import com.astrastream.avpush.domain.camera.CameraDevice
 import com.astrastream.avpush.domain.config.CameraConfiguration
 import com.astrastream.avpush.domain.config.RendererConfiguration
-import com.astrastream.avpush.core.utils.LogHelper
+import com.astrastream.avpush.runtime.LogHelper
 import com.astrastream.avpush.infrastructure.camera.LegacyCameraDevice
 import com.astrastream.avpush.infrastructure.camera.Watermark
 import com.astrastream.avpush.infrastructure.camera.renderer.CameraRenderer

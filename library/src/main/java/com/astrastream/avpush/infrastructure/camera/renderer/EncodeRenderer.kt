@@ -3,13 +3,12 @@ package com.astrastream.avpush.infrastructure.camera.renderer
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Color
-import com.astrastream.avpush.R
-import com.astrastream.avpush.core.utils.BitmapUtils
-import com.astrastream.avpush.core.utils.LogHelper
+import com.astrastream.avpush.runtime.BitmapUtils
+import com.astrastream.avpush.runtime.LogHelper
+import com.astrastream.avpush.runtime.NativeRenderUtil
 import com.astrastream.avpush.domain.callback.IRenderer
 import com.astrastream.avpush.infrastructure.camera.ShaderHelper
 import com.astrastream.avpush.infrastructure.camera.Watermark
-import kotlin.math.max
 
 class EncodeRenderer(private val context: Context, private val textureId: Int) : IRenderer {
 
@@ -64,8 +63,8 @@ class EncodeRenderer(private val context: Context, private val textureId: Int) :
     }
 
     override fun onSurfaceCreate(width: Int, height: Int) {
-        val vertexSource = ShaderHelper.getRawShaderResource(context, R.raw.vertex_shader)
-        val fragmentSource = ShaderHelper.getRawShaderResource(context, R.raw.fragment_shader)
+        val vertexSource = ShaderHelper.getScript(ShaderHelper.Script.BASIC_VERTEX)
+        val fragmentSource = ShaderHelper.getScript(ShaderHelper.Script.BASIC_FRAGMENT)
         val handle = ensureHandle()
         nativeOnSurfaceCreate(handle, vertexSource, fragmentSource)
         nativeOnSurfaceChanged(handle, width, height)
@@ -137,40 +136,17 @@ class EncodeRenderer(private val context: Context, private val textureId: Int) :
 
     private fun computeDefaultQuad(bitmap: Bitmap, watermark: Watermark): FloatArray? {
         if (surfaceWidth <= 0 || surfaceHeight <= 0) return null
-
-        val safeScale = watermark.scale.takeIf { it > 0f } ?: 1f
-        val ratio = bitmap.width.toFloat() / bitmap.height.coerceAtLeast(1)
-
-        var targetHeight = (2f * bitmap.height / surfaceHeight.toFloat()) * safeScale
-        targetHeight = targetHeight.coerceIn(MIN_HEIGHT_NDC, MAX_HEIGHT_NDC)
-        var targetWidth = targetHeight * ratio
-        if (targetWidth > MAX_WIDTH_NDC) {
-            val factor = MAX_WIDTH_NDC / targetWidth
-            targetWidth = MAX_WIDTH_NDC
-            targetHeight = max(MIN_HEIGHT_NDC, targetHeight * factor)
-        }
-
-        var right = 1f - HORIZONTAL_MARGIN
-        var left = right - targetWidth
-        if (left < -1f + HORIZONTAL_MARGIN) {
-            val shift = (-1f + HORIZONTAL_MARGIN) - left
-            left += shift
-            right += shift
-        }
-
-        var bottom = -1f + VERTICAL_MARGIN
-        var top = bottom + targetHeight
-        if (top > 1f - VERTICAL_MARGIN) {
-            val shift = top - (1f - VERTICAL_MARGIN)
-            top -= shift
-            bottom -= shift
-        }
-
-        return floatArrayOf(
-            left, bottom,
-            right, bottom,
-            left, top,
-            right, top
+        return NativeRenderUtil.computeWatermarkQuad(
+            surfaceWidth = surfaceWidth,
+            surfaceHeight = surfaceHeight,
+            bitmapWidth = bitmap.width,
+            bitmapHeight = bitmap.height,
+            scale = watermark.scale,
+            minHeight = MIN_HEIGHT_NDC,
+            maxHeight = MAX_HEIGHT_NDC,
+            maxWidth = MAX_WIDTH_NDC,
+            horizontalMargin = HORIZONTAL_MARGIN,
+            verticalMargin = VERTICAL_MARGIN
         )
     }
 

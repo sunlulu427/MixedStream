@@ -8,7 +8,7 @@ import android.os.Handler
 import android.os.HandlerThread
 import android.view.Surface
 import com.astrastream.avpush.domain.config.VideoConfiguration
-import com.astrastream.avpush.core.utils.LogHelper
+import com.astrastream.avpush.runtime.LogHelper
 import java.util.concurrent.locks.ReentrantLock
 
 abstract class BaseVideoEncoder : IVideoCodec {

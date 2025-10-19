@@ -4,11 +4,10 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.opengl.GLES20
-import com.astrastream.avpush.R
 import com.astrastream.avpush.domain.callback.IRenderer
 import com.astrastream.avpush.infrastructure.camera.ShaderHelper
 import com.astrastream.avpush.infrastructure.camera.Watermark
-import com.astrastream.avpush.core.utils.BitmapUtils
+import com.astrastream.avpush.runtime.BitmapUtils
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
@@ -129,8 +128,8 @@ class FboRenderer(private val context: Context) : IRenderer {
         GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA)
 
         //1. 获取顶点/片元源代码资源
-        val vertexSource = ShaderHelper.getRawShaderResource(context, R.raw.vertex_shader)
-        val fragmentSource = ShaderHelper.getRawShaderResource(context, R.raw.fragment_shader)
+        val vertexSource = ShaderHelper.getScript(ShaderHelper.Script.BASIC_VERTEX)
+        val fragmentSource = ShaderHelper.getScript(ShaderHelper.Script.BASIC_FRAGMENT)
 
         //2. 为 顶点和片元创建一个执行程序
         program = ShaderHelper.createProgram(vertexSource, fragmentSource)

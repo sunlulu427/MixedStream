@@ -5,7 +5,7 @@ import android.media.MediaCodec.CONFIGURE_FLAG_ENCODE
 import android.media.MediaCodecInfo
 import android.media.MediaFormat
 import android.util.Log
-import com.astrastream.avpush.core.utils.LogHelper
+import com.astrastream.avpush.runtime.LogHelper
 import com.astrastream.avpush.domain.config.VideoConfiguration
 import com.astrastream.avpush.support.blacklist.BlackListHelper
 
