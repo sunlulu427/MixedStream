@@ -18,7 +18,7 @@ class VideoController(
     textureId: Int,
     eglContext: EGLContext?,
     videoConfiguration: VideoConfiguration
-) : IController, OnVideoEncodeListener {
+) : VideoSourceController, OnVideoEncodeListener {
 
     private var recorder = CameraRecorder(context, textureId, eglContext).also {
         it.prepare(videoConfiguration)
@@ -65,7 +65,7 @@ class VideoController(
         mListener = videoDataListener
     }
 
-    fun setWatermark(watermark: Watermark) {
+    override fun setWatermark(watermark: Watermark) {
         LogHelper.d(javaClass.simpleName) { "watermark update" }
         recorder.setWatermark(watermark)
     }

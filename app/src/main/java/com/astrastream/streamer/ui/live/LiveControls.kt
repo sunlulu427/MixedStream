@@ -267,6 +267,7 @@ fun ParameterPanel(
                 Text(text = "Show live statistics", style = MaterialTheme.typography.bodyMedium)
                 Switch(checked = state.showStats, onCheckedChange = onStatsToggle)
             }
+
         }
     }
 }

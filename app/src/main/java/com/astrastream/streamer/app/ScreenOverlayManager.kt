@@ -1,0 +1,122 @@
+package com.astrastream.streamer.app
+
+import android.content.Context
+import android.content.Intent
+import android.graphics.Color
+import android.graphics.PixelFormat
+import android.graphics.drawable.GradientDrawable
+import android.os.Build
+import android.os.Handler
+import android.os.Looper
+import android.provider.Settings
+import android.view.Gravity
+import android.view.View
+import android.view.WindowManager
+import android.widget.LinearLayout
+import android.widget.TextView
+import androidx.core.content.ContextCompat
+import com.astrastream.streamer.ui.screen.ScreenLiveUiState
+
+object ScreenOverlayManager {
+
+    private val handler = Handler(Looper.getMainLooper())
+    private var overlayView: View? = null
+    private var windowManager: WindowManager? = null
+
+    fun show(context: Context, state: ScreenLiveUiState) {
+        if (!Settings.canDrawOverlays(context)) return
+        handler.post {
+            if (overlayView == null) {
+                createOverlay(context.applicationContext)
+            }
+            updateInternal(state)
+        }
+    }
+
+    fun update(context: Context, state: ScreenLiveUiState) {
+        if (!Settings.canDrawOverlays(context)) return
+        handler.post { updateInternal(state) }
+    }
+
+    fun hide(context: Context) {
+        handler.post {
+            overlayView?.let { view ->
+                windowManager?.removeView(view)
+            }
+            overlayView = null
+            windowManager = null
+        }
+    }
+
+    private fun createOverlay(context: Context) {
+        val wm = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+        val padding = (context.resources.displayMetrics.density * 12).toInt()
+
+        val container = LinearLayout(context).apply {
+            orientation = LinearLayout.VERTICAL
+            val background = GradientDrawable().apply {
+                cornerRadius = context.resources.displayMetrics.density * 12
+                setColor(Color.parseColor("#CC1F1F1F"))
+            }
+            setPadding(padding, padding, padding, padding)
+            this.background = background
+        }
+
+        val title = TextView(context).apply {
+            text = "Screen Live"
+            setTextColor(Color.WHITE)
+            textSize = 14f
+        }
+
+        val status = TextView(context).apply {
+            id = android.R.id.text1
+            setTextColor(Color.WHITE)
+            textSize = 12f
+        }
+
+        container.addView(title)
+        container.addView(status)
+        container.setOnClickListener {
+            val intent = Intent(context, LiveActivity::class.java).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+            }
+            ContextCompat.startActivity(context, intent, null)
+        }
+
+        val type = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+        } else {
+            WindowManager.LayoutParams.TYPE_PHONE
+        }
+
+        val params = WindowManager.LayoutParams(
+            WindowManager.LayoutParams.WRAP_CONTENT,
+            WindowManager.LayoutParams.WRAP_CONTENT,
+            type,
+            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
+            PixelFormat.TRANSLUCENT
+        ).apply {
+            gravity = Gravity.TOP or Gravity.END
+            x = (context.resources.displayMetrics.density * 12).toInt()
+            y = (context.resources.displayMetrics.density * 80).toInt()
+        }
+
+        windowManager = wm
+        overlayView = container
+        wm.addView(container, params)
+    }
+
+    private fun updateInternal(state: ScreenLiveUiState) {
+        val view = overlayView ?: return
+        val status = view.findViewById<TextView>(android.R.id.text1) ?: return
+        val builder = StringBuilder()
+        builder.append("状态: ")
+        builder.append(if (state.isStreaming) "直播中" else "空闲")
+        builder.append('\n')
+        builder.append("码率: ")
+        builder.append(state.currentBitrate)
+        builder.append(" kbps\n帧率: ")
+        builder.append(state.currentFps)
+        status.text = builder.toString()
+    }
+}

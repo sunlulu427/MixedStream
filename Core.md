@@ -34,3 +34,14 @@
 - Default sizing uses normalised coordinates: watermark height 10–30% of the frame, width derived from bitmap aspect ratio, with ~5% horizontal and ~6% vertical padding from the bottom-right corner.
 - `Watermark` accepts `Bitmap` or plain text. `scale` adjusts relative size (1.0 baseline). Custom vertex arrays remain supported.
 - Updating the watermark rebuilds textures and refreshes VBOs. Resolution/rotation changes reuse the latest config while preserving clarity.
+
+## Screen Recording Mode
+- `LiveActivity` now exposes a single Compose surface with a segmented control that switches between camera and screen live flows. Both modes share the same `LiveSessionCoordinator` lifecycle, while screen live delegates to `ScreenLiveSessionCoordinator` for MediaProjection setup and pipeline orchestration.
+- `ScreenStreamController` reuses the GStreamer-style pipeline (`StreamingPipeline`) while swapping capture sources:
+  - **Video:** `ScreenVideoController` drives `ScreenRecorder`, which delegates to `VulkanScreenRenderer`. The renderer hosts a `VirtualDisplay`, consumes RGBA frames from `MediaProjection`, and paints them onto the encoder surface via `HardwareRenderer` (Vulkan backend) so no OpenGL surface is touched.
+  - **Audio:** `ScreenAudioController` composes microphone and playback streams. `MixedAudioProcessor` captures PCM from the mic (`AudioRecord`) and, when API ≥ 29, playback via `AudioPlaybackCaptureConfiguration`, performing 16‑bit saturating mixes before AAC encoding.
+- `ScreenCaptureConfiguration` expresses capture bounds (width, height, dpi, fps, includeMic/includePlayback) and is forwarded through `setScreenCapture`. Coordinators regenerate the configuration whenever toggles change.
+- `ScreenLiveSessionCoordinator` maintains a shared `MutableState<ScreenLiveUiState>` so Compose, overlay, and pipeline logic stay in sync. `setOverlayObserver` forwards state snapshots to `ScreenOverlayManager` so bitrate/FPS updates propagate even when the overlay is visible.
+- `ScreenOverlayManager` renders a draggable-style floating card using `WindowManager` (`TYPE_APPLICATION_OVERLAY`) when the app is backgrounded, showing live status and providing a tap-back shortcut into `LiveActivity`. Overlay usage is optional and requires the user to grant `SYSTEM_ALERT_WINDOW` permission via settings.
+- Transport remains unchanged: `TransportNode` assembles encoded frames, configures `Sender`, and forwards payloads to native `librtmp`.
+- Refer to [`docs/screen_streaming.puml`](docs/screen_streaming.puml) when updating this pipeline; run `./tools/render_docs.sh` to refresh rendered assets locally.

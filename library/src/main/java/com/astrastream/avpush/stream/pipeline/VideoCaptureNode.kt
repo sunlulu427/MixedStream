@@ -1,6 +1,6 @@
 package com.astrastream.avpush.stream.pipeline
 
-import com.astrastream.avpush.stream.controller.VideoController
+import com.astrastream.avpush.stream.controller.VideoSourceController
 import com.astrastream.avpush.stream.pipeline.core.PipelineRole
 import com.astrastream.avpush.stream.pipeline.core.PipelineSource
 import com.astrastream.avpush.stream.pipeline.frame.EncodedVideoFrame
@@ -13,7 +13,7 @@ import java.nio.ByteBuffer
 
 
 class VideoCaptureNode(
-    private val controller: VideoController,
+    private val controller: VideoSourceController,
     private val onOutputFormat: (MediaFormat?) -> Unit,
     private val onError: (String?) -> Unit
 ) : PipelineSource<EncodedVideoFrame>("video-capture", PipelineRole.SOURCE),

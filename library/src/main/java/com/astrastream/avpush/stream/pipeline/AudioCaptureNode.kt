@@ -1,6 +1,5 @@
 package com.astrastream.avpush.stream.pipeline
 
-import com.astrastream.avpush.stream.controller.AudioController
 import com.astrastream.avpush.stream.pipeline.core.PipelineRole
 import com.astrastream.avpush.stream.pipeline.core.PipelineSource
 import com.astrastream.avpush.stream.pipeline.frame.EncodedAudioFrame
@@ -12,7 +11,7 @@ import java.nio.ByteBuffer
 
 
 class AudioCaptureNode(
-    private val controller: AudioController,
+    private val controller: IController,
     private val onOutputFormat: (MediaFormat?) -> Unit,
     private val onError: (String?) -> Unit
 ) : PipelineSource<EncodedAudioFrame>("audio-capture", PipelineRole.SOURCE),

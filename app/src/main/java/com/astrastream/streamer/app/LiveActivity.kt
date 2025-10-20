@@ -2,19 +2,42 @@ package com.astrastream.streamer.app
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.app.Activity
+import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.Configuration
+import android.media.projection.MediaProjectionManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.view.View
 import android.view.WindowManager
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
-import androidx.annotation.RequiresApi
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.Text
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -29,10 +52,15 @@ import com.astrastream.streamer.data.LivePreferencesStore
 import com.astrastream.streamer.ui.live.LiveScreen
 import com.astrastream.streamer.ui.live.LiveSessionCoordinator
 import com.astrastream.streamer.ui.live.LiveUiState
+import com.astrastream.streamer.ui.screen.ScreenLiveScreen
+import com.astrastream.streamer.ui.screen.ScreenLiveSessionCoordinator
+import com.astrastream.streamer.ui.screen.ScreenLiveUiState
 import com.astrastream.streamer.ui.theme.AVLiveTheme
 import com.tbruyelle.rxpermissions2.RxPermissions
 
 class LiveActivity : AppCompatActivity(), OnConnectListener {
+
+    private enum class LiveMode { CAMERA, SCREEN }
 
     private val captureDefaults = LiveSessionCoordinator.defaultCaptureOptions()
     private val streamDefaults = LiveSessionCoordinator.defaultStreamOptions()
@@ -51,14 +79,60 @@ class LiveActivity : AppCompatActivity(), OnConnectListener {
         mutableStateOf(preferences.load(defaultState, captureDefaults, streamDefaults, encoderDefaults))
     }
 
+    private val screenState: MutableState<ScreenLiveUiState> = mutableStateOf(
+        ScreenLiveUiState(streamUrl = "")
+    )
+
     private val audioConfig = AudioConfiguration()
     private lateinit var coordinator: LiveSessionCoordinator
+    private lateinit var screenCoordinator: ScreenLiveSessionCoordinator
+    private lateinit var projectionManager: MediaProjectionManager
+
+    private lateinit var projectionLauncher: androidx.activity.result.ActivityResultLauncher<Intent>
+
+    private var currentMode: LiveMode = LiveMode.CAMERA
+
+    private val screenConnectListener = object : OnConnectListener {
+        override fun onConnecting() {}
+
+        override fun onConnected() {
+            val fps = screenCoordinator.configuredFps()
+            screenCoordinator.confirmConnected(screenState.value.targetBitrate, fps)
+            ScreenOverlayManager.update(applicationContext, screenState.value)
+        }
+
+        override fun onFail(message: String) {
+            Toast.makeText(applicationContext, message, Toast.LENGTH_LONG).show()
+            screenCoordinator.markConnectionFailed()
+            ScreenOverlayManager.hide(applicationContext)
+        }
+
+        override fun onClose() {
+            screenCoordinator.stopStreaming()
+            ScreenOverlayManager.hide(applicationContext)
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         initializeEnvironment()
+        projectionManager = getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
+        screenCoordinator = ScreenLiveSessionCoordinator(this, screenState)
+        screenCoordinator.setOverlayObserver { ScreenOverlayManager.update(applicationContext, it) }
+        projectionLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == Activity.RESULT_OK && result.data != null) {
+                val projection = projectionManager.getMediaProjection(result.resultCode, result.data!!)
+                if (projection != null) {
+                    screenCoordinator.attachProjection(projection)
+                }
+            } else {
+                Toast.makeText(this, "Screen capture permission denied", Toast.LENGTH_LONG).show()
+                screenCoordinator.markConnectionFailed()
+            }
+        }
         val contentView = createContentView()
         setContentView(contentView)
+        updateOverlayState()
         ensurePreview()
         requestRuntimePermissions()
     }
@@ -70,7 +144,23 @@ class LiveActivity : AppCompatActivity(), OnConnectListener {
 
     override fun onResume() {
         super.onResume()
-        ensurePreview()
+        updateOverlayState()
+        if (currentMode == LiveMode.CAMERA) {
+            ensurePreview()
+        }
+        ScreenOverlayManager.hide(applicationContext)
+    }
+
+    override fun onStart() {
+        super.onStart()
+        ScreenOverlayManager.hide(applicationContext)
+    }
+
+    override fun onStop() {
+        super.onStop()
+        if (screenState.value.isStreaming && screenState.value.overlayPermissionGranted) {
+            ScreenOverlayManager.show(applicationContext, screenState.value)
+        }
     }
 
     override fun onDestroy() {
@@ -78,6 +168,8 @@ class LiveActivity : AppCompatActivity(), OnConnectListener {
         coordinator.sender?.close()
         coordinator.liveView?.stopLive()
         coordinator.liveView?.releaseCamera()
+        screenCoordinator.release()
+        ScreenOverlayManager.hide(applicationContext)
     }
 
     private fun initializeEnvironment() {
@@ -101,26 +193,46 @@ class LiveActivity : AppCompatActivity(), OnConnectListener {
         coordinator = LiveSessionCoordinator(this@LiveActivity, uiState, audioConfig, preferences)
         setContent {
             AVLiveTheme {
-                LiveScreen(
-                    state = uiState.value,
-                    captureOptions = coordinator.captureOptions,
-                    streamOptions = coordinator.streamOptions,
-                    encoderOptions = coordinator.encoderOptions,
-                    onCaptureResolutionSelected = { coordinator.updateCapture(it) },
-                    onStreamResolutionSelected = { coordinator.updateStream(it) },
-                    onEncoderSelected = { coordinator.updateEncoder(it) },
-                    onBitrateChanged = { coordinator.updateBitrate(it) },
-                    onBitrateInput = { coordinator.updateBitrateFromInput(it) },
-                    onStreamUrlChanged = { coordinator.updateStreamUrl(it) },
-                    onTogglePanel = { coordinator.togglePanel() },
-                    onShowUrlDialog = { coordinator.showUrlDialog() },
-                    onDismissUrlDialog = { coordinator.hideUrlDialog() },
-                    onConfirmUrl = { url -> coordinator.confirmUrl(url) { handleToggleLive() } },
-                    onStatsToggle = { coordinator.setStatsVisible(it) },
-                    onSwitchCamera = { coordinator.liveView?.switchCamera() },
-                    onToggleLive = { handleToggleLive() },
-                    onLiveViewReady = { coordinator.attachLiveView(it) }
-                )
+                var selectedMode by rememberSaveable { mutableStateOf(currentMode) }
+                Column(modifier = Modifier.fillMaxSize()) {
+                    ModeSwitcher(selectedMode) { mode ->
+                        selectedMode = mode
+                        handleModeSwitch(mode)
+                    }
+                    when (selectedMode) {
+                        LiveMode.CAMERA -> LiveScreen(
+                            state = uiState.value,
+                            captureOptions = coordinator.captureOptions,
+                            streamOptions = coordinator.streamOptions,
+                            encoderOptions = coordinator.encoderOptions,
+                            onCaptureResolutionSelected = { coordinator.updateCapture(it) },
+                            onStreamResolutionSelected = { coordinator.updateStream(it) },
+                            onEncoderSelected = { coordinator.updateEncoder(it) },
+                            onBitrateChanged = { coordinator.updateBitrate(it) },
+                            onBitrateInput = { coordinator.updateBitrateFromInput(it) },
+                            onStreamUrlChanged = { coordinator.updateStreamUrl(it) },
+                            onTogglePanel = { coordinator.togglePanel() },
+                            onShowUrlDialog = { coordinator.showUrlDialog() },
+                            onDismissUrlDialog = { coordinator.hideUrlDialog() },
+                            onConfirmUrl = { url -> coordinator.confirmUrl(url) { handleCameraToggle() } },
+                            onStatsToggle = { coordinator.setStatsVisible(it) },
+                            onSwitchCamera = { coordinator.liveView?.switchCamera() },
+                            onToggleLive = { handleCameraToggle() },
+                            onLiveViewReady = { coordinator.attachLiveView(it) }
+                        )
+                        LiveMode.SCREEN -> ScreenLiveScreen(
+                            state = screenState.value,
+                            onStreamUrlChanged = { screenCoordinator.updateStreamUrl(it) },
+                            onBitrateChanged = { screenCoordinator.updateBitrate(it) },
+                            onToggleMic = { screenCoordinator.toggleMic(it) },
+                            onTogglePlayback = { screenCoordinator.togglePlayback(it) },
+                            onToggleStats = { screenCoordinator.toggleStats(it) },
+                            onRequestOverlay = { requestOverlayPermission() },
+                            onStart = { handleScreenStart() },
+                            onStop = { handleScreenStop() }
+                        )
+                    }
+                }
             }
         }
     }
@@ -158,21 +270,21 @@ class LiveActivity : AppCompatActivity(), OnConnectListener {
         }
     }
 
-    private fun handleToggleLive() {
+    private fun handleCameraToggle() {
         if (uiState.value.isStreaming || uiState.value.isConnecting) {
-            stopStreaming()
+            stopCameraStreaming()
         } else {
-            startStreaming()
+            startCameraStreaming()
         }
     }
 
-    private fun startStreaming() {
+    private fun startCameraStreaming() {
         if (uiState.value.streamUrl.isBlank()) {
             coordinator.showUrlDialog()
             return
         }
         coordinator.markConnecting()
-        if (!ensureSender()) {
+        if (!ensureCameraSender()) {
             coordinator.clearConnecting()
             return
         }
@@ -180,16 +292,55 @@ class LiveActivity : AppCompatActivity(), OnConnectListener {
         coordinator.sender?.connect()
     }
 
-    private fun stopStreaming() {
+    private fun stopCameraStreaming() {
         coordinator.liveView?.stopLive()
         coordinator.sender?.close()
         coordinator.markStreamingStopped(uiState.value.videoFps)
     }
 
-    private fun ensureSender(): Boolean {
+    private fun ensureCameraSender(): Boolean {
         if (!coordinator.ensureSender { Toast.makeText(this, it, Toast.LENGTH_LONG).show() }) return false
         coordinator.sender?.setOnConnectListener(this)
         return coordinator.sender != null
+    }
+
+    private fun handleScreenStart() {
+        if (!screenCoordinator.ensureSender { Toast.makeText(this, it, Toast.LENGTH_LONG).show() }) {
+            screenCoordinator.markConnectionFailed()
+            return
+        }
+        screenCoordinator.attachConnectListener(screenConnectListener)
+        val started = screenCoordinator.startStreaming { requestProjectionPermission() }
+        if (!started) {
+            screenCoordinator.detachConnectListener()
+            return
+        }
+        screenCoordinator.sender?.apply {
+            setDataSource(screenState.value.streamUrl)
+            connect()
+        }
+    }
+
+    private fun handleScreenStop() {
+        screenCoordinator.stopStreaming()
+        screenCoordinator.detachConnectListener()
+        ScreenOverlayManager.hide(applicationContext)
+    }
+
+    private fun requestProjectionPermission() {
+        projectionLauncher.launch(projectionManager.createScreenCaptureIntent())
+    }
+
+    private fun requestOverlayPermission() {
+        if (Settings.canDrawOverlays(this)) {
+            Toast.makeText(this, "Overlay already enabled", Toast.LENGTH_SHORT).show()
+            return
+        }
+        val intent = Intent(
+            Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+            Uri.parse("package:$packageName")
+        )
+        startActivity(intent)
     }
 
     private fun stopWithError(message: String) {
@@ -202,7 +353,6 @@ class LiveActivity : AppCompatActivity(), OnConnectListener {
 
     override fun onFail(message: String) = stopWithError(message)
 
-    @RequiresApi(Build.VERSION_CODES.N)
     override fun onConnecting() = coordinator.markConnecting()
 
     override fun onConnected() {
@@ -225,4 +375,42 @@ class LiveActivity : AppCompatActivity(), OnConnectListener {
 
     private fun hasCameraPermission(): Boolean =
         ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
+
+    private fun updateOverlayState() {
+        val granted = Settings.canDrawOverlays(this)
+        screenState.value = screenState.value.copy(overlayPermissionGranted = granted)
+        ScreenOverlayManager.update(applicationContext, screenState.value)
+    }
+
+    private fun handleModeSwitch(mode: LiveMode) {
+        if (currentMode == mode) return
+        currentMode = mode
+        if (mode == LiveMode.CAMERA) {
+            ensurePreview()
+        } else {
+            coordinator.liveView?.pause()
+        }
+    }
+
+    @Composable
+    @OptIn(ExperimentalMaterial3Api::class)
+    private fun ModeSwitcher(selected: LiveMode, onSelect: (LiveMode) -> Unit) {
+        SingleChoiceSegmentedButtonRow(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp, vertical = 16.dp)
+        ) {
+            val labels = listOf("Camera Live" to LiveMode.CAMERA, "Screen Live" to LiveMode.SCREEN)
+            labels.forEachIndexed { index, pair ->
+                val (label, mode) = pair
+                SegmentedButton(
+                    selected = selected == mode,
+                    onClick = { onSelect(mode) },
+                    shape = SegmentedButtonDefaults.itemShape(index, labels.size)
+                ) {
+                    Text(text = label, style = MaterialTheme.typography.labelLarge)
+                }
+            }
+        }
+    }
 }

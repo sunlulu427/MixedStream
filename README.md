@@ -25,6 +25,7 @@ AstraStreaming is a Kotlin + C++ streaming toolkit that delivers end-to-end AV c
 - Session UI persists RTMP URL, encoder, resolution, and bitrate selections for quick relaunches
 - Immersive, edge-to-edge preview with cutout support on full-screen devices
 - RTMP + HTTP-FLV downstream address helper for quick playback verification
+- Screen recording live mode combining microphone + playback capture with a Vulkan-based compositor, delivering MediaProjection frames without touching the camera pipeline, and an optional floating overlay when the app is backgrounded
 
 ## Architecture Overview
 
@@ -51,6 +52,7 @@ The minimalist color scheme highlights only the most critical processing compone
 | [`docs/video_render.puml`](docs/video_render.puml) | GL thread, FBO, and watermark rendering |
 | [`docs/video_encode.puml`](docs/video_encode.puml) | `MediaCodec` session management |
 | [`docs/video_streaming.puml`](docs/video_streaming.puml) | FLV muxing and RTMP sender interactions |
+| [`docs/screen_streaming.puml`](docs/screen_streaming.puml) | Screen recording pipeline (MediaProjection + Vulkan renderer + mixed audio + overlay flow) |
 
 > CI runs `tools/render_docs.sh` to publish PNG/Markdown artifacts in the `docs-diagrams` workflow artifact. Run the script locally to regenerate visuals as needed.
 
@@ -85,6 +87,12 @@ cd AstraStreaming
 ```
 
 The demo Activity (`LiveActivity`) now renders a Material 3 Compose interface (`LiveScreen`) driven by a coordinator (`LiveSessionCoordinator`). It wires an `AVLiveView` into the Compose tree, applies default **720 × 1280 @ 30fps** capture/stream settings, and exposes encoder selection, bitrate tuning, and live controls. Streaming is optional—users can leave the RTMP address empty to stay in preview-only mode—and the entire experience runs in an immersive, edge-to-edge layout.
+
+### Dual Live Modes
+
+`LiveActivity` now mirrors Douyin-style parity between camera and screen capture. A segmented control lets creators switch between **Camera Live** (classic preview with `AVLiveView`) and **Screen Live** without leaving the activity. Screen mode keeps the Compose controls inline—publish URL, bitrate, microphone/playback toggles, stats visibility, and overlay permission prompts—while showing projection readiness and stream metrics.
+
+Screen live obtains MediaProjection consent on demand, mixes microphone + playback audio (`MixedAudioProcessor`), and renders frames with the Vulkan-backed `VulkanScreenRenderer`. When the host backgrounds the app, `ScreenOverlayManager` can surface a floating overlay (requires `SYSTEM_ALERT_WINDOW`) showing bitrate/fps and providing a one-tap return to the live console. Overlay enablement is optional and exposed in the screen live panel; the state syncs with the shared pipeline so bitrate/FPS updates continue while the overlay is visible.
 
 ## Stream URL Examples
 
