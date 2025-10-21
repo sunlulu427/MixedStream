@@ -59,6 +59,11 @@ class AudioProcessor : ThreadImpl() {
                     throw IllegalStateException("AudioRecord initialization failed")
                 }
             }
+        } catch (security: SecurityException) {
+            val message = "Record audio permission denied"
+            recordListener?.onError(message)
+            LogHelper.e(STREAM_LOG_TAG, message)
+            throw security
         } catch (error: Exception) {
             recordListener?.onError(error.message)
             LogHelper.e(STREAM_LOG_TAG, error.message)

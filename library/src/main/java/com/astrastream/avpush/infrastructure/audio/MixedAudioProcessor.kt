@@ -48,17 +48,23 @@ class MixedAudioProcessor(
         ).coerceAtLeast(MIN_BUFFER_SIZE)
 
         if (captureConfiguration.includeMic) {
-            micRecord = AudioRecord(
-                audioConfiguration.audioSource,
-                audioConfiguration.sampleRate,
-                channelConfig,
-                audioConfiguration.encoding,
-                bufferSize
-            ).apply {
-                if (state != AudioRecord.STATE_INITIALIZED) {
-                    LogHelper.e(TAG, "mic AudioRecord not initialized")
-                    release()
+            micRecord = try {
+                AudioRecord(
+                    audioConfiguration.audioSource,
+                    audioConfiguration.sampleRate,
+                    channelConfig,
+                    audioConfiguration.encoding,
+                    bufferSize
+                ).apply {
+                    if (state != AudioRecord.STATE_INITIALIZED) {
+                        LogHelper.e(TAG, "mic AudioRecord not initialized")
+                        release()
+                    }
                 }
+            } catch (security: SecurityException) {
+                LogHelper.e(TAG, "microphone permission denied: ${security.message}")
+                recordListener?.onError("麦克风权限未授予，无法采集音频")
+                null
             }
         }
 
@@ -96,24 +102,30 @@ class MixedAudioProcessor(
             AudioFormat.CHANNEL_IN_MONO
         }
         val config = buildPlaybackConfig(actualProjection)
-        return AudioRecord.Builder()
-            .setAudioFormat(
-                AudioFormat.Builder()
-                    .setChannelMask(channelConfig)
-                    .setEncoding(audioConfiguration.encoding)
-                    .setSampleRate(audioConfiguration.sampleRate)
-                    .build()
-            )
-            .setBufferSizeInBytes(bufferSize)
-            .setAudioPlaybackCaptureConfig(config)
-            .build()
-            .also {
-                if (it.state != AudioRecord.STATE_INITIALIZED) {
-                    LogHelper.e(TAG, "playback AudioRecord not initialized")
-                    it.release()
-                    return null
+        return try {
+            AudioRecord.Builder()
+                .setAudioFormat(
+                    AudioFormat.Builder()
+                        .setChannelMask(channelConfig)
+                        .setEncoding(audioConfiguration.encoding)
+                        .setSampleRate(audioConfiguration.sampleRate)
+                        .build()
+                )
+                .setBufferSizeInBytes(bufferSize)
+                .setAudioPlaybackCaptureConfig(config)
+                .build()
+                .also {
+                    if (it.state != AudioRecord.STATE_INITIALIZED) {
+                        LogHelper.e(TAG, "playback AudioRecord not initialized")
+                        it.release()
+                        return null
+                    }
                 }
-            }
+        } catch (security: SecurityException) {
+            LogHelper.e(TAG, "playback capture permission denied: ${security.message}")
+            recordListener?.onError("缺少录音权限，无法捕获播放音频")
+            null
+        }
     }
 
     fun startRecording() {

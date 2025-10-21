@@ -55,6 +55,9 @@ class LiveSessionCoordinator(
         view.setOnCameraErrorListener { message -> onCameraError(message) }
         applyStreamConfiguration(view)
         if (previewRequested) startPreview()
+        if (previewStarted) {
+            state.value = state.value.copy(previewReady = true, cameraError = null)
+        }
     }
 
     fun ensureSender(onError: (String) -> Unit): Boolean {
@@ -78,6 +81,7 @@ class LiveSessionCoordinator(
         if (!hasCameraPermission()) {
             LogHelper.w(tag, "startPreview skipped: camera permission missing")
             previewRequested = true
+            state.value = state.value.copy(previewReady = false, cameraError = null)
             if (!permissionWarningShown) {
                 Toast.makeText(context, "Camera permission required", Toast.LENGTH_SHORT).show()
                 permissionWarningShown = true
@@ -86,17 +90,20 @@ class LiveSessionCoordinator(
         }
         val view = liveView ?: run {
             previewRequested = true
+            state.value = state.value.copy(previewReady = false, cameraError = null)
             return
         }
         view.startPreview()
         previewStarted = true
         previewRequested = false
         permissionWarningShown = false
+        state.value = state.value.copy(previewReady = true, cameraError = null)
     }
 
     fun restartPreview() {
         liveView?.releaseCamera()
         previewStarted = false
+        state.value = state.value.copy(previewReady = false, cameraError = null)
         startPreview()
     }
 
@@ -180,11 +187,18 @@ class LiveSessionCoordinator(
         LogHelper.i(tag, "camera preview ready with ${width}x$height")
         val current = state.value
         if (current.captureResolution.width == width && current.captureResolution.height == height) {
+            if (!current.previewReady) {
+                state.value = current.copy(previewReady = true, cameraError = null)
+            }
             return
         }
         val updatedOption = captureOptions.find { it.width == width && it.height == height }
             ?: ResolutionOption(width, height, "${width} × ${height}")
-        state.value = current.copy(captureResolution = updatedOption)
+        state.value = current.copy(
+            captureResolution = updatedOption,
+            previewReady = true,
+            cameraError = null
+        )
         applyStreamConfiguration()
         persistState()
     }
@@ -195,7 +209,9 @@ class LiveSessionCoordinator(
         state.value = state.value.copy(
             captureResolution = safeCaptureOption,
             isConnecting = false,
-            isStreaming = false
+            isStreaming = false,
+            previewReady = false,
+            cameraError = message
         )
         applyStreamConfiguration()
         previewStarted = false
@@ -250,6 +266,7 @@ class LiveSessionCoordinator(
     fun markPreviewPending() {
         previewStarted = false
         previewRequested = true
+        state.value = state.value.copy(previewReady = false, cameraError = null)
         LogHelper.d(tag, "preview marked pending (permission or surface not ready)")
     }
 
@@ -258,7 +275,8 @@ class LiveSessionCoordinator(
             isConnecting = false,
             isStreaming = true,
             currentBitrate = targetBitrate,
-            currentFps = fps
+            currentFps = fps,
+            showParameterPanel = false
         )
     }
 
@@ -278,6 +296,8 @@ class LiveSessionCoordinator(
     fun clearConnecting() {
         state.value = state.value.copy(isConnecting = false)
     }
+
+    fun isPreviewReady(): Boolean = previewStarted
 
     private fun persistState() {
         preferencesStore.save(state.value)

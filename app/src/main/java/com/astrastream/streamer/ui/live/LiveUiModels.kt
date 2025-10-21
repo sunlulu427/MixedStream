@@ -15,6 +15,8 @@ data class LiveUiState(
     val streamUrl: String,
     val isStreaming: Boolean = false,
     val isConnecting: Boolean = false,
+    val previewReady: Boolean = false,
+    val cameraError: String? = null,
     val showParameterPanel: Boolean = false,
     val showUrlDialog: Boolean = false,
     val showStats: Boolean = true,

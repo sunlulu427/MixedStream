@@ -18,16 +18,20 @@ import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.Composable
@@ -36,7 +40,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
@@ -194,11 +202,19 @@ class LiveActivity : AppCompatActivity(), OnConnectListener {
         setContent {
             AVLiveTheme {
                 var selectedMode by rememberSaveable { mutableStateOf(currentMode) }
-                Column(modifier = Modifier.fillMaxSize()) {
-                    ModeSwitcher(selectedMode) { mode ->
-                        selectedMode = mode
-                        handleModeSwitch(mode)
-                    }
+                val modeSwitcherContent: @Composable () -> Unit = {
+                    ModeSwitcher(
+                        selected = selectedMode,
+                        onSelect = { mode ->
+                            if (mode != selectedMode) {
+                                selectedMode = mode
+                                handleModeSwitch(mode)
+                            }
+                        }
+                    )
+                }
+
+                Box(modifier = Modifier.fillMaxSize()) {
                     when (selectedMode) {
                         LiveMode.CAMERA -> LiveScreen(
                             state = uiState.value,
@@ -218,7 +234,9 @@ class LiveActivity : AppCompatActivity(), OnConnectListener {
                             onStatsToggle = { coordinator.setStatsVisible(it) },
                             onSwitchCamera = { coordinator.liveView?.switchCamera() },
                             onToggleLive = { handleCameraToggle() },
-                            onLiveViewReady = { coordinator.attachLiveView(it) }
+                            onLiveViewReady = { coordinator.attachLiveView(it) },
+                            modeSwitcher = modeSwitcherContent,
+                            onBack = { finish() }
                         )
                         LiveMode.SCREEN -> ScreenLiveScreen(
                             state = screenState.value,
@@ -229,7 +247,9 @@ class LiveActivity : AppCompatActivity(), OnConnectListener {
                             onToggleStats = { screenCoordinator.toggleStats(it) },
                             onRequestOverlay = { requestOverlayPermission() },
                             onStart = { handleScreenStart() },
-                            onStop = { handleScreenStop() }
+                            onStop = { handleScreenStop() },
+                            modeSwitcher = modeSwitcherContent,
+                            onBack = { finish() }
                         )
                     }
                 }
@@ -281,6 +301,11 @@ class LiveActivity : AppCompatActivity(), OnConnectListener {
     private fun startCameraStreaming() {
         if (uiState.value.streamUrl.isBlank()) {
             coordinator.showUrlDialog()
+            return
+        }
+        if (!coordinator.isPreviewReady()) {
+            Toast.makeText(this, "摄像头预览初始化中，请稍候", Toast.LENGTH_SHORT).show()
+            coordinator.startPreview()
             return
         }
         coordinator.markConnecting()
@@ -393,24 +418,51 @@ class LiveActivity : AppCompatActivity(), OnConnectListener {
     }
 
     @Composable
-    @OptIn(ExperimentalMaterial3Api::class)
     private fun ModeSwitcher(selected: LiveMode, onSelect: (LiveMode) -> Unit) {
-        SingleChoiceSegmentedButtonRow(
+        val tabs = listOf(
+            ModeTab(label = "视频", mode = LiveMode.CAMERA, enabled = true),
+            ModeTab(label = "语音", mode = null, enabled = false),
+            ModeTab(label = "手游", mode = LiveMode.SCREEN, enabled = true),
+            ModeTab(label = "电脑", mode = null, enabled = false)
+        )
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 24.dp, vertical = 16.dp)
+                .padding(horizontal = 32.dp),
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            val labels = listOf("Camera Live" to LiveMode.CAMERA, "Screen Live" to LiveMode.SCREEN)
-            labels.forEachIndexed { index, pair ->
-                val (label, mode) = pair
-                SegmentedButton(
-                    selected = selected == mode,
-                    onClick = { onSelect(mode) },
-                    shape = SegmentedButtonDefaults.itemShape(index, labels.size)
+            tabs.forEach { tab ->
+                val isSelected = tab.mode == selected
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier
+                        .width(64.dp)
+                        .clickable(enabled = tab.enabled && tab.mode != null) {
+                            tab.mode?.let(onSelect)
+                        }
                 ) {
-                    Text(text = label, style = MaterialTheme.typography.labelLarge)
+                    Text(
+                        text = tab.label,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+                        color = when {
+                            isSelected -> Color.White
+                            tab.enabled -> Color.White.copy(alpha = 0.6f)
+                            else -> Color.White.copy(alpha = 0.35f)
+                        }
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Box(
+                        modifier = Modifier
+                            .height(3.dp)
+                            .width(32.dp)
+                            .clip(RoundedCornerShape(1.5.dp))
+                            .background(if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent)
+                    )
                 }
             }
         }
     }
+
+    private data class ModeTab(val label: String, val mode: LiveMode?, val enabled: Boolean)
 }

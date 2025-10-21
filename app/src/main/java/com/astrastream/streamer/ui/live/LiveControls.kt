@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.CircleShape
@@ -94,9 +95,12 @@ fun PanelToggleButton(expanded: Boolean, onToggle: () -> Unit, modifier: Modifie
 @Composable
 fun StreamingStatsOverlay(state: LiveUiState, modifier: Modifier = Modifier) {
     Surface(
-        modifier = modifier,
-        shape = RoundedCornerShape(16.dp),
-        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.75f)
+        modifier = modifier
+            .widthIn(max = 280.dp)
+            .heightIn(min = 180.dp),
+        shape = RoundedCornerShape(18.dp),
+        tonalElevation = 4.dp,
+        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.92f)
     ) {
         val status = when {
             state.isConnecting -> "Connecting"
@@ -104,19 +108,22 @@ fun StreamingStatsOverlay(state: LiveUiState, modifier: Modifier = Modifier) {
             else -> "Preview"
         }
         Column(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
-            Text(text = "Status: $status", style = MaterialTheme.typography.labelLarge)
-            Text(text = "Capture: ${state.captureResolution.label} @ ${state.videoFps} fps", style = MaterialTheme.typography.bodySmall)
-            Text(text = "Stream: ${state.streamResolution.label}", style = MaterialTheme.typography.bodySmall)
-            Text(text = "Bitrate: ${state.currentBitrate} kbps (target ${state.targetBitrate})", style = MaterialTheme.typography.bodySmall)
-            Text(text = "Actual FPS: ${state.currentFps}", style = MaterialTheme.typography.bodySmall)
-            Text(text = "GOP: ${state.gop}", style = MaterialTheme.typography.bodySmall)
-            Text(text = "Encoder: ${state.encoder.description}", style = MaterialTheme.typography.bodySmall)
+            Text(text = "状态：$status", style = MaterialTheme.typography.labelLarge)
+            Text(text = "采集：${state.captureResolution.label} @ ${state.videoFps}fps", style = MaterialTheme.typography.bodySmall)
+            Text(text = "推流：${state.streamResolution.label}", style = MaterialTheme.typography.bodySmall)
+            Text(
+                text = "码率：${state.currentBitrate} kbps / 目标 ${state.targetBitrate}",
+                style = MaterialTheme.typography.bodySmall
+            )
+            Text(text = "实际帧率：${state.currentFps}", style = MaterialTheme.typography.bodySmall)
+            Text(text = "GOP：${state.gop}", style = MaterialTheme.typography.bodySmall)
+            Text(text = "编码：${state.encoder.description}", style = MaterialTheme.typography.bodySmall)
             if (state.streamUrl.isNotBlank()) {
                 Text(
-                    text = "URL: ${state.streamUrl}",
+                    text = "URL：${state.streamUrl}",
                     style = MaterialTheme.typography.bodySmall,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
@@ -129,6 +136,8 @@ fun StreamingStatsOverlay(state: LiveUiState, modifier: Modifier = Modifier) {
 @Composable
 fun StreamUrlDialog(initialValue: String, onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
     val text = remember { mutableStateOf(initialValue) }
+    val clipboard = LocalClipboardManager.current
+    val context = LocalContext.current
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(text = "Publish URL") },
@@ -139,6 +148,16 @@ fun StreamUrlDialog(initialValue: String, onDismiss: () -> Unit, onConfirm: (Str
                     value = text.value,
                     onValueChange = { text.value = it },
                     singleLine = true,
+                    trailingIcon = {
+                        if (text.value.isNotBlank()) {
+                            IconButton(onClick = {
+                                clipboard.setText(AnnotatedString(text.value))
+                                Toast.makeText(context, "已复制推流地址", Toast.LENGTH_SHORT).show()
+                            }) {
+                                Icon(imageVector = Icons.Rounded.ContentCopy, contentDescription = "复制推流地址")
+                            }
+                        }
+                    },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -170,6 +189,8 @@ fun ParameterPanel(
     modifier: Modifier = Modifier
 ) {
     val configuration = LocalConfiguration.current
+    val clipboard = LocalClipboardManager.current
+    val context = LocalContext.current
     val maxHeight = (configuration.screenHeightDp.dp * 2f) / 3f
 
     val scrollState = rememberScrollState()
@@ -201,6 +222,19 @@ fun ParameterPanel(
                     singleLine = false,
                     minLines = 1,
                     enabled = controlsEnabled,
+                    trailingIcon = {
+                        if (state.streamUrl.isNotBlank()) {
+                            IconButton(onClick = {
+                                clipboard.setText(AnnotatedString(state.streamUrl))
+                                Toast.makeText(context, "已复制推流地址", Toast.LENGTH_SHORT).show()
+                            }) {
+                                Icon(
+                                    imageVector = Icons.Rounded.ContentCopy,
+                                    contentDescription = "复制推流地址"
+                                )
+                            }
+                        }
+                    },
                     keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Uri),
                     modifier = Modifier.fillMaxWidth()
                 )
