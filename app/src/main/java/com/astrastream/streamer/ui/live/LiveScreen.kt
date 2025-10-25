@@ -324,7 +324,7 @@ fun LiveScreen(
                     state = state,
                     onClose = { onStatsToggle(false) },
                     modifier = Modifier
-                        .offset(overlayOffset.x.roundToInt().dp, overlayOffset.y.roundToInt().dp)
+                        .offset { IntOffset(overlayOffset.x.roundToInt(), overlayOffset.y.roundToInt()) }
                         .pointerInput(Unit) {
                             val currentBounds = bounds ?: return@pointerInput
                             detectDragGestures { change: PointerInputChange, dragAmount ->
