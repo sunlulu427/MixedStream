@@ -25,7 +25,7 @@ class UnifiedStreamSessionTest {
     @Test
     fun `should create session with default configuration`() {
         val session = createStreamSession {
-            addRtmp("rtmp://test.example.com/live/stream")
+            addRtmp("rtmp://47.100.16.213:1935/live/123333")
         }
 
         assertNotNull(session)
@@ -58,7 +58,7 @@ class UnifiedStreamSessionTest {
                 stabilization = true
             }
 
-            addRtmp("rtmp://test.example.com/live/stream")
+            addRtmp("rtmp://47.100.16.213:1935/live/123333")
         }
 
         assertNotNull(session)
@@ -81,7 +81,7 @@ class UnifiedStreamSessionTest {
             }
 
             // 添加多个传输协议
-            val rtmpId = addRtmp("rtmp://rtmp.example.com/live/stream") {
+            val rtmpId = addRtmp("rtmp://47.100.16.213:1935/live/123333") {
                 priority = 1
                 enableLowLatency = false
             }
@@ -108,7 +108,7 @@ class UnifiedStreamSessionTest {
 
         // 有效配置
         val validConfig = RtmpConfig(
-            pushUrl = "rtmp://valid.example.com/live/stream",
+            pushUrl = "rtmp://47.100.16.213:1935/live/123333",
             connectTimeout = java.time.Duration.ofSeconds(10),
             chunkSize = 4096
         )
@@ -138,7 +138,7 @@ class UnifiedStreamSessionTest {
                 bitrate = 2_000_000
             }
 
-            addRtmp("rtmp://test.example.com/live/stream")
+            addRtmp("rtmp://47.100.16.213:1935/live/123333")
         }
 
         // 更新视频配置
@@ -178,7 +178,7 @@ class UnifiedStreamSessionTest {
                 bitrate = 2_000_000
             }
 
-            addRtmp("rtmp://test.example.com/live/stream")
+            addRtmp("rtmp://47.100.16.213:1935/live/123333")
         }
 
         // 文字水印
@@ -200,7 +200,7 @@ class UnifiedStreamSessionTest {
     @Test
     fun `should handle transport management`() {
         val session = createStreamSession {
-            addRtmp("rtmp://primary.example.com/live/stream") {
+            addRtmp("rtmp://47.100.16.213:1935/live/123333") {
                 priority = 0
             }
         }
@@ -208,7 +208,7 @@ class UnifiedStreamSessionTest {
         // 添加备用传输
         val backupTransportId = session.addTransport(
             RtmpConfig(
-                pushUrl = "rtmp://backup.example.com/live/stream",
+                pushUrl = "rtmp://47.100.16.213:1935/live/backup",
                 priority = 1
             )
         )
@@ -285,7 +285,7 @@ class UnifiedStreamSessionTest {
     @Test
     fun `should handle session state transitions`() {
         val session = createStreamSession {
-            addRtmp("rtmp://test.example.com/live/stream")
+            addRtmp("rtmp://47.100.16.213:1935/live/123333")
         }
 
         // 初始状态应该是IDLE
@@ -330,8 +330,8 @@ class UnifiedStreamSessionTest {
                 bitrate = 128_000
             }
 
-            addRtmp("rtmp://primary.example.com/live/stream")
-            addRtmp("rtmp://backup.example.com/live/stream")
+            addRtmp("rtmp://47.100.16.213:1935/live/123333")
+            addRtmp("rtmp://47.100.16.213:1935/live/backup")
 
             advanced {
                 enableSimultaneousPush = true

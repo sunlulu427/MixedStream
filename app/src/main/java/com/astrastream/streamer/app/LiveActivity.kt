@@ -64,11 +64,14 @@ import com.astrastream.streamer.ui.screen.ScreenLiveScreen
 import com.astrastream.streamer.ui.screen.ScreenLiveSessionCoordinator
 import com.astrastream.streamer.ui.screen.ScreenLiveUiState
 import com.astrastream.streamer.ui.theme.AVLiveTheme
+import com.astrastream.streamer.ui.unified.UnifiedLiveScreen
+import com.astrastream.streamer.ui.unified.UnifiedSessionCoordinator
 import com.tbruyelle.rxpermissions2.RxPermissions
+import androidx.lifecycle.lifecycleScope
 
 class LiveActivity : AppCompatActivity(), OnConnectListener {
 
-    private enum class LiveMode { CAMERA, SCREEN }
+    private enum class LiveMode { CAMERA, SCREEN, UNIFIED }
 
     private val captureDefaults = LiveSessionCoordinator.defaultCaptureOptions()
     private val streamDefaults = LiveSessionCoordinator.defaultStreamOptions()
@@ -94,6 +97,7 @@ class LiveActivity : AppCompatActivity(), OnConnectListener {
     private val audioConfig = AudioConfiguration()
     private lateinit var coordinator: LiveSessionCoordinator
     private lateinit var screenCoordinator: ScreenLiveSessionCoordinator
+    private lateinit var unifiedCoordinator: UnifiedSessionCoordinator
     private lateinit var projectionManager: MediaProjectionManager
 
     private lateinit var projectionLauncher: androidx.activity.result.ActivityResultLauncher<Intent>
@@ -128,6 +132,7 @@ class LiveActivity : AppCompatActivity(), OnConnectListener {
         screenCoordinator = ScreenLiveSessionCoordinator(this, screenState)
         screenCoordinator.updateStreamUrl(uiState.value.streamUrl)
         screenCoordinator.setOverlayObserver { ScreenOverlayManager.update(applicationContext, it) }
+        unifiedCoordinator = UnifiedSessionCoordinator(this, lifecycleScope)
         projectionLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == Activity.RESULT_OK && result.data != null) {
                 val projection = projectionManager.getMediaProjection(result.resultCode, result.data!!)
@@ -178,6 +183,7 @@ class LiveActivity : AppCompatActivity(), OnConnectListener {
         coordinator.liveView?.stopLive()
         coordinator.liveView?.releaseCamera()
         screenCoordinator.release()
+        unifiedCoordinator.release()
         ScreenOverlayManager.hide(applicationContext)
     }
 
@@ -257,6 +263,17 @@ class LiveActivity : AppCompatActivity(), OnConnectListener {
                             onStop = { handleScreenStop() },
                             modeSwitcher = modeSwitcherContent,
                             onBack = { finish() }
+                        )
+                        LiveMode.UNIFIED -> UnifiedLiveScreen(
+                            state = unifiedCoordinator.state.value,
+                            onToggleStreaming = { unifiedCoordinator.toggleStreaming() },
+                            onSwitchCamera = { unifiedCoordinator.switchCamera() },
+                            onToggleAudio = { unifiedCoordinator.toggleAudio() },
+                            onAdjustBitrate = { unifiedCoordinator.adjustBitrate() },
+                            onToggleStats = { unifiedCoordinator.toggleStatsPanel() },
+                            onDismissError = { unifiedCoordinator.dismissError() },
+                            onBack = { finish() },
+                            modeSwitcher = modeSwitcherContent
                         )
                     }
                 }
@@ -433,7 +450,7 @@ class LiveActivity : AppCompatActivity(), OnConnectListener {
     private fun ModeSwitcher(selected: LiveMode, onSelect: (LiveMode) -> Unit) {
         val tabs = listOf(
             ModeTab(label = "视频", mode = LiveMode.CAMERA, enabled = true),
-            ModeTab(label = "语音", mode = null, enabled = false),
+            ModeTab(label = "统一", mode = LiveMode.UNIFIED, enabled = true),
             ModeTab(label = "手游", mode = LiveMode.SCREEN, enabled = true)
         )
         Row(
