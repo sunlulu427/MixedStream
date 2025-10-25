@@ -19,6 +19,9 @@
       "Bash(brew list:*)",
       "Bash(plantuml:*)",
       "Bash(git add:*)"
+      "Bash(git push:*)",
+      "mcp__context7__resolve-library-id",
+      "mcp__context7__get-library-docs"
     ],
     "deny": [],
     "ask": []
