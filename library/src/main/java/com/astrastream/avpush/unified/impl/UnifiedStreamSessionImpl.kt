@@ -24,7 +24,7 @@ class UnifiedStreamSessionImpl(
     private var videoConfig: VideoConfig,
     private var audioConfig: AudioConfig,
     private var cameraConfig: CameraConfig,
-    transportConfigs: List<TransportConfig>,
+    initialTransportConfigs: List<TransportConfig>,
     private val advancedConfig: AdvancedConfig
 ) : UnifiedStreamSession {
 
@@ -57,12 +57,12 @@ class UnifiedStreamSessionImpl(
         TransportRegistry.registerFactory(RtmpTransportFactory())
 
         // 初始化传输配置
-        transportConfigs.forEach { config ->
+        initialTransportConfigs.forEach { config ->
             this.transportConfigs[config.id] = config
         }
 
         // 设置主传输
-        primaryTransportId = findPrimaryTransport(transportConfigs)
+        primaryTransportId = findPrimaryTransport(initialTransportConfigs)
 
         // 启动状态监控
         startStateMonitoring()

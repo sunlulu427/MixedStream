@@ -47,6 +47,16 @@ class StreamSessionBuilder {
     }
 
     /**
+     * 添加流传输（自动检测协议）
+     * 根据URL自动选择RTMP、WebRTC或SRT传输
+     */
+    fun addStream(url: String): TransportId {
+        val config = com.astrastream.avpush.unified.ProtocolDetector.detectAndCreateConfig(url)
+        transportConfigs.add(config)
+        return config.id
+    }
+
+    /**
      * 添加RTMP传输
      */
     fun addRtmp(
@@ -104,7 +114,7 @@ class StreamSessionBuilder {
             videoConfig = videoConfig ?: VideoConfig(),
             audioConfig = audioConfig ?: AudioConfig(),
             cameraConfig = cameraConfig ?: CameraConfig(),
-            transportConfigs = transportConfigs,
+            initialTransportConfigs = transportConfigs,
             advancedConfig = advancedConfig ?: AdvancedConfig()
         )
     }

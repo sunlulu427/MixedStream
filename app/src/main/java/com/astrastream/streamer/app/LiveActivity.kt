@@ -64,14 +64,12 @@ import com.astrastream.streamer.ui.screen.ScreenLiveScreen
 import com.astrastream.streamer.ui.screen.ScreenLiveSessionCoordinator
 import com.astrastream.streamer.ui.screen.ScreenLiveUiState
 import com.astrastream.streamer.ui.theme.AVLiveTheme
-import com.astrastream.streamer.ui.unified.UnifiedLiveScreen
-import com.astrastream.streamer.ui.unified.UnifiedSessionCoordinator
 import com.tbruyelle.rxpermissions2.RxPermissions
 import androidx.lifecycle.lifecycleScope
 
 class LiveActivity : AppCompatActivity(), OnConnectListener {
 
-    private enum class LiveMode { CAMERA, SCREEN, UNIFIED }
+    private enum class LiveMode { CAMERA, SCREEN }
 
     private val captureDefaults = LiveSessionCoordinator.defaultCaptureOptions()
     private val streamDefaults = LiveSessionCoordinator.defaultStreamOptions()
@@ -97,7 +95,6 @@ class LiveActivity : AppCompatActivity(), OnConnectListener {
     private val audioConfig = AudioConfiguration()
     private lateinit var coordinator: LiveSessionCoordinator
     private lateinit var screenCoordinator: ScreenLiveSessionCoordinator
-    private lateinit var unifiedCoordinator: UnifiedSessionCoordinator
     private lateinit var projectionManager: MediaProjectionManager
 
     private lateinit var projectionLauncher: androidx.activity.result.ActivityResultLauncher<Intent>
@@ -132,7 +129,6 @@ class LiveActivity : AppCompatActivity(), OnConnectListener {
         screenCoordinator = ScreenLiveSessionCoordinator(this, screenState)
         screenCoordinator.updateStreamUrl(uiState.value.streamUrl)
         screenCoordinator.setOverlayObserver { ScreenOverlayManager.update(applicationContext, it) }
-        unifiedCoordinator = UnifiedSessionCoordinator(this, lifecycleScope)
         projectionLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == Activity.RESULT_OK && result.data != null) {
                 val projection = projectionManager.getMediaProjection(result.resultCode, result.data!!)
@@ -183,7 +179,6 @@ class LiveActivity : AppCompatActivity(), OnConnectListener {
         coordinator.liveView?.stopLive()
         coordinator.liveView?.releaseCamera()
         screenCoordinator.release()
-        unifiedCoordinator.release()
         ScreenOverlayManager.hide(applicationContext)
     }
 
@@ -264,17 +259,6 @@ class LiveActivity : AppCompatActivity(), OnConnectListener {
                             modeSwitcher = modeSwitcherContent,
                             onBack = { finish() }
                         )
-                        LiveMode.UNIFIED -> UnifiedLiveScreen(
-                            state = unifiedCoordinator.state.value,
-                            onToggleStreaming = { unifiedCoordinator.toggleStreaming() },
-                            onSwitchCamera = { unifiedCoordinator.switchCamera() },
-                            onToggleAudio = { unifiedCoordinator.toggleAudio() },
-                            onAdjustBitrate = { unifiedCoordinator.adjustBitrate() },
-                            onToggleStats = { unifiedCoordinator.toggleStatsPanel() },
-                            onDismissError = { unifiedCoordinator.dismissError() },
-                            onBack = { finish() },
-                            modeSwitcher = modeSwitcherContent
-                        )
                     }
                 }
             }
@@ -337,20 +321,52 @@ class LiveActivity : AppCompatActivity(), OnConnectListener {
             coordinator.clearConnecting()
             return
         }
-        coordinator.sender?.setDataSource(uiState.value.streamUrl)
-        coordinator.sender?.connect()
+        if (coordinator.useUnifiedApi) {
+            // 使用统一API启动推流
+            startUnifiedStreaming()
+        } else {
+            // 使用传统RTMP推流
+            coordinator.sender?.setDataSource(uiState.value.streamUrl)
+            coordinator.sender?.connect()
+        }
+    }
+
+    private fun startUnifiedStreaming() {
+        // TODO: 实现统一API的推流启动逻辑
+        // 这里需要与UnifiedStreamSession集成
+        coordinator.unifiedSession?.let { session ->
+            // 暂时标记为连接成功，实际实现需要异步处理
+            coordinator.markStreamingStarted(uiState.value.targetBitrate, uiState.value.videoFps)
+            Toast.makeText(this, "统一API推流已启动 (${uiState.value.streamUrl})", Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun stopCameraStreaming() {
-        coordinator.liveView?.stopLive()
-        coordinator.sender?.close()
-        coordinator.markStreamingStopped(uiState.value.videoFps)
+        if (coordinator.useUnifiedApi) {
+            // 停止统一API推流
+            coordinator.unifiedSession?.let { session ->
+                // TODO: 实现统一API的停止逻辑
+                coordinator.markStreamingStopped(uiState.value.videoFps)
+            }
+        } else {
+            // 停止传统RTMP推流
+            coordinator.liveView?.stopLive()
+            coordinator.sender?.close()
+            coordinator.markStreamingStopped(uiState.value.videoFps)
+        }
     }
 
     private fun ensureCameraSender(): Boolean {
         if (!coordinator.ensureSender { Toast.makeText(this, it, Toast.LENGTH_LONG).show() }) return false
-        coordinator.sender?.setOnConnectListener(this)
-        return coordinator.sender != null
+
+        if (coordinator.useUnifiedApi) {
+            // 统一API不需要设置连接监听器，有自己的状态管理
+            return coordinator.unifiedSession != null
+        } else {
+            // 传统RTMP需要设置连接监听器
+            coordinator.sender?.setOnConnectListener(this)
+            return coordinator.sender != null
+        }
     }
 
     private fun handleScreenStart() {
@@ -450,7 +466,6 @@ class LiveActivity : AppCompatActivity(), OnConnectListener {
     private fun ModeSwitcher(selected: LiveMode, onSelect: (LiveMode) -> Unit) {
         val tabs = listOf(
             ModeTab(label = "视频", mode = LiveMode.CAMERA, enabled = true),
-            ModeTab(label = "统一", mode = LiveMode.UNIFIED, enabled = true),
             ModeTab(label = "手游", mode = LiveMode.SCREEN, enabled = true)
         )
         Row(

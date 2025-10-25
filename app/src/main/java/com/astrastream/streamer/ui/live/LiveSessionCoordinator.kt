@@ -13,6 +13,10 @@ import com.astrastream.avpush.domain.config.CameraConfiguration
 import com.astrastream.avpush.domain.config.VideoConfiguration
 import com.astrastream.avpush.stream.controller.LiveStreamSession
 import com.astrastream.avpush.infrastructure.stream.sender.rtmp.RtmpSender
+import com.astrastream.avpush.unified.UnifiedStreamSession
+import com.astrastream.avpush.unified.builder.createStreamSession
+import com.astrastream.avpush.unified.config.VideoCodec
+import com.astrastream.avpush.unified.config.AudioCodec
 import com.astrastream.avpush.runtime.LogHelper
 import com.astrastream.avpush.presentation.widget.AVLiveView
 import com.astrastream.streamer.data.LivePreferencesStore
@@ -36,11 +40,14 @@ class LiveSessionCoordinator(
     private val safeCaptureOption = captureOptions.first()
 
     var sender: RtmpSender? = null
+    var unifiedSession: UnifiedStreamSession? = null
     var liveView: AVLiveView? = null
     private var previewStarted = false
     private var previewRequested = false
     private var permissionWarningShown = false
     private var resumeStreamingWhenReady = false
+    var useUnifiedApi = false
+        private set
 
     override fun onVideoStats(bitrateKbps: Int, fps: Int) {
         state.value = state.value.copy(currentBitrate = bitrateKbps, currentFps = fps)
@@ -73,6 +80,73 @@ class LiveSessionCoordinator(
     }
 
     fun ensureSender(onError: (String) -> Unit): Boolean {
+        val streamUrl = state.value.streamUrl
+
+        // 检测是否应该使用统一API（基于URL协议）
+        useUnifiedApi = shouldUseUnifiedApi(streamUrl)
+
+        if (useUnifiedApi) {
+            return ensureUnifiedSession(onError)
+        } else {
+            return ensureLegacySender(onError)
+        }
+    }
+
+    private fun shouldUseUnifiedApi(url: String): Boolean {
+        // 目前仅对非RTMP协议使用统一API，保持RTMP使用传统实现
+        // 未来可以通过配置开关来决定RTMP是否也使用统一API
+        return url.startsWith("webrtc://", ignoreCase = true) ||
+               url.startsWith("wss://", ignoreCase = true) ||
+               url.startsWith("ws://", ignoreCase = true) ||
+               url.startsWith("srt://", ignoreCase = true) ||
+               url.contains("webrtc", ignoreCase = true)
+
+        // 如果需要RTMP也使用统一API，可以添加：
+        // || url.startsWith("rtmp://", ignoreCase = true) ||
+        // || url.startsWith("rtmps://", ignoreCase = true)
+    }
+
+    private fun ensureUnifiedSession(onError: (String) -> Unit): Boolean {
+        if (unifiedSession != null) return true
+        return try {
+            val currentState = state.value
+            val session = createStreamSession {
+                video {
+                    width = currentState.captureResolution.width
+                    height = currentState.captureResolution.height
+                    frameRate = 30
+                    bitrate = currentState.targetBitrate * 1000
+                    codec = VideoCodec.H264
+                }
+
+                audio {
+                    sampleRate = 44100
+                    bitrate = 128_000
+                    channels = 2
+                    codec = AudioCodec.AAC
+                }
+
+                camera {
+                    facing = com.astrastream.avpush.unified.config.CameraFacing.BACK
+                    autoFocus = true
+                    stabilization = true
+                }
+
+                // 使用协议透明的addStream方法
+                addStream(currentState.streamUrl)
+            }
+
+            unifiedSession = session
+            LogHelper.i(tag, "Unified streaming session created for URL: ${currentState.streamUrl}")
+            true
+        } catch (t: Throwable) {
+            LogHelper.e(tag, "Failed to create unified session: ${t.message}")
+            onError("Failed to initialise unified streaming: ${t.message}")
+            false
+        }
+    }
+
+    private fun ensureLegacySender(onError: (String) -> Unit): Boolean {
         if (sender != null) return true
         return try {
             val newSender = RtmpSender()
