@@ -3,6 +3,7 @@ package com.astrastream.avpush.infrastructure.codec
 
 import android.media.MediaCodec
 import android.media.MediaFormat
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.HandlerThread
@@ -128,7 +129,7 @@ abstract class BaseVideoEncoder : IVideoCodec {
      * 解码函数
      */
     private fun drainEncoder() {
-        val outBuffers = mMediaCodec?.getOutputBuffers()
+        var outBuffers = mMediaCodec?.outputBuffers
         if (!isStarted) {
             // if not running anymore, complete stream
             mMediaCodec?.signalEndOfInputStream()
@@ -141,11 +142,23 @@ abstract class BaseVideoEncoder : IVideoCodec {
 
                 if (outBufferIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
                     onVideoOutformat(mMediaCodec?.outputFormat)
+                    encodeLock.unlock()
+                    continue
+                }
+
+                if (outBufferIndex == MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED) {
+                    outBuffers = mMediaCodec?.outputBuffers
+                    encodeLock.unlock()
+                    continue
                 }
 
 
-                if (outBufferIndex!! >= 0) {
-                    val bb = outBuffers!![outBufferIndex]
+                if (outBufferIndex != null && outBufferIndex >= 0) {
+                    val buffer = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                        mMediaCodec?.getOutputBuffer(outBufferIndex)
+                    } else {
+                        outBuffers?.get(outBufferIndex)
+                    }
                     if (mPts == 0L)
                         mPts = System.nanoTime() / 1000;
 
@@ -157,10 +170,12 @@ abstract class BaseVideoEncoder : IVideoCodec {
                         }
                     }
                     LogHelper.e(TAG, "视频时间戳：${mBufferInfo!!.presentationTimeUs / 1000_000}")
-                    if (!mPause) {
-                        onVideoEncode(bb, mBufferInfo!!)
+                    if (!mPause && buffer != null) {
+                        onVideoEncode(buffer, mBufferInfo!!)
                     }
                     mMediaCodec?.releaseOutputBuffer(outBufferIndex, false)
+                    encodeLock.unlock()
+                    continue
                 } else {
                     try {
                         // wait 10ms

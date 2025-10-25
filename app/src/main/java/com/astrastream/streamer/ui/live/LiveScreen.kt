@@ -4,9 +4,11 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -36,19 +38,33 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.zIndex
 import com.astrastream.avpush.presentation.widget.AVLiveView
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.input.pointer.consumeAllChanges
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.geometry.toSize
+import kotlin.math.roundToInt
 
 @Composable
 fun LiveScreen(
@@ -105,7 +121,45 @@ fun LiveScreen(
         )
     )
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+        val density = LocalDensity.current
+        val containerWidthPx = with(density) { maxWidth.toPx() }
+        val containerHeightPx = with(density) { maxHeight.toPx() }
+        val horizontalMarginPx = with(density) { 20.dp.toPx() }
+        val bottomMarginPx = horizontalMarginPx
+        val minTopPaddingPx = with(density) { statsTopPadding.toPx() }
+
+        var statsOffset by remember { mutableStateOf<Offset?>(null) }
+        var statsSize by remember { mutableStateOf(IntSize.Zero) }
+
+        data class Bounds(val minX: Float, val maxX: Float, val minY: Float, val maxY: Float)
+
+        val bounds = remember(containerWidthPx, containerHeightPx, statsSize, minTopPaddingPx, horizontalMarginPx, bottomMarginPx) {
+            if (statsSize == IntSize.Zero || containerWidthPx <= 0f || containerHeightPx <= 0f) {
+                null
+            } else {
+                val availableWidth = containerWidthPx - statsSize.width
+                val availableHeight = containerHeightPx - statsSize.height
+                val minX = horizontalMarginPx.coerceAtMost(availableWidth)
+                val maxX = (availableWidth - horizontalMarginPx).coerceAtLeast(minX)
+                val minY = minTopPaddingPx.coerceAtMost(availableHeight)
+                val maxY = (availableHeight - bottomMarginPx).coerceAtLeast(minY)
+                Bounds(minX = minX, maxX = maxX, minY = minY, maxY = maxY)
+            }
+        }
+
+        LaunchedEffect(bounds) {
+            bounds ?: return@LaunchedEffect
+            val target = statsOffset ?: Offset(bounds.maxX, bounds.minY)
+            val clamped = Offset(
+                target.x.coerceIn(bounds.minX, bounds.maxX),
+                target.y.coerceIn(bounds.minY, bounds.maxY)
+            )
+            if (statsOffset != clamped) {
+                statsOffset = clamped
+            }
+        }
+
         LivePreview(onLiveViewReady = onLiveViewReady, modifier = Modifier.fillMaxSize())
 
         if (!immersiveMode) {
@@ -255,11 +309,33 @@ fun LiveScreen(
             visible = state.showStats && state.previewReady,
             enter = fadeIn(),
             exit = fadeOut(),
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .padding(top = statsTopPadding, end = 20.dp)
+            modifier = Modifier.fillMaxSize()
         ) {
-            StreamingStatsOverlay(state = state)
+            Box(modifier = Modifier.fillMaxSize()) {
+                val overlayOffset = statsOffset
+                    ?: bounds?.let { Offset(it.maxX, it.minY) }
+                    ?: Offset(horizontalMarginPx, minTopPaddingPx)
+                StreamingStatsOverlay(
+                    state = state,
+                    modifier = Modifier
+                        .offset { IntOffset(overlayOffset.x.roundToInt(), overlayOffset.y.roundToInt()) }
+                        .pointerInput(Unit) {
+                            val currentBounds = bounds ?: return@pointerInput
+                            detectDragGestures { change, dragAmount ->
+                                change.consumeAllChanges()
+                                val current = statsOffset ?: overlayOffset
+                                val newOffset = Offset(
+                                    (current.x + dragAmount.x).coerceIn(currentBounds.minX, currentBounds.maxX),
+                                    (current.y + dragAmount.y).coerceIn(currentBounds.minY, currentBounds.maxY)
+                                )
+                                statsOffset = newOffset
+                            }
+                        }
+                        .onGloballyPositioned { coordinates ->
+                            statsSize = coordinates.size.toSize()
+                        }
+                )
+            }
         }
 
         AnimatedVisibility(

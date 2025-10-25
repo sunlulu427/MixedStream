@@ -26,6 +26,7 @@ internal class VulkanScreenRenderer(
 ) : ImageReader.OnImageAvailableListener {
 
     private val tag = "VulkanScreenRenderer"
+    private val legacyMode = Build.VERSION.SDK_INT < Build.VERSION_CODES.Q
 
     private var projection: MediaProjection? = null
     private var handlerThread: HandlerThread? = null
@@ -42,6 +43,10 @@ internal class VulkanScreenRenderer(
     fun start() {
         if (started) return
         started = true
+        if (legacyMode) {
+            recreateVirtualDisplay()
+            return
+        }
         handlerThread = HandlerThread("Astra-ScreenCapture").also { it.start() }
         handler = Handler(handlerThread!!.looper)
         renderer = android.graphics.HardwareRenderer().also { hardwareRenderer ->
@@ -69,6 +74,8 @@ internal class VulkanScreenRenderer(
             } catch (_: InterruptedException) {
             }
             thread.quitSafely()
+        } else {
+            releaseVirtualDisplay()
         }
         handlerThread = null
         this.handler = null
@@ -83,14 +90,22 @@ internal class VulkanScreenRenderer(
     fun updateConfiguration(configuration: ScreenCaptureConfiguration) {
         this.configuration = configuration
         if (started) {
-            handler?.post { recreateVirtualDisplay() }
+            if (legacyMode) {
+                recreateVirtualDisplay()
+            } else {
+                handler?.post { recreateVirtualDisplay() }
+            }
         }
     }
 
     fun updateProjection(projection: MediaProjection?) {
         this.projection = projection
         if (started) {
-            handler?.post { recreateVirtualDisplay() }
+            if (legacyMode) {
+                recreateVirtualDisplay()
+            } else {
+                handler?.post { recreateVirtualDisplay() }
+            }
         }
     }
 
@@ -103,7 +118,11 @@ internal class VulkanScreenRenderer(
     }
 
     private fun scheduleSurfaceCreation() {
-        handler?.post { recreateVirtualDisplay() }
+        if (legacyMode) {
+            recreateVirtualDisplay()
+        } else {
+            handler?.post { recreateVirtualDisplay() }
+        }
     }
 
     private fun recreateVirtualDisplay() {
@@ -113,6 +132,23 @@ internal class VulkanScreenRenderer(
             return
         }
         val config = configuration
+        val flags = DisplayManager.VIRTUAL_DISPLAY_FLAG_PUBLIC or DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR
+        val density = config.densityDpi.takeIf { it > 0 } ?: context.resources.displayMetrics.densityDpi
+        if (legacyMode) {
+            imageReader = null
+            virtualDisplay = projection.createVirtualDisplay(
+                "Astra-Screen",
+                config.width,
+                config.height,
+                density,
+                flags,
+                targetSurface,
+                null,
+                null
+            )
+            LogHelper.d(tag) { "legacy virtual display created ${config.width}x${config.height}@${config.fps}" }
+            return
+        }
         val usage = HardwareBuffer.USAGE_GPU_SAMPLED_IMAGE or HardwareBuffer.USAGE_GPU_COLOR_OUTPUT
         val reader = ImageReader.newInstance(
             config.width,
@@ -123,8 +159,6 @@ internal class VulkanScreenRenderer(
         )
         reader.setOnImageAvailableListener(this, handler)
         imageReader = reader
-        val flags = DisplayManager.VIRTUAL_DISPLAY_FLAG_PUBLIC or DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR
-        val density = config.densityDpi.takeIf { it > 0 } ?: context.resources.displayMetrics.densityDpi
         virtualDisplay = projection.createVirtualDisplay(
             "Astra-Screen",
             config.width,

@@ -10,7 +10,9 @@ import android.os.Handler
 import android.os.Looper
 import android.provider.Settings
 import android.view.Gravity
+import android.view.MotionEvent
 import android.view.View
+import android.view.ViewConfiguration
 import android.view.WindowManager
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -22,6 +24,13 @@ object ScreenOverlayManager {
     private val handler = Handler(Looper.getMainLooper())
     private var overlayView: View? = null
     private var windowManager: WindowManager? = null
+    private var layoutParams: WindowManager.LayoutParams? = null
+    private var touchSlop: Int = 0
+    private var initialTouchX = 0f
+    private var initialTouchY = 0f
+    private var initialX = 0
+    private var initialY = 0
+    private var dragging = false
 
     fun show(context: Context, state: ScreenLiveUiState) {
         if (!Settings.canDrawOverlays(context)) return
@@ -38,13 +47,14 @@ object ScreenOverlayManager {
         handler.post { updateInternal(state) }
     }
 
-    fun hide(context: Context) {
+    fun hide(@Suppress("UNUSED_PARAMETER") context: Context) {
         handler.post {
             overlayView?.let { view ->
                 windowManager?.removeView(view)
             }
             overlayView = null
             windowManager = null
+            layoutParams = null
         }
     }
 
@@ -83,6 +93,8 @@ object ScreenOverlayManager {
             ContextCompat.startActivity(context, intent, null)
         }
 
+        touchSlop = ViewConfiguration.get(context).scaledTouchSlop
+
         val type = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
         } else {
@@ -103,6 +115,11 @@ object ScreenOverlayManager {
 
         windowManager = wm
         overlayView = container
+        layoutParams = params
+        container.setOnTouchListener { view, event ->
+            handleDrag(view, event)
+            true
+        }
         wm.addView(container, params)
     }
 
@@ -118,5 +135,46 @@ object ScreenOverlayManager {
         builder.append(" kbps\n帧率: ")
         builder.append(state.currentFps)
         status.text = builder.toString()
+    }
+
+    private fun handleDrag(view: View, event: MotionEvent) {
+        val wm = windowManager ?: return
+        val params = layoutParams ?: return
+        val metrics = view.context.resources.displayMetrics
+        val viewWidth = view.width.takeIf { it > 0 } ?: view.measuredWidth
+        val viewHeight = view.height.takeIf { it > 0 } ?: view.measuredHeight
+        val maxX = (metrics.widthPixels - viewWidth).coerceAtLeast(0)
+        val maxY = (metrics.heightPixels - viewHeight).coerceAtLeast(0)
+        when (event.actionMasked) {
+            MotionEvent.ACTION_DOWN -> {
+                initialTouchX = event.rawX
+                initialTouchY = event.rawY
+                initialX = params.x
+                initialY = params.y
+                dragging = false
+            }
+            MotionEvent.ACTION_MOVE -> {
+                val deltaRawX = initialTouchX - event.rawX
+                val deltaRawY = event.rawY - initialTouchY
+                if (!dragging) {
+                    val distanceSquared = deltaRawX * deltaRawX + deltaRawY * deltaRawY
+                    if (distanceSquared >= (touchSlop * touchSlop).toFloat()) {
+                        dragging = true
+                        view.parent?.requestDisallowInterceptTouchEvent(true)
+                    }
+                }
+                if (dragging) {
+                    params.x = (initialX + deltaRawX.toInt()).coerceIn(0, maxX)
+                    params.y = (initialY + deltaRawY.toInt()).coerceIn(0, maxY)
+                    wm.updateViewLayout(view, params)
+                }
+            }
+            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                if (!dragging) {
+                    view.performClick()
+                }
+                dragging = false
+            }
+        }
     }
 }
