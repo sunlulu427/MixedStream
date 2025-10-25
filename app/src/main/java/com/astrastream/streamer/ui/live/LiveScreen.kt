@@ -64,6 +64,8 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.input.pointer.consumeAllChanges
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.geometry.toSize
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.ui.input.pointer.PointerInputChange
 import kotlin.math.roundToInt
 
 @Composable
@@ -141,7 +143,9 @@ fun LiveScreen(
                 val availableWidth = containerWidthPx - statsSize.width
                 val availableHeight = containerHeightPx - statsSize.height
                 val minX = horizontalMarginPx.coerceAtMost(availableWidth)
-                val maxX = (availableWidth - horizontalMarginPx).coerceAtLeast(minX)
+                // 修复：为右上角信息按钮留出空间，避免重叠
+                val rightButtonSpace = with(density) { 60.dp.toPx() } // 为右上角按钮留出空间
+                val maxX = (availableWidth - horizontalMarginPx - rightButtonSpace).coerceAtLeast(minX)
                 val minY = minTopPaddingPx.coerceAtMost(availableHeight)
                 val maxY = (availableHeight - bottomMarginPx).coerceAtLeast(minY)
                 Bounds(minX = minX, maxX = maxX, minY = minY, maxY = maxY)
@@ -150,7 +154,8 @@ fun LiveScreen(
 
         LaunchedEffect(bounds) {
             bounds ?: return@LaunchedEffect
-            val target = statsOffset ?: Offset(bounds.maxX, bounds.minY)
+            // 修复：将默认位置设置为左上角，避免与右上角信息按钮重叠
+            val target = statsOffset ?: Offset(bounds.minX, bounds.minY)
             val clamped = Offset(
                 target.x.coerceIn(bounds.minX, bounds.maxX),
                 target.y.coerceIn(bounds.minY, bounds.maxY)
@@ -313,15 +318,16 @@ fun LiveScreen(
         ) {
             Box(modifier = Modifier.fillMaxSize()) {
                 val overlayOffset = statsOffset
-                    ?: bounds?.let { Offset(it.maxX, it.minY) }
+                    ?: bounds?.let { Offset(it.minX, it.minY) }
                     ?: Offset(horizontalMarginPx, minTopPaddingPx)
                 StreamingStatsOverlay(
                     state = state,
+                    onClose = { onStatsToggle(false) },
                     modifier = Modifier
-                        .offset { IntOffset(overlayOffset.x.roundToInt(), overlayOffset.y.roundToInt()) }
+                        .offset(overlayOffset.x.roundToInt().dp, overlayOffset.y.roundToInt().dp)
                         .pointerInput(Unit) {
                             val currentBounds = bounds ?: return@pointerInput
-                            detectDragGestures { change, dragAmount ->
+                            detectDragGestures { change: PointerInputChange, dragAmount ->
                                 change.consumeAllChanges()
                                 val current = statsOffset ?: overlayOffset
                                 val newOffset = Offset(

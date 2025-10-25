@@ -25,6 +25,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Cameraswitch
 import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.ContentCopy
 import androidx.compose.material.icons.rounded.Remove
 import androidx.compose.material.icons.rounded.Tune
@@ -93,7 +94,11 @@ fun PanelToggleButton(expanded: Boolean, onToggle: () -> Unit, modifier: Modifie
 }
 
 @Composable
-fun StreamingStatsOverlay(state: LiveUiState, modifier: Modifier = Modifier) {
+fun StreamingStatsOverlay(
+    state: LiveUiState, 
+    modifier: Modifier = Modifier,
+    onClose: (() -> Unit)? = null
+) {
     Surface(
         modifier = modifier
             .widthIn(max = 280.dp)
@@ -111,7 +116,29 @@ fun StreamingStatsOverlay(state: LiveUiState, modifier: Modifier = Modifier) {
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
             verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
-            Text(text = "状态：$status", style = MaterialTheme.typography.labelLarge)
+            // 添加标题行，包含状态和关闭按钮
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(text = "直播中", style = MaterialTheme.typography.labelLarge)
+                onClose?.let { closeAction ->
+                    IconButton(
+                        onClick = closeAction,
+                        modifier = Modifier.size(24.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.Close,
+                            contentDescription = "关闭统计面板",
+                            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+                }
+            }
+            
+            Text(text = "状态：$status", style = MaterialTheme.typography.bodySmall)
             Text(text = "采集：${state.captureResolution.label} @ ${state.videoFps}fps", style = MaterialTheme.typography.bodySmall)
             Text(text = "推流：${state.streamResolution.label}", style = MaterialTheme.typography.bodySmall)
             Text(
