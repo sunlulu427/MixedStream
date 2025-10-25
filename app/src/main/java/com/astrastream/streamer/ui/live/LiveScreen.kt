@@ -64,6 +64,8 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.input.pointer.consumeAllChanges
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.geometry.toSize
+import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.ui.input.pointer.PointerInputChange
 import kotlin.math.roundToInt
