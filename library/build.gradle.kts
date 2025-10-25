@@ -51,6 +51,23 @@ android {
 
 dependencies {
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
-    testImplementation("junit:junit:4.12")
-    api("androidx.core:core-ktx:1.1.0")
+
+    // Core Android dependencies
+    api("androidx.core:core-ktx:1.12.0")
+    api("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
+
+    // Coroutines
+    api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
+    api("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+
+    // Test dependencies
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
+    testImplementation("androidx.test:core:1.5.0")
+    testImplementation("org.mockito:mockito-core:5.1.1")
+    testImplementation("org.mockito.kotlin:mockito-kotlin:4.1.0")
+
+    // Android test dependencies
+    androidTestImplementation("androidx.test.ext:junit:1.1.5")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
 }
