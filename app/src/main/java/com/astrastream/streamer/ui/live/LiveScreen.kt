@@ -55,19 +55,16 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
+import androidx.compose.foundation.layout.offset
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.zIndex
 import com.astrastream.avpush.presentation.widget.AVLiveView
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.input.pointer.consumeAllChanges
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.geometry.toSize
-import androidx.compose.ui.unit.IntSize
-import androidx.compose.ui.unit.IntOffset
-import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.ui.input.pointer.PointerInputChange
+import androidx.compose.ui.layout.LayoutCoordinates
 import kotlin.math.roundToInt
 
 @Composable
@@ -326,11 +323,13 @@ fun LiveScreen(
                     state = state,
                     onClose = { onStatsToggle(false) },
                     modifier = Modifier
-                        .offset { IntOffset(overlayOffset.x.roundToInt(), overlayOffset.y.roundToInt()) }
+                        .offset {
+                            IntOffset(overlayOffset.x.roundToInt(), overlayOffset.y.roundToInt())
+                        }
                         .pointerInput(Unit) {
                             val currentBounds = bounds ?: return@pointerInput
-                            detectDragGestures { change: PointerInputChange, dragAmount ->
-                                change.consumeAllChanges()
+                            detectDragGestures { change, dragAmount ->
+                                change.consume()
                                 val current = statsOffset ?: overlayOffset
                                 val newOffset = Offset(
                                     (current.x + dragAmount.x).coerceIn(currentBounds.minX, currentBounds.maxX),
@@ -339,8 +338,8 @@ fun LiveScreen(
                                 statsOffset = newOffset
                             }
                         }
-                        .onGloballyPositioned { coordinates ->
-                            statsSize = coordinates.size.toSize()
+                        .onGloballyPositioned { coordinates: LayoutCoordinates ->
+                            statsSize = coordinates.size
                         }
                 )
             }
