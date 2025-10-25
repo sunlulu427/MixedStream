@@ -18,7 +18,8 @@ open class VideoEncoder : BaseVideoEncoder() {
      * 视频编码完成的回调
      */
     override fun onVideoEncode(bb: ByteBuffer?, bi: MediaCodec.BufferInfo) {
-        mListener?.onVideoEncode(bb!!, bi)
+        val buffer = bb ?: return
+        mListener?.onVideoEncode(buffer, bi)
     }
 
     /**

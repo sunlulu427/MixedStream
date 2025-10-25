@@ -40,6 +40,7 @@ class LiveSessionCoordinator(
     private var previewStarted = false
     private var previewRequested = false
     private var permissionWarningShown = false
+    private var resumeStreamingWhenReady = false
 
     override fun onVideoStats(bitrateKbps: Int, fps: Int) {
         state.value = state.value.copy(currentBitrate = bitrateKbps, currentFps = fps)
@@ -47,17 +48,28 @@ class LiveSessionCoordinator(
 
     fun attachLiveView(view: AVLiveView) {
         if (liveView === view) return
+        val previousView = liveView
+        val wasStreaming = state.value.isStreaming
         liveView = view
+        previousView?.let {
+            it.stopLive()
+            it.releaseCamera()
+        }
         sender?.let(view::setSender)
         view.setAudioConfigure(audioConfiguration)
         view.setStatsListener(this)
         view.setOnPreviewSizeListener { width, height -> onCameraPreviewSize(width, height) }
         view.setOnCameraErrorListener { message -> onCameraError(message) }
         applyStreamConfiguration(view)
-        if (previewRequested) startPreview()
-        if (previewStarted) {
-            state.value = state.value.copy(previewReady = true, cameraError = null)
+        when {
+            previewRequested -> startPreview()
+            previewStarted -> {
+                previewStarted = false
+                state.value = state.value.copy(previewReady = false, cameraError = null)
+                startPreview()
+            }
         }
+        resumeStreamingWhenReady = wasStreaming
     }
 
     fun ensureSender(onError: (String) -> Unit): Boolean {
@@ -190,6 +202,11 @@ class LiveSessionCoordinator(
             if (!current.previewReady) {
                 state.value = current.copy(previewReady = true, cameraError = null)
             }
+            if (resumeStreamingWhenReady && state.value.isStreaming) {
+                liveView?.startLive()
+                liveView?.setVideoBps(state.value.targetBitrate)
+                resumeStreamingWhenReady = false
+            }
             return
         }
         val updatedOption = captureOptions.find { it.width == width && it.height == height }
@@ -201,6 +218,11 @@ class LiveSessionCoordinator(
         )
         applyStreamConfiguration()
         persistState()
+        if (resumeStreamingWhenReady && state.value.isStreaming) {
+            liveView?.startLive()
+            liveView?.setVideoBps(state.value.targetBitrate)
+            resumeStreamingWhenReady = false
+        }
     }
 
     private fun onCameraError(message: String) {
@@ -278,6 +300,7 @@ class LiveSessionCoordinator(
             currentFps = fps,
             showParameterPanel = false
         )
+        resumeStreamingWhenReady = false
     }
 
     fun markStreamingStopped(fps: Int) {
@@ -287,6 +310,7 @@ class LiveSessionCoordinator(
             currentBitrate = 0,
             currentFps = fps
         )
+        resumeStreamingWhenReady = false
     }
 
     fun markConnecting() {

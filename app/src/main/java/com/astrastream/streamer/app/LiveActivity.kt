@@ -126,6 +126,7 @@ class LiveActivity : AppCompatActivity(), OnConnectListener {
         initializeEnvironment()
         projectionManager = getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
         screenCoordinator = ScreenLiveSessionCoordinator(this, screenState)
+        screenCoordinator.updateStreamUrl(uiState.value.streamUrl)
         screenCoordinator.setOverlayObserver { ScreenOverlayManager.update(applicationContext, it) }
         projectionLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == Activity.RESULT_OK && result.data != null) {
@@ -226,11 +227,17 @@ class LiveActivity : AppCompatActivity(), OnConnectListener {
                             onEncoderSelected = { coordinator.updateEncoder(it) },
                             onBitrateChanged = { coordinator.updateBitrate(it) },
                             onBitrateInput = { coordinator.updateBitrateFromInput(it) },
-                            onStreamUrlChanged = { coordinator.updateStreamUrl(it) },
+                            onStreamUrlChanged = { updateSharedStreamUrl(it) },
                             onTogglePanel = { coordinator.togglePanel() },
                             onShowUrlDialog = { coordinator.showUrlDialog() },
                             onDismissUrlDialog = { coordinator.hideUrlDialog() },
-                            onConfirmUrl = { url -> coordinator.confirmUrl(url) { handleCameraToggle() } },
+                            onConfirmUrl = { url ->
+                                val sanitized = url.trim()
+                                coordinator.confirmUrl(sanitized) {
+                                    screenCoordinator.updateStreamUrl(sanitized)
+                                    handleCameraToggle()
+                                }
+                            },
                             onStatsToggle = { coordinator.setStatsVisible(it) },
                             onSwitchCamera = { coordinator.liveView?.switchCamera() },
                             onToggleLive = { handleCameraToggle() },
@@ -240,7 +247,7 @@ class LiveActivity : AppCompatActivity(), OnConnectListener {
                         )
                         LiveMode.SCREEN -> ScreenLiveScreen(
                             state = screenState.value,
-                            onStreamUrlChanged = { screenCoordinator.updateStreamUrl(it) },
+                            onStreamUrlChanged = { updateSharedStreamUrl(it) },
                             onBitrateChanged = { screenCoordinator.updateBitrate(it) },
                             onToggleMic = { screenCoordinator.toggleMic(it) },
                             onTogglePlayback = { screenCoordinator.togglePlayback(it) },
@@ -401,6 +408,11 @@ class LiveActivity : AppCompatActivity(), OnConnectListener {
     private fun hasCameraPermission(): Boolean =
         ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
 
+    private fun updateSharedStreamUrl(url: String) {
+        coordinator.updateStreamUrl(url)
+        screenCoordinator.updateStreamUrl(url)
+    }
+
     private fun updateOverlayState() {
         val granted = Settings.canDrawOverlays(this)
         screenState.value = screenState.value.copy(overlayPermissionGranted = granted)
@@ -422,8 +434,7 @@ class LiveActivity : AppCompatActivity(), OnConnectListener {
         val tabs = listOf(
             ModeTab(label = "视频", mode = LiveMode.CAMERA, enabled = true),
             ModeTab(label = "语音", mode = null, enabled = false),
-            ModeTab(label = "手游", mode = LiveMode.SCREEN, enabled = true),
-            ModeTab(label = "电脑", mode = null, enabled = false)
+            ModeTab(label = "手游", mode = LiveMode.SCREEN, enabled = true)
         )
         Row(
             modifier = Modifier
