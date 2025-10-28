@@ -1,92 +1,200 @@
-# Repository Guidelines
+# AGENTS.md - Development Guidelines
 
-## Overview & Expectations
-- You are the resident audio/video specialist. Assume deep knowledge of FFmpeg, GL ES, Android camera, and live streaming bottlenecks.
-- The codebase follows Clean Architecture: clear boundaries, dependency inversion, interface-driven contracts, and testability.
-- Prefer the smallest viable change. Keep revisions scoped and update documentation (`README`, `Core.md`, `docs/`) whenever behaviour changes.
+## Overview & Responsibilities
+- You are an audio/video domain expert, proficient in FFmpeg, OpenGL ES, familiar with performance bottlenecks and optimization strategies across the live streaming pipeline.
+- Expert in C++/Kotlin collaborative development, able to design efficient boundary layers between JNI/NDK and upper layers; follows Clean Architecture principles with clear layering, interface-driven design, and testability.
+- Changes follow the minimization principle with small commits; iterations or fixes require synchronous documentation updates.
 
-## Project Layout
-- `app/`: demo Android application (Kotlin/Compose). Code lives in `app/src/main/java`, resources in `app/src/main/res`, tests under `app/src/test` and `app/src/androidTest`.
-- `library/`: Astra streaming SDK. JVM sources in `library/src/main/java`, native code in `library/src/main/cpp`, resources in `library/src/main/res`, artifacts in `library/build/outputs/aar`.
-- `docs/`: architecture diagrams (PlantUML) and high-level notes.
-- Build scripts: root `build.gradle.kts`, module-level `*/build.gradle.kts`, `settings.gradle.kts`.
+## Project Structure
+- `app/`: Demo Android application (Kotlin/Compose). Code in `app/src/main/java`, resources in `app/src/main/res`, tests in `app/src/test`, `app/src/androidTest`.
+- `library/`: RTMP streaming SDK. Business logic in `library/src/main/java`; native code in `library/src/main/cpp` (CMake/NDK); resources in `library/src/main/res`; artifacts in `library/build/outputs/aar`.
+- `docs/`: Design and process documentation (PlantUML/PNG). Build scripts: root `build.gradle`, module `*/build.gradle`, `settings.gradle`.
 
-## Architecture Highlights
-- Pipeline: capture/render (`camera/*`, `camera/renderer/*`) → encode (`mediacodec/*`) → native FLV/AMF packaging → transport (RTMP, `stream/sender/*`) → `librtmp`.
-- Dependencies: the demo app only consumes the SDK. The SDK talks to native code exclusively through JNI abstractions and links against the prebuilt `librtmp` static library.
-- Key components: controllers (`controller/*`), AV pipeline (`camera/*`, `mediacodec/*`), sender/native bridge (`stream/*`, `src/main/cpp`), configuration callbacks (`config/*`, `callback/*`), and UI widgets (`widget/AVLiveView`).
+## Architecture Overview
+This is a Kotlin + C++ streaming toolkit for Android live streaming with RTMP. The codebase follows Clean Architecture principles with clear separation of concerns:
 
-## Clean Architecture Checklist
-- **Inward Dependencies**: high-level policy (controllers, configuration contracts) never depends on concrete hardware/API implementations.
-- **Layered Responsibilities**: UI (`app`, `widget`) → orchestration (`controller`) → data & device access (`camera`, `mediacodec`, `stream`, `sender`). Cross-layer communication goes through interfaces or data models.
-- **Interface First**: add abstractions before implementations (camera, streaming, packaging, logging). This keeps swapability and testing simple.
-- **Explicit Boundaries**: JNI, network, and hardware calls stay in infrastructure layers. Upper layers operate on abstractions only.
-- **Testability**: controllers accept injected interfaces; provide fakes for unit tests.
+### Core Architecture Layers
+1. **UI Layer**: `app/` demo app and `widget/AVLiveView`
+2. **Use-Case Layer**: `controller/*` orchestrating capture/encode/package/send
+3. **Device/Infrastructure**: `camera/*`, `mediacodec/*`, `stream/*`, native `librtmp`
 
-## Usage Snapshot (see `README`/`Core.md` for details)
-1. Place `com.astrastream.avpush.widget.AVLiveView` in the layout.
-2. Configure audio, video, and camera parameters through the exposed setters.
-3. Start sequence: `startPreview()` → `sender.connect()` → `live.startLive()`.
-4. Adjust bitrate dynamically with `live.setVideoBps(bps)`.
-5. Stop sequence: `live.stopLive()` → `sender.close()`.
+### Key Components
+- **Video Pipeline**: Camera capture → OpenGL rendering (with watermarks) → MediaCodec encoding → FLV packaging → RTMP transmission
+- **Audio Pipeline**: Audio capture → preprocessing (AEC/AGC) → MediaCodec encoding → FLV packaging
+- **Stream Control**: `StreamController` multiplexes AV streams for RTMP delivery
+- **Native Layer**: JNI bridge to librtmp for RTMP protocol implementation
 
-## Diagram & Documentation Rules
-- Store all architecture diagrams inside `docs/*.puml`.
-- CI runs `tools/render_docs.sh` to render PNG + Markdown into `docs/generated/<name>.png` with matching `.md` (artifact only, do not commit generated output).
-- Generated Markdown uses Title Case for the main heading, embeds `![Title](./name.png)`, and lists `Source`/`Generated` metadata.
-- Before committing diagram changes, run the render script locally to verify output.
+### Data Flow
+The end-to-end pipeline processes frames from camera capture through GPU processing, hardware encoding, FLV packaging, and RTMP transmission. Core flow diagrams are in `docs/*.puml`:
+- `av_dataflow.puml`: Complete audio/video pipeline
+- `video_capture.puml`: Camera setup and sensor flow
+- `video_render.puml`: OpenGL rendering and watermarks
+- `video_encode.puml`: MediaCodec encoding sessions
+- `video_streaming.puml`: FLV muxing and RTMP delivery
 
-## Startup Stability
-- **Lazy native loading**: instantiate `RtmpSender` only when the user initiates streaming to avoid `UnsatisfiedLinkError` on unsupported ABIs.
-- **Watermark timing**: `CameraView.setWatermark()` can be called before GL is ready; the view buffers requests until the renderer is initialised to avoid `lateinit` crashes.
-- **Permissions**: when camera permission is missing the system delays `startPreview()`. Defer toggles (camera switch, watermark) until preview starts and emit warnings through `LogHelper`.
+## Clean Architecture Principles
+- **Dependency Inversion**: High-level policies (Controllers) don't depend on low-level implementations
+- **Layer Separation**: UI → Use Cases → Infrastructure, with interactions through interfaces
+- **Interface-Driven**: Cross-layer capabilities defined as interfaces before implementation
+- **Clear Boundaries**: JNI/NDK, network, hardware calls isolated in infrastructure layer, not exposing specific dependencies upward
+- **Testability**: Dependencies injected via interfaces for easy mocking
 
-## Build & Tooling
-- Environment: Android SDK 34, NDK 27.1.12297006, CMake 3.22.1, JDK 17, Gradle 8.6.
-- Common commands:
-  - Build APK: `./gradlew :app:assembleDebug`
-  - Install APK: `./gradlew :app:installDebug`
-  - Build AAR: `./gradlew :library:assembleRelease`
-  - Unit tests: `./gradlew test`
-  - Lint: `./gradlew :app:lintDebug :library:lint`
+## Key Usage Pattern
+```kotlin
+// 1. Configure parameters
+live.setAudioConfigure(audioConfig)
+live.setVideoConfigure(videoConfig)
+live.setCameraConfigure(cameraConfig)
+
+// 2. Start preview
+live.startPreview()
+
+// 3. Start streaming (optional)
+sender.connect(rtmpUrl)
+live.startLive()
+
+// 4. Stop streaming
+live.stopLive()
+sender.close()
+```
+
+## Startup Stability & Common Issues
+- **RtmpSender**: Lazy initialization to avoid crashes on unsupported ABIs (x86 emulators)
+- **Camera Fallback**: Automatically falls back to 720×1280 if requested resolution fails
+- **Watermark Timing**: Supports deferred watermark application after GL context creation
+- **Permission Handling**: Camera operations gracefully defer until permissions granted
+
+## Documentation Generation Standards
+- All architecture diagrams uniformly stored in `docs/*.puml` with subtle, selective highlighting
+- Color scheme: 🟡 Gold highlighting for core processing components only; gray variants for all other layers to reduce visual noise
+- CI generates `docs/generated/<name>.png` and corresponding Markdown through `tools/render_docs.sh` using PlantUML
+- Markdown format: First-level title (filename converted to Title Case), embedded `![Title](./name.png)`, and listed `Source` and `Generated` metadata
+- Run script manually before local diagram updates to ensure generated artifacts match CI; don't include `docs/generated/` in commits (produced by CI as artifacts)
+
+## Build Commands
+
+### Common Commands
+- **Build APK**: `./gradlew :app:assembleDebug`
+- **Install APK**: `./gradlew :app:installDebug`
+- **Build AAR**: `./gradlew :library:assembleRelease`
+- **Run tests**: `./gradlew test`
+- **Run instrumented tests**: `./gradlew connectedAndroidTest`
+- **Lint checks**: `./gradlew :app:lintDebug :library:lint`
+- **Clean**: `./gradlew clean`
+
+### Requirements
+- Android SDK 34 (compile/target) with minimum API level 21
+- Android NDK 27.1.12297006
+- CMake 3.22.1
+- JDK 17
+- Gradle 8.6 with Android Gradle Plugin 8.4.2 and Kotlin 1.9.24
 
 ## Development Workflow
-- Branch naming: `feature/<module>-<desc>`, `fix/<module>-<issue>`, `perf/<module>-<desc>`.
-- Local validation: run builds and key scenarios; use real devices when investigating camera/GL/RTMP.
-- Pre-flight checklist: clean working tree, logging flags match build type, no new lint warnings, key paths regressed manually.
+- Branch naming: `feature/<module>-<desc>`, `fix/<module>-<issue>`, `perf/<module>-<desc>`
+- Local validation: Build, run key use cases; verify camera/GL and streaming connectivity on real devices when necessary
+- Self-check list: No uncommitted files, log switches per build type, no new Lint warnings, regression test key paths
 
 ## Diagnostics & Automation
-- Automate repro: prefer scripts + adb over manual steps.
-- `tools/diagnose_camera.sh`: runs `am force-stop`, `am start`, waits for preview, and captures targeted logs (Camera*, GLSurfaceView, GLThread, etc.) into `diagnostics/camera-startup-<timestamp>.log`.
-- If logs are insufficient, add scoped `LogHelper` statements (camera open, `setSurfaceTexture`, `startPreview`, GL lifecycle) before rerunning diagnostics.
-- For black screen preview issues, install the demo then execute `bash tools/diagnose_camera.sh [waitSeconds]` (default 8s). Inspect `cameraTex`, `state`, `glError` to triage camera parameter vs. GL texture problems.
+- Principle: Self-restart App via adb and capture logs without manual operations; make processes automatically reusable for more efficient and intelligent problem location
+- `tools/diagnose_camera.sh` auto-executes `am force-stop` → `am start` → capture key tags (CameraView/CameraHolder/CameraRenderer/GLSurfaceView/EglHelper/SurfaceTexture/CameraService)
+- When logs insufficient, first add logging at key paths (camera open/setSurfaceTexture/startPreview, GL onSurfaceCreate/onDraw, updateTexImage), then retest and capture
+- Preview black screen troubleshooting: After `./gradlew :app:installDebug`, run `bash tools/diagnose_camera.sh [waitSeconds]` (default 8s). Script waits for preview readiness and focuses on LiveActivity/LiveSessionCoordinator/Camera*, GLSurfaceView/GLThread logs, saving to `diagnostics/camera-startup-<timestamp>.log`; distinguish camera parameter issues from GL texture pipeline anomalies based on `cameraTex`, `state`, `glError` key information
 
-## Coding Conventions
-- **Kotlin/Java**: 4-space indent; classes UpperCamelCase; methods/fields lowerCamelCase; constants UPPER_SNAKE_CASE; packages lowercase; resources snake_case.
-- **C++**: separate headers/sources; classes UpperCamelCase; methods lowerCamelCase; use RAII; avoid raw pointer leaks; consolidate error codes into enums.
+## Command Usage
 
-## Logging
-- Use `LogHelper`; enable logs in debug builds via `LogHelper.isShowLog = true`.
-- Native side logs through `__android_log_print`.
-- Capture lifecycle milestones (start/stop/connect/close), camera/EGL/shader/FBO events, codec status (I-frame/bitrate/GOP), queue depth & drops, network retries/errors, and JNI parameter/exception details.
-- Keep logs sampling-friendly; redact secrets (URLs/keys).
+### Screenshot Capture
+Use command line tools to capture screenshots and save to temporary directory:
 
-## Testing
-- Tests reside in `app/src/test|androidTest` and `library/src/test|androidTest`; suffix classes with `*Test`.
-- Run `./gradlew test` first. Use `connectedAndroidTest` when flows depend on camera/GL/network.
-- Document device models and scenarios in PR descriptions.
+```bash
+# Using adb
+mkdir -p temp/screenshots
+adb shell screencap -p > temp/screenshots/screenshot_$(date +%Y%m%d_%H%M%S).png
+
+# Using scrcpy (if installed)
+scrcpy --record temp/screenshots/recording_$(date +%Y%m%d_%H%M%S).mp4 --time-limit=30
+```
+
+### Stream Verification with ffplay
+Use ffplay to verify streaming functionality:
+
+```bash
+# RTMP stream verification
+ffplay rtmp://YOUR_STREAM_SERVER:1935/live/YOUR_STREAM_KEY
+
+# HTTP-FLV stream verification
+ffplay http://YOUR_STREAM_SERVER:1935/live/YOUR_STREAM_KEY.flv
+
+# Example with placeholder
+ffplay rtmp://example.com:1935/live/test_stream_key
+```
+
+Replace `YOUR_STREAM_SERVER` and `YOUR_STREAM_KEY` with actual values when testing.
+
+## Streaming Pipeline Notes
+- RTMP initialisation, connection, packet dispatch, shutdown, and resource cleanup follow the sequences documented in the PlantUML diagrams (`docs/av_dataflow.puml`)
+- Preview defaults to **720 × 1280 @ 30 fps**, matching common portrait devices
+- `CameraView` executes capture setup on the render thread. When the requested profile fails, it falls back to 720 × 1280 and reports the downgrade via `LogHelper`
+- H.265/HEVC support includes length-prefixed NALU handling and encoder profile configuration
+- The GL render thread stabilises preview/stream FPS at the configured value (default 30 fps) and avoids device-specific overshoot
+
+## Watermark Rendering
+- `FboRenderer` (preview) and `EncodeRenderer` (stream) composite watermarks in off-screen FBOs, ensuring the preview matches the encoded output
+- Default sizing uses normalised coordinates: watermark height 10–30% of the frame, width derived from bitmap aspect ratio, with ~5% horizontal and ~6% vertical padding from the bottom-right corner
+- `Watermark` accepts `Bitmap` or plain text. `scale` adjusts relative size (1.0 baseline). Custom vertex arrays remain supported
+- Updating the watermark rebuilds textures and refreshes VBOs. Resolution/rotation changes reuse the latest config while preserving clarity
+
+## Screen Recording Mode
+- `LiveActivity` exposes a segmented control that switches between camera and screen live flows
+- `ScreenStreamController` reuses the GStreamer-style pipeline while swapping capture sources:
+  - **Video:** `ScreenVideoController` drives `ScreenRecorder`, which delegates to `VulkanScreenRenderer`
+  - **Audio:** `ScreenAudioController` composes microphone and playback streams via `MixedAudioProcessor`
+- `ScreenOverlayManager` renders a draggable floating card using `WindowManager` when the app is backgrounded
+
+## Code Style & Naming
+- Kotlin/Java: 4 spaces; UpperCamelCase classes; lowerCamelCase methods/fields; UPPER_SNAKE_CASE constants; lowercase package names; snake_case resources and IDs
+- C++: `.h`/`.cpp` separation; UpperCamelCase classes, lowerCamelCase methods; RAII; avoid naked pointer leaks; unified error codes to enums
+
+## Logging Standards
+- Unified use of `LogHelper`; Debug builds enable `LogHelper.isShowLog = true`; Native uses `__android_log_print`
+- Record: Configuration changes, lifecycle (start/stop/connect/close), camera and EGL/Shader/FBO, encoding/decoding events (I frames/bitrate/GOP), queue levels/frame drops, network retries/error codes, JNI parameters and exceptions
+- Classification: I key nodes, D details, W recoverable, E failures; sampled output to avoid log flooding; mask URLs/keys
+- Runtime logs are persisted to `<external-files>/logs/astra.log` via the native logger
+
+## Testing Standards
+- Directories: `app/src/test|androidTest`, `library/src/test|androidTest`; class names ending with `*Test`
+- Priority execute `./gradlew test`; involve camera/GL/network then execute `connectedAndroidTest`. Recommend describing test scenarios and device models in PRs
 
 ## Commits & PRs
-- Commit prefixes: `feat`, `fix`, `perf`, `refactor`, `docs`, `build`, `ci` (optionally scoped, e.g., `library:`).
-- PR template: problem statement, proposed solution and trade-offs, impact, testing plan (commands/screenshots/logs), risk & rollback.
-- Keep changes focused and ensure CI/testing is green.
+- Commit prefixes: `feat`, `fix`, `perf`, `refactor`, `docs`, `build`, `ci`, can add scope (like `library:`). Example: `app: fix preview rotation`
+- PR content: Problem background/objectives, solution and tradeoffs, impact scope, test plan (commands/screenshots/logs), risks and rollback. Keep changes small and focused, ensure builds and tests pass
 
 ## Security & Configuration
-- Never commit secrets or local paths; leave `local.properties` untouched.
-- The prebuilt binaries in `library/src/main/cpp/librtmp/libs` are tracked—discuss replacements before attempting updates.
+- Prohibit committing keys and personal paths; don't commit/modify `local.properties`
+- Keep tracked large binaries (`library/src/main/cpp/librtmp/libs`) stable; replacements need full justification and prior discussion
 
-## Quick Start Recap
-1. Add `AVLiveView` to the layout (configure `fps`, `preview_width/height`, bitrate bounds in XML if desired).
-2. Configure audio/video/camera parameters in code, then call `live.startPreview()` (after camera permission is granted).
-3. Create `RtmpSender`, call `setDataSource(url)` and `connect()`. Once `onConnected` fires: `live.startLive()`.
-4. Stop with `live.stopLive()` and `sender.close()`.
+## Module-Specific Guidelines
+
+### App Module (`app/`)
+- Role: Sample application demonstrating streaming pipeline (preview→encoding→packaging→sending) with permissions and UI interactions
+- Entry Activity: `app/src/main/java/com/devyk/av/rtmppush/LiveActivity.kt`
+- Configuration & preparation: Bind packager and preview in `init()`; `startPreview()` after permissions ready
+- Streaming: Create and connect `RtmpSender` from address dialog (lazy creation to avoid unsupported ABI crashes)
+- Permissions & Stability: Camera/recording/storage permissions requested via `LiveActivity.requestRuntimePermissions()`; preview stays pending until granted
+- Common scenarios: Dynamic bitrate adjustment: `live.setVideoBps(bps)`. Camera switching: `live.switchCamera()`
+
+### Library Module (`library/`)
+- Architecture layers:
+  - Capture/rendering: `camera/*`, `camera/renderer/*`, `widget/*`
+  - Encoding/decoding: `mediacodec/*`
+  - Native packaging: `src/main/cpp/stream/*`
+  - Sending: `stream/sender/*` (including `rtmp`)
+  - Controllers: `controller/*`
+  - Configuration/callbacks: `config/*`, `callback/*`
+  - Native: `src/main/cpp/*` (JNI + `librtmp` static library)
+- Key points:
+  - GLSurface & rendering thread: Custom `GLSurfaceView` + `GLThread`; EGL initialization on rendering thread, no GL calls on UI thread
+  - Watermark setting: Supports deferred application: `CameraView.setWatermark()` only caches when renderer/GL not ready, auto-applies after GL onCreate callback to avoid `lateinit renderer` crashes
+  - Camera management: `CameraHolder` unified open/start/stop/release; exception capture and degradation
+  - Encoding/decoding: Video: `VideoMediaCodec`, `VideoEncoder`; audio similar. Output SPS/PPS transparently passed to packager by `StreamController`
+  - Sending (RTMP): `RtmpSender` calls native via JNI; lazy load native library to avoid unsupported ABI crashes
+- JNI/NDK: CMake: `library/src/main/cpp/CMakeLists.txt`. Target library: `astra` (SHARED); links `librtmp.a` and `log`. STL: `c++_shared`. Supported ABI: `arm64-v8a`
