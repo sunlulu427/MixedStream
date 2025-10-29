@@ -19,4 +19,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "AstraStreaming"
 
-include(":app", ":library")
+include(":app", ":astra")
