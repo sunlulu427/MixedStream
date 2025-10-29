@@ -1,4 +1,4 @@
-package com.astrastream.avpush.domain.config
+package com.astra.avpush.domain.config
 
 data class ScreenCaptureConfiguration(
     val width: Int,

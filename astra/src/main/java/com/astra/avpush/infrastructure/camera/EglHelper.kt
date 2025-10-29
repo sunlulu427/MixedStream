@@ -1,4 +1,4 @@
-package com.astrastream.avpush.infrastructure.camera
+package com.astra.avpush.infrastructure.camera
 
 import android.opengl.EGL14
 import android.view.Surface

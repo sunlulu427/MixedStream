@@ -1,4 +1,6 @@
-package com.astrastream.avpush.unified.config
+package com.astra.avpush.unified.config
+
+import android.graphics.Bitmap
 
 /**
  * 视频配置
@@ -235,7 +237,7 @@ data class TextWatermark(
  * 图片水印
  */
 data class ImageWatermark(
-    val bitmap: android.graphics.Bitmap,
+    val bitmap: Bitmap,
     val position: WatermarkPosition,
     val margin: Int = 20,
     val alpha: Float = 1.0f,

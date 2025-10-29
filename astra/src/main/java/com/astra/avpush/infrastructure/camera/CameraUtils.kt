@@ -1,13 +1,13 @@
-package com.astrastream.avpush.infrastructure.camera
+package com.astra.avpush.infrastructure.camera
 
 import android.app.admin.DevicePolicyManager
 import android.content.Context
 import android.graphics.ImageFormat
 import android.hardware.Camera
 import android.util.Log
-import com.astrastream.avpush.runtime.LogHelper
-import com.astrastream.avpush.domain.config.CameraConfiguration
-import com.astrastream.avpush.support.blacklist.BlackListHelper
+import com.astra.avpush.domain.config.CameraConfiguration
+import com.astra.avpush.runtime.LogHelper
+import com.astra.avpush.support.blacklist.BlackListHelper
 
 object CameraUtils {
 

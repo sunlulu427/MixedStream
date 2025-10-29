@@ -1,18 +1,18 @@
-package com.astrastream.avpush.presentation.widget
+package com.astra.avpush.presentation.widget
 
 import android.content.Context
 import android.graphics.SurfaceTexture
 import android.util.AttributeSet
 import android.view.Surface
 import android.view.WindowManager
-import com.astrastream.avpush.domain.callback.ICameraOpenListener
-import com.astrastream.avpush.domain.camera.CameraDevice
-import com.astrastream.avpush.domain.config.CameraConfiguration
-import com.astrastream.avpush.domain.config.RendererConfiguration
-import com.astrastream.avpush.runtime.LogHelper
-import com.astrastream.avpush.infrastructure.camera.LegacyCameraDevice
-import com.astrastream.avpush.infrastructure.camera.Watermark
-import com.astrastream.avpush.infrastructure.camera.renderer.CameraRenderer
+import com.astra.avpush.domain.callback.ICameraOpenListener
+import com.astra.avpush.domain.camera.CameraDevice
+import com.astra.avpush.domain.config.CameraConfiguration
+import com.astra.avpush.domain.config.RendererConfiguration
+import com.astra.avpush.infrastructure.camera.LegacyCameraDevice
+import com.astra.avpush.infrastructure.camera.Watermark
+import com.astra.avpush.infrastructure.camera.renderer.CameraRenderer
+import com.astra.avpush.runtime.LogHelper
 
 
 open class CameraView @JvmOverloads constructor(

@@ -1,7 +1,7 @@
-package com.astrastream.avpush.infrastructure.codec
+package com.astra.avpush.infrastructure.codec
 
 import android.media.MediaCodec
-import com.astrastream.avpush.domain.config.VideoConfiguration
+import com.astra.avpush.domain.config.VideoConfiguration
 import java.nio.ByteBuffer
 
 

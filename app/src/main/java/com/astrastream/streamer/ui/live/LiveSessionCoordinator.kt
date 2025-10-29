@@ -7,18 +7,19 @@ import android.content.pm.PackageManager
 import android.widget.Toast
 import androidx.compose.runtime.MutableState
 import androidx.core.content.ContextCompat
-import com.astrastream.avpush.infrastructure.camera.Watermark
-import com.astrastream.avpush.domain.config.AudioConfiguration
-import com.astrastream.avpush.domain.config.CameraConfiguration
-import com.astrastream.avpush.domain.config.VideoConfiguration
-import com.astrastream.avpush.stream.controller.LiveStreamSession
-import com.astrastream.avpush.infrastructure.stream.sender.rtmp.RtmpSender
-import com.astrastream.avpush.unified.UnifiedStreamSession
-import com.astrastream.avpush.unified.builder.createStreamSession
-import com.astrastream.avpush.unified.config.VideoCodec
-import com.astrastream.avpush.unified.config.AudioCodec
-import com.astrastream.avpush.runtime.LogHelper
-import com.astrastream.avpush.presentation.widget.AVLiveView
+import com.astra.avpush.infrastructure.camera.Watermark
+import com.astra.avpush.domain.config.AudioConfiguration
+import com.astra.avpush.domain.config.CameraConfiguration
+import com.astra.avpush.domain.config.VideoConfiguration
+import com.astra.avpush.stream.controller.LiveStreamSession
+import com.astra.avpush.unified.config.CameraFacing
+import com.astra.avpush.infrastructure.stream.sender.rtmp.RtmpSender
+import com.astra.avpush.unified.UnifiedStreamSession
+import com.astra.avpush.unified.builder.createStreamSession
+import com.astra.avpush.unified.config.VideoCodec
+import com.astra.avpush.unified.config.AudioCodec
+import com.astra.avpush.runtime.LogHelper
+import com.astra.avpush.presentation.widget.AVLiveView
 import com.astrastream.streamer.data.LivePreferencesStore
 import com.astrastream.streamer.ui.live.StreamUrlFormatter.buildPullUrls
 import kotlin.math.max
@@ -127,7 +128,7 @@ class LiveSessionCoordinator(
                 }
 
                 camera {
-                    facing = com.astrastream.avpush.unified.config.CameraFacing.BACK
+                    facing = CameraFacing.BACK
                     autoFocus = true
                     stabilization = true
                 }

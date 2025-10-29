@@ -1,13 +1,13 @@
-package com.astrastream.avpush.unified.media
+package com.astra.avpush.unified.media
 
 import android.content.Context
-import com.astrastream.avpush.unified.SurfaceProvider
-import com.astrastream.avpush.unified.config.AudioConfig
-import com.astrastream.avpush.unified.config.CameraConfig
-import com.astrastream.avpush.unified.config.VideoConfig
-import com.astrastream.avpush.unified.config.Watermark
-import com.astrastream.avpush.unified.transport.AudioData
-import com.astrastream.avpush.unified.transport.VideoData
+import com.astra.avpush.unified.SurfaceProvider
+import com.astra.avpush.unified.config.AudioConfig
+import com.astra.avpush.unified.config.CameraConfig
+import com.astra.avpush.unified.config.VideoConfig
+import com.astra.avpush.unified.config.Watermark
+import com.astra.avpush.unified.transport.AudioData
+import com.astra.avpush.unified.transport.VideoData
 import kotlinx.coroutines.flow.Flow
 
 /**

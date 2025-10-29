@@ -1,13 +1,13 @@
-package com.astrastream.avpush.infrastructure.codec
+package com.astra.avpush.infrastructure.codec
 
 import android.media.MediaCodec
 import android.media.MediaCodec.CONFIGURE_FLAG_ENCODE
 import android.media.MediaCodecInfo
 import android.media.MediaFormat
 import android.util.Log
-import com.astrastream.avpush.runtime.LogHelper
-import com.astrastream.avpush.domain.config.VideoConfiguration
-import com.astrastream.avpush.support.blacklist.BlackListHelper
+import com.astra.avpush.domain.config.VideoConfiguration
+import com.astra.avpush.runtime.LogHelper
+import com.astra.avpush.support.blacklist.BlackListHelper
 
 object VideoMediaCodec {
     private val TAG = this.javaClass.simpleName

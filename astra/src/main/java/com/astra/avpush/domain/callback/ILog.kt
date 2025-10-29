@@ -1,4 +1,4 @@
-package com.astrastream.avpush.domain.callback
+package com.astra.avpush.domain.callback
 
 interface ILog {
     fun i(tag: String = javaClass.simpleName, info: String?);

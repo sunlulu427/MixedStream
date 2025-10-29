@@ -1,16 +1,16 @@
-package com.astrastream.avpush.stream.controller
+package com.astra.avpush.stream.controller
 
 import android.content.Context
 import android.media.MediaCodec
 import android.media.MediaFormat
 import android.media.projection.MediaProjection
-import com.astrastream.avpush.domain.callback.IController
-import com.astrastream.avpush.domain.callback.OnVideoEncodeListener
-import com.astrastream.avpush.domain.config.ScreenCaptureConfiguration
-import com.astrastream.avpush.domain.config.VideoConfiguration
-import com.astrastream.avpush.infrastructure.camera.Watermark
-import com.astrastream.avpush.infrastructure.screen.ScreenRecorder
-import com.astrastream.avpush.runtime.LogHelper
+import com.astra.avpush.domain.callback.IController
+import com.astra.avpush.domain.callback.OnVideoEncodeListener
+import com.astra.avpush.domain.config.ScreenCaptureConfiguration
+import com.astra.avpush.domain.config.VideoConfiguration
+import com.astra.avpush.infrastructure.camera.Watermark
+import com.astra.avpush.infrastructure.screen.ScreenRecorder
+import com.astra.avpush.runtime.LogHelper
 import java.nio.ByteBuffer
 
 class ScreenVideoController(

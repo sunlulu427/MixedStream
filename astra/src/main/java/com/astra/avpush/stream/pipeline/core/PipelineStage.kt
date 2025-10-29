@@ -1,4 +1,4 @@
-package com.astrastream.avpush.stream.pipeline.core
+package com.astra.avpush.stream.pipeline.core
 
 interface PipelineStage {
     val name: String

@@ -1,12 +1,12 @@
-package com.astrastream.avpush.infrastructure.audio
+package com.astra.avpush.infrastructure.audio
 
 import android.annotation.SuppressLint
 import android.media.AudioFormat
 import android.media.AudioRecord
 import android.media.MediaRecorder
-import com.astrastream.avpush.runtime.STREAM_LOG_TAG
-import com.astrastream.avpush.runtime.ThreadImpl
-import com.astrastream.avpush.runtime.LogHelper
+import com.astra.avpush.runtime.LogHelper
+import com.astra.avpush.runtime.STREAM_LOG_TAG
+import com.astra.avpush.runtime.ThreadImpl
 import java.util.Arrays
 
 class AudioProcessor : ThreadImpl() {

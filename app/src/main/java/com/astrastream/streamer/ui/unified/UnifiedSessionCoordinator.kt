@@ -3,13 +3,29 @@ package com.astrastream.streamer.ui.unified
 import android.content.Context
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
-import androidx.lifecycle.lifecycleScope
-import com.astrastream.avpush.unified.*
-import com.astrastream.avpush.unified.builder.createStreamSession
-import com.astrastream.avpush.unified.config.*
-import com.astrastream.avpush.unified.error.StreamError
+import com.astra.avpush.unified.ConnectionQuality
+import com.astra.avpush.unified.SessionState
+import com.astra.avpush.unified.StreamEventListener
+import com.astra.avpush.unified.StreamStats
+import com.astra.avpush.unified.SurfaceProvider
+import com.astra.avpush.unified.UnifiedStreamSession
+import com.astra.avpush.unified.config.AudioConfig
+import com.astra.avpush.unified.config.CameraConfig
+import com.astra.avpush.unified.config.CameraFacing
+import com.astra.avpush.unified.config.ExposureMode
+import com.astra.avpush.unified.config.VideoConfig
+import com.astra.avpush.unified.config.VideoProfile
+import com.astra.avpush.unified.config.Watermark
+import com.astra.avpush.unified.config.WhiteBalanceMode
+import com.astra.avpush.unified.builder.createStreamSession
+import com.astra.avpush.unified.config.AudioCodec
+import com.astra.avpush.unified.config.RetryPolicy
+import com.astra.avpush.unified.config.RtmpConfig
+import com.astra.avpush.unified.config.VideoCodec
+import com.astra.avpush.unified.error.StreamError
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import java.time.Duration
 
 /**
  * 统一推流会话协调器
@@ -71,7 +87,7 @@ class UnifiedSessionCoordinator(
 
             // RTMP传输配置
             addRtmp("rtmp://47.100.16.213:1935/live/123333") {
-                connectTimeout = java.time.Duration.ofSeconds(10)
+                connectTimeout = Duration.ofSeconds(10)
                 retryPolicy = RetryPolicy.exponentialBackoff(maxRetries = 3)
                 enableLowLatency = false
                 enableTcpNoDelay = true
@@ -82,7 +98,7 @@ class UnifiedSessionCoordinator(
                 enableSimultaneousPush = false
                 fallbackEnabled = true
                 enableMetrics = true
-                metricsInterval = java.time.Duration.ofSeconds(1)
+                metricsInterval = Duration.ofSeconds(1)
                 enableGpuAcceleration = true
                 enableMemoryPool = true
             }
@@ -167,7 +183,7 @@ class UnifiedSessionCoordinator(
             val newTransportId = session.addTransport(
                 RtmpConfig(
                     pushUrl = url,
-                    connectTimeout = java.time.Duration.ofSeconds(10),
+                    connectTimeout = Duration.ofSeconds(10),
                     retryPolicy = RetryPolicy.exponentialBackoff(maxRetries = 3)
                 )
             )

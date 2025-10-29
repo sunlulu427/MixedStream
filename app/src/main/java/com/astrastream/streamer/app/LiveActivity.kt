@@ -50,9 +50,9 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
-import com.astrastream.avpush.domain.callback.OnConnectListener
-import com.astrastream.avpush.domain.config.AudioConfiguration
-import com.astrastream.avpush.runtime.LogHelper
+import com.astra.avpush.domain.callback.OnConnectListener
+import com.astra.avpush.domain.config.AudioConfiguration
+import com.astra.avpush.runtime.LogHelper
 import com.astrastream.streamer.R
 import com.astrastream.streamer.core.util.SPUtils
 import com.astrastream.streamer.core.util.Utils
@@ -65,7 +65,6 @@ import com.astrastream.streamer.ui.screen.ScreenLiveSessionCoordinator
 import com.astrastream.streamer.ui.screen.ScreenLiveUiState
 import com.astrastream.streamer.ui.theme.AVLiveTheme
 import com.tbruyelle.rxpermissions2.RxPermissions
-import androidx.lifecycle.lifecycleScope
 
 class LiveActivity : AppCompatActivity(), OnConnectListener {
 

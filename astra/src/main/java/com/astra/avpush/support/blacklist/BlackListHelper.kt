@@ -1,4 +1,4 @@
-package com.astrastream.avpush.support.blacklist
+package com.astra.avpush.support.blacklist
 
 import android.os.Build
 import android.text.TextUtils

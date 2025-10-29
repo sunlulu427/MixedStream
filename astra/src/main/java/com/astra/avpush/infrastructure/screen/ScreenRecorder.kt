@@ -1,11 +1,11 @@
-package com.astrastream.avpush.infrastructure.screen
+package com.astra.avpush.infrastructure.screen
 
 import android.content.Context
 import android.media.projection.MediaProjection
 import android.view.Surface
-import com.astrastream.avpush.domain.config.ScreenCaptureConfiguration
-import com.astrastream.avpush.infrastructure.codec.VideoEncoder
-import com.astrastream.avpush.runtime.LogHelper
+import com.astra.avpush.domain.config.ScreenCaptureConfiguration
+import com.astra.avpush.infrastructure.codec.VideoEncoder
+import com.astra.avpush.runtime.LogHelper
 
 class ScreenRecorder(
     private val context: Context

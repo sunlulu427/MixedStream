@@ -1,13 +1,18 @@
-package com.astrastream.avpush.unified
+package com.astra.avpush.unified
 
 import android.content.Context
-import com.astrastream.avpush.unified.config.*
-import com.astrastream.avpush.unified.error.StreamError
-import com.astrastream.avpush.unified.error.TransportError
+import android.view.Surface
+import com.astra.avpush.unified.config.AudioConfig
+import com.astra.avpush.unified.config.TransportConfig
+import com.astra.avpush.unified.config.TransportId
+import com.astra.avpush.unified.config.TransportProtocol
+import com.astra.avpush.unified.config.VideoConfig
+import com.astra.avpush.unified.config.Watermark
+import com.astra.avpush.unified.error.StreamError
+import com.astra.avpush.unified.error.TransportError
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import java.time.Duration
-import java.time.Instant
 
 /**
  * 统一推流会话接口
@@ -202,7 +207,7 @@ data class TransportStats(
  * Surface提供者接口
  */
 interface SurfaceProvider {
-    fun getPreviewSurface(): android.view.Surface?
+    fun getPreviewSurface(): Surface?
 }
 
 /**

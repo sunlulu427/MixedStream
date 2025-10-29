@@ -1,4 +1,4 @@
-package com.astrastream.avpush.runtime
+package com.astra.avpush.runtime
 
 import android.content.Context
 import android.graphics.Bitmap
@@ -8,6 +8,7 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Typeface
 import android.util.TypedValue
+import android.view.Gravity
 import android.view.View
 import android.widget.TextView
 import kotlin.math.roundToInt
@@ -27,7 +28,7 @@ object BitmapUtils {
             this.text = text
             setTextColor(textColor)
             setTextSize(TypedValue.COMPLEX_UNIT_SP, textSizeSp)
-            gravity = android.view.Gravity.CENTER
+            gravity = Gravity.CENTER
             this.typeface = typeface ?: Typeface.create("sans-serif", Typeface.BOLD)
         }
         measureView(textView)

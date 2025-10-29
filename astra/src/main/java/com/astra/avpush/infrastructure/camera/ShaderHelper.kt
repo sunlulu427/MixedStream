@@ -1,4 +1,4 @@
-package com.astrastream.avpush.infrastructure.camera
+package com.astra.avpush.infrastructure.camera
 
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -6,8 +6,8 @@ import android.graphics.Paint
 import android.opengl.GLES20
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.toColorInt
-import com.astrastream.avpush.runtime.LogHelper
-import com.astrastream.avpush.runtime.NativeShaders
+import com.astra.avpush.runtime.LogHelper
+import com.astra.avpush.runtime.NativeShaders
 import java.nio.ByteBuffer
 
 object ShaderHelper {

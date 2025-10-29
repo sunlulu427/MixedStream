@@ -1,12 +1,12 @@
-package com.astrastream.avpush.stream.controller
+package com.astra.avpush.stream.controller
 
 import android.content.Context
 import android.media.projection.MediaProjection
-import com.astrastream.avpush.infrastructure.camera.Watermark
-import com.astrastream.avpush.domain.config.AudioConfiguration
-import com.astrastream.avpush.domain.config.ScreenCaptureConfiguration
-import com.astrastream.avpush.domain.config.VideoConfiguration
-import com.astrastream.avpush.infrastructure.stream.sender.Sender
+import com.astra.avpush.infrastructure.camera.Watermark
+import com.astra.avpush.domain.config.AudioConfiguration
+import com.astra.avpush.domain.config.ScreenCaptureConfiguration
+import com.astra.avpush.domain.config.VideoConfiguration
+import com.astra.avpush.infrastructure.stream.sender.Sender
 import javax.microedition.khronos.egl.EGLContext
 
 /**

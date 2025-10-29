@@ -1,19 +1,19 @@
-package com.astrastream.avpush.infrastructure.camera
+package com.astra.avpush.infrastructure.camera
 
 import android.content.Context
 import android.view.Surface
-import com.astrastream.avpush.domain.callback.IGLThreadConfig
-import com.astrastream.avpush.domain.callback.IRenderer
-import com.astrastream.avpush.infrastructure.camera.renderer.EncodeRenderer
-import com.astrastream.avpush.infrastructure.codec.VideoEncoder
-import com.astrastream.avpush.presentation.widget.GLSurfaceView
+import com.astra.avpush.domain.callback.IGLThreadConfig
+import com.astra.avpush.domain.callback.IRenderer
+import com.astra.avpush.infrastructure.camera.renderer.EncodeRenderer
+import com.astra.avpush.infrastructure.codec.VideoEncoder
+import com.astra.avpush.presentation.widget.GLSurfaceView
 import java.lang.ref.WeakReference
 import javax.microedition.khronos.egl.EGLContext
 
 class CameraRecorder(context: Context, textureId: Int, private val eglContext: EGLContext?) :
     VideoEncoder(), IGLThreadConfig {
     private val mRenderer: EncodeRenderer = EncodeRenderer(context, textureId)
-    private var mRendererMode = GLSurfaceView.RENDERERMODE_CONTINUOUSLY
+    private var mRendererMode = GLSurfaceView.Companion.RENDERERMODE_CONTINUOUSLY
     private var mGLThread: EncodeRendererThread? = null
     private var mSurface: Surface? = null
 

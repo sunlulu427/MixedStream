@@ -1,7 +1,6 @@
-package com.astrastream.avpush.domain.callback
+package com.astra.avpush.domain.callback
 
 import android.view.Surface
-import com.astrastream.avpush.domain.callback.IRenderer
 import javax.microedition.khronos.egl.EGLContext
 
 interface IGLThreadConfig {

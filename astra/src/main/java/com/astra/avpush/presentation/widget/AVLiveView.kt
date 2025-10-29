@@ -1,16 +1,16 @@
-package com.astrastream.avpush.presentation.widget
+package com.astra.avpush.presentation.widget
 
 import android.content.Context
 import android.util.AttributeSet
+import com.astra.avpush.domain.callback.ICameraOpenListener
+import com.astra.avpush.domain.config.AudioConfiguration
+import com.astra.avpush.domain.config.CameraConfiguration
+import com.astra.avpush.domain.config.VideoConfiguration
+import com.astra.avpush.infrastructure.camera.Watermark
+import com.astra.avpush.infrastructure.stream.sender.Sender
+import com.astra.avpush.stream.controller.LiveStreamSession
+import com.astra.avpush.stream.controller.StreamController
 import com.astrastream.avpush.R
-import com.astrastream.avpush.domain.callback.ICameraOpenListener
-import com.astrastream.avpush.infrastructure.camera.Watermark
-import com.astrastream.avpush.domain.config.AudioConfiguration
-import com.astrastream.avpush.domain.config.CameraConfiguration
-import com.astrastream.avpush.domain.config.VideoConfiguration
-import com.astrastream.avpush.stream.controller.LiveStreamSession
-import com.astrastream.avpush.stream.controller.StreamController
-import com.astrastream.avpush.infrastructure.stream.sender.Sender
 
 class AVLiveView @JvmOverloads constructor(
     context: Context,

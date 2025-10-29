@@ -1,4 +1,4 @@
-package com.astrastream.avpush.runtime
+package com.astra.avpush.runtime
 
 import android.media.MediaCodec
 import java.nio.ByteBuffer

@@ -10,12 +10,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.astrastream.avpush.unified.ConnectionQuality
-import com.astrastream.avpush.unified.StreamStats
+import com.astra.avpush.unified.ConnectionQuality
+import com.astra.avpush.unified.StreamStats
 import java.time.Duration
 
 /**

@@ -1,7 +1,7 @@
-package com.astrastream.avpush.stream.controller
+package com.astra.avpush.stream.controller
 
-import com.astrastream.avpush.domain.callback.IController
-import com.astrastream.avpush.infrastructure.camera.Watermark
+import com.astra.avpush.domain.callback.IController
+import com.astra.avpush.infrastructure.camera.Watermark
 
 interface VideoSourceController : IController {
     fun setWatermark(watermark: Watermark)

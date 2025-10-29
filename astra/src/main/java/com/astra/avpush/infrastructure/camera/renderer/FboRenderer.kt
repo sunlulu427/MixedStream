@@ -1,13 +1,13 @@
-package com.astrastream.avpush.infrastructure.camera.renderer
+package com.astra.avpush.infrastructure.camera.renderer
 
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.opengl.GLES20
-import com.astrastream.avpush.domain.callback.IRenderer
-import com.astrastream.avpush.infrastructure.camera.ShaderHelper
-import com.astrastream.avpush.infrastructure.camera.Watermark
-import com.astrastream.avpush.runtime.BitmapUtils
+import com.astra.avpush.domain.callback.IRenderer
+import com.astra.avpush.infrastructure.camera.ShaderHelper
+import com.astra.avpush.infrastructure.camera.Watermark
+import com.astra.avpush.runtime.BitmapUtils
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer

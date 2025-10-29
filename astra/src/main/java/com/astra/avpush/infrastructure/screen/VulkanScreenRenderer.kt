@@ -1,9 +1,11 @@
-package com.astrastream.avpush.infrastructure.screen
+package com.astra.avpush.infrastructure.screen
 
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.ColorSpace
+import android.graphics.HardwareRenderer
 import android.graphics.Paint
+import android.graphics.PixelFormat
 import android.graphics.Rect
 import android.graphics.RenderNode
 import android.hardware.HardwareBuffer
@@ -15,8 +17,8 @@ import android.os.Build
 import android.os.Handler
 import android.os.HandlerThread
 import android.view.Surface
-import com.astrastream.avpush.domain.config.ScreenCaptureConfiguration
-import com.astrastream.avpush.runtime.LogHelper
+import com.astra.avpush.domain.config.ScreenCaptureConfiguration
+import com.astra.avpush.runtime.LogHelper
 import java.util.concurrent.CountDownLatch
 
 internal class VulkanScreenRenderer(
@@ -33,7 +35,7 @@ internal class VulkanScreenRenderer(
     private var handler: Handler? = null
     private var virtualDisplay: VirtualDisplay? = null
     private var imageReader: ImageReader? = null
-    private var renderer: android.graphics.HardwareRenderer? = null
+    private var renderer: HardwareRenderer? = null
     private var rootNode: RenderNode? = null
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
     private var started = false
@@ -49,7 +51,7 @@ internal class VulkanScreenRenderer(
         }
         handlerThread = HandlerThread("Astra-ScreenCapture").also { it.start() }
         handler = Handler(handlerThread!!.looper)
-        renderer = android.graphics.HardwareRenderer().also { hardwareRenderer ->
+        renderer = HardwareRenderer().also { hardwareRenderer ->
             hardwareRenderer.setSurface(targetSurface)
             hardwareRenderer.start()
             val renderNode = RenderNode("screen-root")
@@ -153,7 +155,7 @@ internal class VulkanScreenRenderer(
         val reader = ImageReader.newInstance(
             config.width,
             config.height,
-            android.graphics.PixelFormat.RGBA_8888,
+            PixelFormat.RGBA_8888,
             /*maxImages*/ 4,
             usage.toLong()
         )

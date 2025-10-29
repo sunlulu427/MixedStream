@@ -1,4 +1,4 @@
-package com.astrastream.avpush.unified.config
+package com.astra.avpush.unified.config
 
 import java.time.Duration
 import java.util.UUID

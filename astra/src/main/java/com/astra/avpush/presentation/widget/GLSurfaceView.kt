@@ -1,15 +1,15 @@
-package com.astrastream.avpush.presentation.widget
+package com.astra.avpush.presentation.widget
 
 import android.content.Context
 import android.util.AttributeSet
 import android.view.Surface
 import android.view.SurfaceHolder
 import android.view.SurfaceView
-import com.astrastream.avpush.runtime.LogHelper
-import com.astrastream.avpush.domain.callback.IGLThreadConfig
-import com.astrastream.avpush.domain.callback.IRenderer
-import com.astrastream.avpush.domain.config.RendererConfiguration
-import com.astrastream.avpush.infrastructure.camera.GLThread
+import com.astra.avpush.domain.callback.IGLThreadConfig
+import com.astra.avpush.domain.callback.IRenderer
+import com.astra.avpush.domain.config.RendererConfiguration
+import com.astra.avpush.infrastructure.camera.GLThread
+import com.astra.avpush.runtime.LogHelper
 import java.lang.ref.WeakReference
 import javax.microedition.khronos.egl.EGLContext
 

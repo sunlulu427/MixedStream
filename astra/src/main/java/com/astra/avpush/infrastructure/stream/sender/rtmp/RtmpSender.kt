@@ -1,12 +1,12 @@
-package com.astrastream.avpush.infrastructure.stream.sender.rtmp
+package com.astra.avpush.infrastructure.stream.sender.rtmp
 
 import android.media.AudioFormat
 import android.media.MediaCodec
-import com.astrastream.avpush.runtime.RtmpErrorCode
-import com.astrastream.avpush.domain.callback.OnConnectListener
-import com.astrastream.avpush.domain.config.AudioConfiguration
-import com.astrastream.avpush.domain.config.VideoConfiguration
-import com.astrastream.avpush.infrastructure.stream.sender.Sender
+import com.astra.avpush.domain.callback.OnConnectListener
+import com.astra.avpush.domain.config.AudioConfiguration
+import com.astra.avpush.domain.config.VideoConfiguration
+import com.astra.avpush.infrastructure.stream.sender.Sender
+import com.astra.avpush.runtime.RtmpErrorCode
 import java.nio.ByteBuffer
 
 class RtmpSender : Sender {
@@ -73,7 +73,7 @@ class RtmpSender : Sender {
     }
 
     fun onError(errorCode: Int) {
-        val readable = RtmpErrorCode.fromCode(errorCode)?.let { code ->
+        val readable = RtmpErrorCode.Companion.fromCode(errorCode)?.let { code ->
             when (code) {
                 RtmpErrorCode.CONNECT_FAILURE -> "RTMP server connection failed"
                 RtmpErrorCode.INIT_FAILURE -> "RTMP native initialization failed"

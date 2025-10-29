@@ -1,9 +1,33 @@
-package com.astrastream.avpush.unified.builder
+package com.astra.avpush.unified.builder
 
-import com.astrastream.avpush.unified.UnifiedStreamSession
-import com.astrastream.avpush.unified.ConnectionQuality
-import com.astrastream.avpush.unified.config.*
-import com.astrastream.avpush.unified.impl.UnifiedStreamSessionImpl
+import com.astra.avpush.unified.ConnectionQuality
+import com.astra.avpush.unified.ProtocolDetector
+import com.astra.avpush.unified.UnifiedStreamSession
+import com.astra.avpush.unified.config.AudioCodec
+import com.astra.avpush.unified.config.AudioConfig
+import com.astra.avpush.unified.config.AudioProfile
+import com.astra.avpush.unified.config.BitrateMode
+import com.astra.avpush.unified.config.CameraConfig
+import com.astra.avpush.unified.config.CameraFacing
+import com.astra.avpush.unified.config.EncoderTuning
+import com.astra.avpush.unified.config.ExposureMode
+import com.astra.avpush.unified.config.FocusMode
+import com.astra.avpush.unified.config.IceServer
+import com.astra.avpush.unified.config.QualityPreset
+import com.astra.avpush.unified.config.RetryPolicy
+import com.astra.avpush.unified.config.RtmpConfig
+import com.astra.avpush.unified.config.SrtConfig
+import com.astra.avpush.unified.config.SrtEncryption
+import com.astra.avpush.unified.config.TransportConfig
+import com.astra.avpush.unified.config.TransportId
+import com.astra.avpush.unified.config.TransportProtocol
+import com.astra.avpush.unified.config.VideoCodec
+import com.astra.avpush.unified.config.VideoConfig
+import com.astra.avpush.unified.config.VideoLevel
+import com.astra.avpush.unified.config.VideoProfile
+import com.astra.avpush.unified.config.WebRtcConfig
+import com.astra.avpush.unified.config.WhiteBalanceMode
+import com.astra.avpush.unified.impl.UnifiedStreamSessionImpl
 import java.time.Duration
 
 /**
@@ -51,7 +75,7 @@ class StreamSessionBuilder {
      * 根据URL自动选择RTMP、WebRTC或SRT传输
      */
     fun addStream(url: String): TransportId {
-        val config = com.astrastream.avpush.unified.ProtocolDetector.detectAndCreateConfig(url)
+        val config = ProtocolDetector.detectAndCreateConfig(url)
         transportConfigs.add(config)
         return config.id
     }
@@ -233,12 +257,12 @@ class CameraConfigBuilder {
  * RTMP配置构建器
  */
 class RtmpConfigBuilder {
-    var id: TransportId = TransportConfig.generateId()
+    var id: TransportId = TransportConfig.Companion.generateId()
     var priority: Int = 1
     var enabled: Boolean = true
     var pushUrl: String = ""
     var connectTimeout: Duration = Duration.ofSeconds(10)
-    var retryPolicy: RetryPolicy = RetryPolicy.exponentialBackoff()
+    var retryPolicy: RetryPolicy = RetryPolicy.Companion.exponentialBackoff()
     var chunkSize: Int = 4096
     var enableLowLatency: Boolean = false
     var enableTcpNoDelay: Boolean = true
@@ -260,7 +284,7 @@ class RtmpConfigBuilder {
  * WebRTC配置构建器
  */
 class WebRtcConfigBuilder {
-    var id: TransportId = TransportConfig.generateId()
+    var id: TransportId = TransportConfig.Companion.generateId()
     var priority: Int = 0
     var enabled: Boolean = true
     var signalingUrl: String = ""
@@ -291,7 +315,7 @@ class WebRtcConfigBuilder {
  * SRT配置构建器
  */
 class SrtConfigBuilder {
-    var id: TransportId = TransportConfig.generateId()
+    var id: TransportId = TransportConfig.Companion.generateId()
     var priority: Int = 2
     var enabled: Boolean = true
     var serverUrl: String = ""

@@ -1,4 +1,4 @@
-package com.astrastream.avpush.domain.callback
+package com.astra.avpush.domain.callback
 
 import android.media.MediaCodec
 import android.media.MediaFormat

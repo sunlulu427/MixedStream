@@ -1,8 +1,8 @@
-package com.astrastream.avpush.runtime
+package com.astra.avpush.runtime
 
 import android.content.Context
+import com.astra.avpush.domain.callback.ILog
 import java.io.File
-import com.astrastream.avpush.domain.callback.ILog
 import java.util.concurrent.atomic.AtomicBoolean
 
 object LogHelper : ILog {

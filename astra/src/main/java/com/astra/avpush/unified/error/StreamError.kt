@@ -1,6 +1,6 @@
-package com.astrastream.avpush.unified.error
+package com.astra.avpush.unified.error
 
-import com.astrastream.avpush.unified.config.TransportProtocol
+import com.astra.avpush.unified.config.TransportProtocol
 import java.time.Instant
 
 /**

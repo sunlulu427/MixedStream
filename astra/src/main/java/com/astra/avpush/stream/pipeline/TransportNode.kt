@@ -1,16 +1,16 @@
-package com.astrastream.avpush.stream.pipeline
+package com.astra.avpush.stream.pipeline
 
-import com.astrastream.avpush.stream.pipeline.core.PipelinePad
-import com.astrastream.avpush.stream.pipeline.core.PipelineRole
-import com.astrastream.avpush.stream.pipeline.core.PipelineStage
-import com.astrastream.avpush.stream.pipeline.frame.EncodedAudioFrame
-import com.astrastream.avpush.stream.pipeline.frame.EncodedVideoFrame
-import com.astrastream.avpush.runtime.LogHelper
-import com.astrastream.avpush.runtime.NativeStats
-import com.astrastream.avpush.runtime.prepareForCodec
-import com.astrastream.avpush.domain.config.AudioConfiguration
-import com.astrastream.avpush.domain.config.VideoConfiguration
-import com.astrastream.avpush.infrastructure.stream.sender.Sender
+import com.astra.avpush.stream.pipeline.core.PipelinePad
+import com.astra.avpush.stream.pipeline.core.PipelineRole
+import com.astra.avpush.stream.pipeline.core.PipelineStage
+import com.astra.avpush.stream.pipeline.frame.EncodedAudioFrame
+import com.astra.avpush.stream.pipeline.frame.EncodedVideoFrame
+import com.astra.avpush.runtime.LogHelper
+import com.astra.avpush.runtime.NativeStats
+import com.astra.avpush.runtime.prepareForCodec
+import com.astra.avpush.domain.config.AudioConfiguration
+import com.astra.avpush.domain.config.VideoConfiguration
+import com.astra.avpush.infrastructure.stream.sender.Sender
 import android.os.SystemClock
 
 

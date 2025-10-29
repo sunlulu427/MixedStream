@@ -1,11 +1,11 @@
-package com.astrastream.avpush.infrastructure.codec
+package com.astra.avpush.infrastructure.codec
 
 import android.media.AudioRecord
 import android.media.MediaCodec
 import android.media.MediaCodecInfo
 import android.media.MediaCodecList
 import android.media.MediaFormat
-import com.astrastream.avpush.domain.config.AudioConfiguration
+import com.astra.avpush.domain.config.AudioConfiguration
 import java.nio.ByteBuffer
 
 class AudioMediaCodec {

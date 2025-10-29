@@ -1,4 +1,4 @@
-package com.astrastream.avpush.infrastructure.camera
+package com.astra.avpush.infrastructure.camera
 
 data class CameraData(
     val cameraId: Int,

@@ -1,11 +1,12 @@
-package com.astrastream.avpush.domain.camera
+package com.astra.avpush.domain.camera
 
 import android.graphics.SurfaceTexture
+import com.astra.avpush.domain.config.CameraConfiguration
 
 interface CameraDevice {
     val currentDescriptor: CameraDescriptor?
 
-    fun configure(configuration: com.astrastream.avpush.domain.config.CameraConfiguration)
+    fun configure(configuration: CameraConfiguration)
 
     @Throws(Throwable::class)
     fun open()

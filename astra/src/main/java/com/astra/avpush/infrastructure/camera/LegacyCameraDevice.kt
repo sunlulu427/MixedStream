@@ -1,14 +1,14 @@
-package com.astrastream.avpush.infrastructure.camera
+package com.astra.avpush.infrastructure.camera
 
 import android.graphics.Rect
 import android.graphics.SurfaceTexture
 import android.hardware.Camera
 import android.os.SystemClock
 import android.util.Log
-import com.astrastream.avpush.runtime.LogHelper
-import com.astrastream.avpush.domain.camera.CameraDescriptor
-import com.astrastream.avpush.domain.camera.CameraDevice
-import com.astrastream.avpush.domain.config.CameraConfiguration
+import com.astra.avpush.domain.camera.CameraDescriptor
+import com.astra.avpush.domain.camera.CameraDevice
+import com.astra.avpush.domain.config.CameraConfiguration
+import com.astra.avpush.runtime.LogHelper
 import java.io.IOException
 
 class LegacyCameraDevice : CameraDevice {

@@ -58,12 +58,10 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.zIndex
-import com.astrastream.avpush.presentation.widget.AVLiveView
+import com.astra.avpush.presentation.widget.AVLiveView
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.layout.LayoutCoordinates
 import kotlin.math.roundToInt
 

@@ -1,21 +1,37 @@
-package com.astrastream.avpush.unified.impl
+package com.astra.avpush.unified.impl
 
 import android.content.Context
-import com.astrastream.avpush.unified.*
-import com.astrastream.avpush.unified.builder.AdvancedConfig
-import com.astrastream.avpush.unified.config.*
-import com.astrastream.avpush.unified.error.StreamError
-import com.astrastream.avpush.unified.error.SystemError
-import com.astrastream.avpush.unified.media.DefaultMediaController
-import com.astrastream.avpush.unified.media.MediaController
-import com.astrastream.avpush.unified.transport.*
-import com.astrastream.avpush.unified.transport.rtmp.RtmpTransportFactory
+import com.astra.avpush.unified.ConnectionQuality
+import com.astra.avpush.unified.SessionState
+import com.astra.avpush.unified.StreamEventListener
+import com.astra.avpush.unified.StreamStats
+import com.astra.avpush.unified.SurfaceProvider
+import com.astra.avpush.unified.TransportState
+import com.astra.avpush.unified.TransportStats
+import com.astra.avpush.unified.UnifiedStreamSession
+import com.astra.avpush.unified.builder.AdvancedConfig
+import com.astra.avpush.unified.config.AudioConfig
+import com.astra.avpush.unified.config.CameraConfig
+import com.astra.avpush.unified.config.TransportConfig
+import com.astra.avpush.unified.config.TransportId
+import com.astra.avpush.unified.config.VideoConfig
+import com.astra.avpush.unified.config.Watermark
+import com.astra.avpush.unified.error.StreamError
+import com.astra.avpush.unified.media.DefaultMediaController
+import com.astra.avpush.unified.media.MediaController
+import com.astra.avpush.unified.transport.AudioData
+import com.astra.avpush.unified.transport.StreamTransport
+import com.astra.avpush.unified.transport.TransportRegistry
+import com.astra.avpush.unified.transport.VideoData
+import com.astra.avpush.unified.transport.rtmp.RtmpTransportFactory
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.distinctUntilChanged
 import java.time.Duration
-import java.time.Instant
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicLong
+import kotlin.collections.map
+import kotlin.collections.toList
 
 /**
  * 统一推流会话实现
@@ -94,7 +110,7 @@ class UnifiedStreamSessionImpl(
             notifyStateChanged(SessionState.PREPARED)
 
         } catch (e: Exception) {
-            val error = StreamError.from(e)
+            val error = StreamError.Companion.from(e)
             _state.value = SessionState.ERROR(error)
             notifyError(error)
             throw e
@@ -122,7 +138,7 @@ class UnifiedStreamSessionImpl(
             startStatsCollection()
 
         } catch (e: Exception) {
-            val error = StreamError.from(e)
+            val error = StreamError.Companion.from(e)
             _state.value = SessionState.ERROR(error)
             notifyError(error)
             throw e
@@ -147,7 +163,7 @@ class UnifiedStreamSessionImpl(
             notifyStateChanged(SessionState.IDLE)
 
         } catch (e: Exception) {
-            val error = StreamError.from(e)
+            val error = StreamError.Companion.from(e)
             _state.value = SessionState.ERROR(error)
             notifyError(error)
         }

@@ -1,4 +1,4 @@
-package com.astrastream.avpush.stream.pipeline.frame
+package com.astra.avpush.stream.pipeline.frame
 
 import android.media.MediaCodec
 import java.nio.ByteBuffer

@@ -61,7 +61,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import com.astrastream.avpush.domain.config.VideoConfiguration
+import com.astra.avpush.domain.config.VideoConfiguration
 
 @Composable
 fun CameraSwitchButton(onClick: () -> Unit, enabled: Boolean, modifier: Modifier = Modifier) {

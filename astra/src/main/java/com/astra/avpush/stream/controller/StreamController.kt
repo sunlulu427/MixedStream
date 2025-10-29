@@ -1,16 +1,16 @@
-package com.astrastream.avpush.stream.controller
+package com.astra.avpush.stream.controller
 
 import android.content.Context
 import android.media.MediaFormat
-import com.astrastream.avpush.stream.pipeline.AudioCaptureNode
-import com.astrastream.avpush.stream.pipeline.TransportNode
-import com.astrastream.avpush.stream.pipeline.VideoCaptureNode
-import com.astrastream.avpush.stream.pipeline.StreamingPipeline
-import com.astrastream.avpush.runtime.LogHelper
-import com.astrastream.avpush.domain.config.AudioConfiguration
-import com.astrastream.avpush.domain.config.VideoConfiguration
-import com.astrastream.avpush.infrastructure.camera.Watermark
-import com.astrastream.avpush.infrastructure.stream.sender.Sender
+import com.astra.avpush.domain.config.AudioConfiguration
+import com.astra.avpush.domain.config.VideoConfiguration
+import com.astra.avpush.infrastructure.camera.Watermark
+import com.astra.avpush.infrastructure.stream.sender.Sender
+import com.astra.avpush.runtime.LogHelper
+import com.astra.avpush.stream.pipeline.AudioCaptureNode
+import com.astra.avpush.stream.pipeline.StreamingPipeline
+import com.astra.avpush.stream.pipeline.TransportNode
+import com.astra.avpush.stream.pipeline.VideoCaptureNode
 import javax.microedition.khronos.egl.EGLContext
 
 class StreamController : LiveStreamSession {

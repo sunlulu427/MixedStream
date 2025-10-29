@@ -1,10 +1,10 @@
-package com.astrastream.avpush.infrastructure.codec
+package com.astra.avpush.infrastructure.codec
 
 import android.media.MediaCodec
 import android.media.MediaFormat
 import android.util.Log
-import com.astrastream.avpush.runtime.LogHelper
-import com.astrastream.avpush.domain.config.AudioConfiguration
+import com.astra.avpush.domain.config.AudioConfiguration
+import com.astra.avpush.runtime.LogHelper
 import java.nio.ByteBuffer
 
 abstract class BaseAudioCodec(private val mAudioConfiguration: AudioConfiguration?) : IAudioCodec {

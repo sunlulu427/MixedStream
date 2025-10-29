@@ -1,9 +1,9 @@
-package com.astrastream.avpush.infrastructure.stream.sender
+package com.astra.avpush.infrastructure.stream.sender
 
 import android.media.MediaCodec
-import com.astrastream.avpush.domain.callback.OnConnectListener
-import com.astrastream.avpush.domain.config.AudioConfiguration
-import com.astrastream.avpush.domain.config.VideoConfiguration
+import com.astra.avpush.domain.callback.OnConnectListener
+import com.astra.avpush.domain.config.AudioConfiguration
+import com.astra.avpush.domain.config.VideoConfiguration
 import java.nio.ByteBuffer
 
 interface Sender {

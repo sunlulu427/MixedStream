@@ -1,4 +1,4 @@
-package com.astrastream.avpush.runtime
+package com.astra.avpush.runtime
 
 internal object NativeRenderUtil {
 

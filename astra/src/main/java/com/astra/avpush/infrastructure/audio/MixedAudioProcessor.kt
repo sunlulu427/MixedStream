@@ -1,4 +1,4 @@
-package com.astrastream.avpush.infrastructure.audio
+package com.astra.avpush.infrastructure.audio
 
 import android.media.AudioAttributes
 import android.media.AudioFormat
@@ -7,10 +7,10 @@ import android.media.AudioRecord
 import android.media.projection.MediaProjection
 import android.os.Build
 import androidx.annotation.RequiresApi
-import com.astrastream.avpush.domain.config.AudioConfiguration
-import com.astrastream.avpush.domain.config.ScreenCaptureConfiguration
-import com.astrastream.avpush.runtime.LogHelper
-import com.astrastream.avpush.runtime.ThreadImpl
+import com.astra.avpush.domain.config.AudioConfiguration
+import com.astra.avpush.domain.config.ScreenCaptureConfiguration
+import com.astra.avpush.runtime.LogHelper
+import com.astra.avpush.runtime.ThreadImpl
 
 class MixedAudioProcessor(
     private val audioConfiguration: AudioConfiguration,

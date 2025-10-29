@@ -1,4 +1,4 @@
-package com.astrastream.avpush.infrastructure.camera.renderer
+package com.astra.avpush.infrastructure.camera.renderer
 
 import android.content.Context
 import android.graphics.SurfaceTexture
@@ -6,10 +6,10 @@ import android.opengl.GLES11Ext
 import android.opengl.GLES20
 import android.opengl.Matrix
 import android.os.SystemClock
-import com.astrastream.avpush.domain.callback.IRenderer
-import com.astrastream.avpush.infrastructure.camera.ShaderHelper
-import com.astrastream.avpush.infrastructure.camera.Watermark
-import com.astrastream.avpush.runtime.LogHelper
+import com.astra.avpush.domain.callback.IRenderer
+import com.astra.avpush.infrastructure.camera.ShaderHelper
+import com.astra.avpush.infrastructure.camera.Watermark
+import com.astra.avpush.runtime.LogHelper
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer

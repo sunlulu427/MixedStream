@@ -1,6 +1,16 @@
-package com.astrastream.avpush.unified
+package com.astra.avpush.unified
 
-import com.astrastream.avpush.unified.config.*
+import com.astra.avpush.unified.config.AudioCodec
+import com.astra.avpush.unified.config.IceServer
+import com.astra.avpush.unified.config.RetryPolicy
+import com.astra.avpush.unified.config.RtmpConfig
+import com.astra.avpush.unified.config.SrtConfig
+import com.astra.avpush.unified.config.SrtEncryption
+import com.astra.avpush.unified.config.TransportConfig
+import com.astra.avpush.unified.config.TransportProtocol
+import com.astra.avpush.unified.config.VideoCodec
+import com.astra.avpush.unified.config.WebRtcConfig
+import java.net.URI
 import java.time.Duration
 
 /**
@@ -66,7 +76,7 @@ object ProtocolDetector {
         return RtmpConfig(
             pushUrl = url,
             connectTimeout = Duration.ofSeconds(10),
-            retryPolicy = RetryPolicy.exponentialBackoff(maxRetries = 3),
+            retryPolicy = RetryPolicy.Companion.exponentialBackoff(maxRetries = 3),
             enableLowLatency = false,
             enableTcpNoDelay = true,
             chunkSize = 4096
@@ -135,7 +145,7 @@ object ProtocolDetector {
      */
     private fun extractRoomIdFromUrl(url: String): String? {
         return try {
-            val uri = java.net.URI(url)
+            val uri = URI(url)
             val query = uri.query ?: return null
             query.split("&")
                 .map { it.split("=", limit = 2) }

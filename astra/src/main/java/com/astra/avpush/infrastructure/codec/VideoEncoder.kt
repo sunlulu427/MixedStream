@@ -1,8 +1,8 @@
-package com.astrastream.avpush.infrastructure.codec
+package com.astra.avpush.infrastructure.codec
 
 import android.media.MediaCodec
 import android.media.MediaFormat
-import com.astrastream.avpush.domain.callback.OnVideoEncodeListener
+import com.astra.avpush.domain.callback.OnVideoEncodeListener
 import java.nio.ByteBuffer
 
 open class VideoEncoder : BaseVideoEncoder() {

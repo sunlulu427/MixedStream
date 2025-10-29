@@ -1,6 +1,6 @@
-package com.astrastream.avpush.stream.pipeline
+package com.astra.avpush.stream.pipeline
 
-import com.astrastream.avpush.stream.pipeline.core.PipelineStage
+import com.astra.avpush.stream.pipeline.core.PipelineStage
 
 class StreamingPipeline {
 

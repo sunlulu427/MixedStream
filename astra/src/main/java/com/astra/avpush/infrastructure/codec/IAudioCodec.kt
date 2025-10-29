@@ -1,4 +1,4 @@
-package com.astrastream.avpush.infrastructure.codec
+package com.astra.avpush.infrastructure.codec
 
 interface IAudioCodec{
     fun start()

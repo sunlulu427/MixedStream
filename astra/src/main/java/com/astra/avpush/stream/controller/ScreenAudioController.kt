@@ -1,16 +1,16 @@
-package com.astrastream.avpush.stream.controller
+package com.astra.avpush.stream.controller
 
 import android.media.MediaCodec
 import android.media.MediaFormat
 import android.media.projection.MediaProjection
-import com.astrastream.avpush.domain.callback.IController
-import com.astrastream.avpush.domain.callback.OnAudioEncodeListener
-import com.astrastream.avpush.domain.config.AudioConfiguration
-import com.astrastream.avpush.domain.config.ScreenCaptureConfiguration
-import com.astrastream.avpush.infrastructure.audio.AudioProcessor
-import com.astrastream.avpush.infrastructure.audio.MixedAudioProcessor
-import com.astrastream.avpush.infrastructure.codec.AudioEncoder
-import com.astrastream.avpush.runtime.LogHelper
+import com.astra.avpush.domain.callback.IController
+import com.astra.avpush.domain.callback.OnAudioEncodeListener
+import com.astra.avpush.domain.config.AudioConfiguration
+import com.astra.avpush.domain.config.ScreenCaptureConfiguration
+import com.astra.avpush.infrastructure.audio.AudioProcessor
+import com.astra.avpush.infrastructure.audio.MixedAudioProcessor
+import com.astra.avpush.infrastructure.codec.AudioEncoder
+import com.astra.avpush.runtime.LogHelper
 import java.nio.ByteBuffer
 
 class ScreenAudioController(
