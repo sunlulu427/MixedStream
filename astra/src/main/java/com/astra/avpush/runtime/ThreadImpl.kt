@@ -1,6 +1,5 @@
-package com.astrastream.avpush.runtime
+package com.astra.avpush.runtime
 
-import com.astrastream.avpush.runtime.LogHelper
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.concurrent.thread
 
