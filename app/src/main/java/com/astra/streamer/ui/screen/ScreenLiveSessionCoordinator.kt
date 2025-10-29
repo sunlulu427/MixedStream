@@ -1,4 +1,4 @@
-package com.astrastream.streamer.ui.screen
+package com.astra.streamer.ui.screen
 
 import android.app.Activity
 import android.content.Context
@@ -12,7 +12,7 @@ import com.astra.avpush.domain.config.AudioConfiguration
 import com.astra.avpush.domain.config.ScreenCaptureConfiguration
 import com.astra.avpush.domain.config.VideoConfiguration
 import com.astra.avpush.infrastructure.stream.sender.rtmp.RtmpSender
-import com.astra.avpush.runtime.LogHelper
+import com.astra.avpush.runtime.AstraLog
 import com.astra.avpush.stream.controller.LiveStreamSession
 import com.astra.avpush.stream.controller.ScreenStreamController
 
@@ -79,11 +79,11 @@ class ScreenLiveSessionCoordinator(
             session.setSender(newSender)
             true
         } catch (error: UnsatisfiedLinkError) {
-            LogHelper.e(tag, error, "Sender not supported")
+            AstraLog.e(tag, error, "Sender not supported")
             onError("Streaming not supported on this ABI")
             false
         } catch (throwable: Throwable) {
-            LogHelper.e(tag, throwable, "Failed to create sender")
+            AstraLog.e(tag, throwable, "Failed to create sender")
             onError("Failed to initialise sender: ${throwable.message}")
             false
         }

@@ -4,7 +4,7 @@ import com.astra.avpush.stream.controller.VideoSourceController
 import com.astra.avpush.stream.pipeline.core.PipelineRole
 import com.astra.avpush.stream.pipeline.core.PipelineSource
 import com.astra.avpush.stream.pipeline.frame.EncodedVideoFrame
-import com.astra.avpush.runtime.LogHelper
+import com.astra.avpush.runtime.AstraLog
 import com.astra.avpush.domain.callback.IController
 import com.astra.avpush.infrastructure.camera.Watermark
 import android.media.MediaCodec
@@ -26,23 +26,23 @@ class VideoCaptureNode(
     }
 
     override fun start() {
-        LogHelper.d(name) { "starting video capture" }
+        AstraLog.d(name) { "starting video capture" }
         stopped = false
         controller.start()
     }
 
     override fun pause() {
-        LogHelper.d(name) { "pausing video capture" }
+        AstraLog.d(name) { "pausing video capture" }
         controller.pause()
     }
 
     override fun resume() {
-        LogHelper.d(name) { "resuming video capture" }
+        AstraLog.d(name) { "resuming video capture" }
         controller.resume()
     }
 
     override fun stop() {
-        LogHelper.d(name) { "stopping video capture" }
+        AstraLog.d(name) { "stopping video capture" }
         controller.stop()
         stopped = true
     }
@@ -51,7 +51,7 @@ class VideoCaptureNode(
         if (!stopped) {
             controller.stop()
         }
-        LogHelper.d(name) { "releasing video capture node" }
+        AstraLog.d(name) { "releasing video capture node" }
         super.release()
     }
 
@@ -61,22 +61,22 @@ class VideoCaptureNode(
     }
 
     override fun onVideoOutformat(outputFormat: MediaFormat?) {
-        LogHelper.i(name) { "video codec output format changed: ${outputFormat?.toString() ?: "null"}" }
+        AstraLog.i(name) { "video codec output format changed: ${outputFormat?.toString() ?: "null"}" }
         onOutputFormat(outputFormat)
     }
 
     override fun onError(error: String?) {
-        LogHelper.e(name, error)
+        AstraLog.e(name, error)
         onError(error)
     }
 
     fun setVideoBitrate(bps: Int) {
-        LogHelper.d(name) { "set video bitrate=$bps" }
+        AstraLog.d(name) { "set video bitrate=$bps" }
         controller.setVideoBps(bps)
     }
 
     fun setWatermark(watermark: Watermark) {
-        LogHelper.d(name) { "applying watermark: ${watermark.scale}" }
+        AstraLog.d(name) { "applying watermark: ${watermark.scale}" }
         controller.setWatermark(watermark)
     }
 }

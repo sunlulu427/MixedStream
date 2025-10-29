@@ -8,7 +8,7 @@ import com.astra.avpush.domain.callback.OnVideoEncodeListener
 import com.astra.avpush.domain.config.VideoConfiguration
 import com.astra.avpush.infrastructure.camera.CameraRecorder
 import com.astra.avpush.infrastructure.camera.Watermark
-import com.astra.avpush.runtime.LogHelper
+import com.astra.avpush.runtime.AstraLog
 import java.nio.ByteBuffer
 import javax.microedition.khronos.egl.EGLContext
 
@@ -28,22 +28,22 @@ class VideoController(
     private var mListener: IController.OnVideoDataListener? = null
 
     override fun start() {
-        LogHelper.d(javaClass.simpleName) { "video recorder start" }
+        AstraLog.d(javaClass.simpleName) { "video recorder start" }
         recorder.start()
     }
 
     override fun stop() {
-        LogHelper.d(javaClass.simpleName) { "video recorder stop" }
+        AstraLog.d(javaClass.simpleName) { "video recorder stop" }
         recorder.stop()
     }
 
     override fun pause() {
-        LogHelper.d(javaClass.simpleName) { "video recorder pause" }
+        AstraLog.d(javaClass.simpleName) { "video recorder pause" }
         recorder.pause()
     }
 
     override fun resume() {
-        LogHelper.d(javaClass.simpleName) { "video recorder resume" }
+        AstraLog.d(javaClass.simpleName) { "video recorder resume" }
         recorder.resume()
     }
 
@@ -52,12 +52,12 @@ class VideoController(
     }
 
     override fun onVideoOutformat(outputFormat: MediaFormat?) {
-        LogHelper.i(javaClass.simpleName) { "video encoder output format: ${outputFormat?.toString() ?: "null"}" }
+        AstraLog.i(javaClass.simpleName) { "video encoder output format: ${outputFormat?.toString() ?: "null"}" }
         mListener?.onVideoOutformat(outputFormat)
     }
 
     override fun setVideoBps(bps: Int) {
-        LogHelper.d(javaClass.simpleName) { "video bitrate request: $bps" }
+        AstraLog.d(javaClass.simpleName) { "video bitrate request: $bps" }
         recorder.setEncodeBps(bps)
     }
 
@@ -66,7 +66,7 @@ class VideoController(
     }
 
     override fun setWatermark(watermark: Watermark) {
-        LogHelper.d(javaClass.simpleName) { "watermark update" }
+        AstraLog.d(javaClass.simpleName) { "watermark update" }
         recorder.setWatermark(watermark)
     }
 }

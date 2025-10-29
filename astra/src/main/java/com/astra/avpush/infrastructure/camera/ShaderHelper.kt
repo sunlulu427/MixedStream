@@ -6,7 +6,7 @@ import android.graphics.Paint
 import android.opengl.GLES20
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.toColorInt
-import com.astra.avpush.runtime.LogHelper
+import com.astra.avpush.runtime.AstraLog
 import com.astra.avpush.runtime.NativeShaders
 import java.nio.ByteBuffer
 
@@ -32,7 +32,7 @@ object ShaderHelper {
         val compile = IntArray(1)
         GLES20.glGetShaderiv(shader, GLES20.GL_COMPILE_STATUS, compile, 0)
         if (compile[0] != GLES20.GL_TRUE) {
-            LogHelper.e(tag, "shader compile error")
+            AstraLog.e(tag, "shader compile error")
             GLES20.glDeleteShader(shader)
             shader = -1
         }

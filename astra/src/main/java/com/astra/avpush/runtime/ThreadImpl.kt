@@ -20,12 +20,12 @@ open class ThreadImpl : IThread {
             try {
                 main()
             } catch (error: Throwable) {
-                LogHelper.e(tag, error, "worker crashed")
+                AstraLog.e(tag, error, "worker crashed")
             } finally {
                 running.set(false)
                 paused.set(false)
                 synchronized(pauseLock) { pauseLock.notifyAll() }
-                LogHelper.d(tag) { "thread finished" }
+                AstraLog.d(tag) { "thread finished" }
             }
         }
     }
@@ -45,7 +45,7 @@ open class ThreadImpl : IThread {
             }
         }
         worker = null
-        LogHelper.d(tag) { "thread stop" }
+        AstraLog.d(tag) { "thread stop" }
     }
 
     override fun setPause(pause: Boolean) {
@@ -56,7 +56,7 @@ open class ThreadImpl : IThread {
         if (!pause) {
             synchronized(pauseLock) { pauseLock.notifyAll() }
         }
-        LogHelper.d(tag) { "thread pause=$pause" }
+        AstraLog.d(tag) { "thread pause=$pause" }
     }
 
     override fun isPause(): Boolean = paused.get()

@@ -1,4 +1,4 @@
-package com.astrastream.streamer.ui.live
+package com.astra.streamer.ui.live
 
 import android.widget.Toast
 import androidx.compose.foundation.background
@@ -54,10 +54,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -239,7 +241,7 @@ fun ParameterPanel(
                     .verticalScroll(scrollState),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Text(text = "Live parameters", style = MaterialTheme.typography.titleMedium, fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold)
+                Text(text = "Live parameters", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
 
                 OutlinedTextField(
                     value = state.streamUrl,
@@ -353,7 +355,7 @@ private fun PullStreamList(urls: List<String>, modifier: Modifier = Modifier) {
             Text(
                 text = "Playback URLs",
                 style = MaterialTheme.typography.titleSmall,
-                fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold
+                fontWeight = FontWeight.SemiBold
             )
             if (!hasUrl) {
                 Text(
@@ -379,7 +381,7 @@ private fun PullStreamList(urls: List<String>, modifier: Modifier = Modifier) {
                                 Text(
                                     text = "${index + 1}.",
                                     style = MaterialTheme.typography.bodyMedium,
-                                    fontWeight = androidx.compose.ui.text.font.FontWeight.Medium
+                                    fontWeight = FontWeight.Medium
                                 )
                                 SelectionContainer(modifier = Modifier.weight(1f)) {
                                     Text(
@@ -480,7 +482,7 @@ fun ResolutionDropdown(
             onDismissRequest = { expanded.value = false }
         ) {
             options.forEach { option ->
-                androidx.compose.material3.DropdownMenuItem(
+                DropdownMenuItem(
                     text = { Text(option.label) },
                     onClick = {
                         onSelected(option)
@@ -520,7 +522,7 @@ fun EncoderDropdown(
             onDismissRequest = { expanded.value = false }
         ) {
             options.forEach { option ->
-                androidx.compose.material3.DropdownMenuItem(
+                DropdownMenuItem(
                     text = {
                         Column {
                             Text(option.description, style = MaterialTheme.typography.bodyMedium)

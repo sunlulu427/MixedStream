@@ -1,4 +1,4 @@
-package com.astrastream.streamer.ui.live
+package com.astra.streamer.ui.live
 
 import android.net.Uri
 

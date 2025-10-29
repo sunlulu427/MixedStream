@@ -4,7 +4,7 @@ import android.media.MediaCodec
 import android.media.MediaFormat
 import android.util.Log
 import com.astra.avpush.domain.config.AudioConfiguration
-import com.astra.avpush.runtime.LogHelper
+import com.astra.avpush.runtime.AstraLog
 import java.nio.ByteBuffer
 
 abstract class BaseAudioCodec(private val mAudioConfiguration: AudioConfiguration?) : IAudioCodec {
@@ -57,7 +57,7 @@ abstract class BaseAudioCodec(private val mAudioConfiguration: AudioConfiguratio
 
             mBufferInfo.presentationTimeUs = System.nanoTime() / 1000 - mPts;
 
-            LogHelper.e(TAG, "音频时间戳：${mBufferInfo.presentationTimeUs / 1000_000}")
+            AstraLog.e(TAG, "音频时间戳：${mBufferInfo.presentationTimeUs / 1000_000}")
             onAudioData(outputBuffer, mBufferInfo)
             codec.releaseOutputBuffer(outputBufferIndex, false)
             outputBufferIndex = codec.dequeueOutputBuffer(mBufferInfo, 0)

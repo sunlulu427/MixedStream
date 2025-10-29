@@ -7,7 +7,7 @@ import com.astra.avpush.domain.callback.IRenderer
 import com.astra.avpush.infrastructure.camera.ShaderHelper
 import com.astra.avpush.infrastructure.camera.Watermark
 import com.astra.avpush.runtime.BitmapUtils
-import com.astra.avpush.runtime.LogHelper
+import com.astra.avpush.runtime.AstraLog
 import com.astra.avpush.runtime.NativeRenderUtil
 
 class EncodeRenderer(private val context: Context, private val textureId: Int) : IRenderer {
@@ -71,7 +71,7 @@ class EncodeRenderer(private val context: Context, private val textureId: Int) :
         cachedBitmap?.let { nativeUpdateWatermarkTexture(handle, it) }
         nativeUpdateWatermarkCoords(handle, watermarkCoords)
         attemptApplyWatermark()
-        LogHelper.d(javaClass.simpleName) { "surface created width=$width height=$height" }
+        AstraLog.d(javaClass.simpleName) { "surface created width=$width height=$height" }
     }
 
     override fun onSurfaceChange(width: Int, height: Int) {
@@ -84,7 +84,7 @@ class EncodeRenderer(private val context: Context, private val textureId: Int) :
             pendingWatermark = currentWatermark
         }
         attemptApplyWatermark()
-        LogHelper.d(javaClass.simpleName) { "surface changed width=$width height=$height" }
+        AstraLog.d(javaClass.simpleName) { "surface changed width=$width height=$height" }
     }
 
     override fun onDraw() {
@@ -114,7 +114,7 @@ class EncodeRenderer(private val context: Context, private val textureId: Int) :
         nativeUpdateWatermarkCoords(handle, watermarkCoords)
         nativeUpdateWatermarkTexture(handle, bitmap)
         currentWatermark = watermark
-        LogHelper.d(javaClass.simpleName) { "watermark applied scale=${watermark.scale}" }
+        AstraLog.d(javaClass.simpleName) { "watermark applied scale=${watermark.scale}" }
         return true
     }
 
@@ -171,7 +171,7 @@ class EncodeRenderer(private val context: Context, private val textureId: Int) :
         if (nativeHandle != 0L) {
             nativeDestroy(nativeHandle)
             nativeHandle = 0L
-            LogHelper.d(javaClass.simpleName) { "renderer released" }
+            AstraLog.d(javaClass.simpleName) { "renderer released" }
         }
     }
 

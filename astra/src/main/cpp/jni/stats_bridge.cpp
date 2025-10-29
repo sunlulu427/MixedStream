@@ -13,24 +13,24 @@ astra::FrameStats* fromHandle(jlong handle) {
 }
 
 extern "C" JNIEXPORT jlong JNICALL
-Java_com_astrastream_avpush_runtime_NativeStats_nativeCreate(JNIEnv*, jobject) {
+Java_com_astra_avpush_runtime_NativeStats_nativeCreate(JNIEnv*, jobject) {
     return reinterpret_cast<jlong>(new astra::FrameStats());
 }
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_astrastream_avpush_runtime_NativeStats_nativeRelease(JNIEnv*, jobject, jlong handle) {
+Java_com_astra_avpush_runtime_NativeStats_nativeRelease(JNIEnv*, jobject, jlong handle) {
     delete fromHandle(handle);
 }
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_astrastream_avpush_runtime_NativeStats_nativeReset(JNIEnv*, jobject, jlong handle, jlong timestampMs) {
+Java_com_astra_avpush_runtime_NativeStats_nativeReset(JNIEnv*, jobject, jlong handle, jlong timestampMs) {
     auto* stats = fromHandle(handle);
     if (stats == nullptr) return;
     stats->reset(timestampMs);
 }
 
 extern "C" JNIEXPORT jintArray JNICALL
-Java_com_astrastream_avpush_runtime_NativeStats_nativeOnVideoSample(JNIEnv* env, jobject, jlong handle,
+Java_com_astra_avpush_runtime_NativeStats_nativeOnVideoSample(JNIEnv* env, jobject, jlong handle,
                                                                       jint bytes, jlong timestampMs) {
     auto* stats = fromHandle(handle);
     if (stats == nullptr) return nullptr;

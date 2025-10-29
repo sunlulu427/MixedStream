@@ -8,7 +8,7 @@ import android.util.Log
 import com.astra.avpush.domain.camera.CameraDescriptor
 import com.astra.avpush.domain.camera.CameraDevice
 import com.astra.avpush.domain.config.CameraConfiguration
-import com.astra.avpush.runtime.LogHelper
+import com.astra.avpush.runtime.AstraLog
 import java.io.IOException
 
 class LegacyCameraDevice : CameraDevice {
@@ -101,10 +101,10 @@ class LegacyCameraDevice : CameraDevice {
             frameCount = 0
             lastFrameLogAt = 0L
             device.parameters?.previewSize?.let { size ->
-                LogHelper.i(TAG, "startPreview success -> actual ${size.width}x${size.height}")
+                AstraLog.i(TAG, "startPreview success -> actual ${size.width}x${size.height}")
             }
         } catch (error: Exception) {
-            LogHelper.e(TAG, "startPreview failed: ${error.message}")
+            AstraLog.e(TAG, "startPreview failed: ${error.message}")
             releaseCamera()
             throw error
         }
@@ -124,7 +124,7 @@ class LegacyCameraDevice : CameraDevice {
             device.stopPreview()
             state = DeviceState.OPENED
         } catch (error: Exception) {
-            LogHelper.e(TAG, "stopPreview failed: ${error.message}")
+            AstraLog.e(TAG, "stopPreview failed: ${error.message}")
         }
     }
 
@@ -165,7 +165,7 @@ class LegacyCameraDevice : CameraDevice {
             open()
             true
         } catch (error: Throwable) {
-            LogHelper.e(TAG, "switchCamera failed: ${error.message}")
+            AstraLog.e(TAG, "switchCamera failed: ${error.message}")
             false
         }
     }
@@ -173,7 +173,7 @@ class LegacyCameraDevice : CameraDevice {
     override fun updateTexImage() {
         val targetTexture = texture
         if (targetTexture == null) {
-            LogHelper.w(TAG, "updateTexImage skipped: texture=null state=$state")
+            AstraLog.w(TAG, "updateTexImage skipped: texture=null state=$state")
             return
         }
         try {
@@ -181,14 +181,14 @@ class LegacyCameraDevice : CameraDevice {
             frameCount += 1
             val now = SystemClock.elapsedRealtime()
             if (frameCount <= 5 || now - lastFrameLogAt >= FRAME_SAMPLE_WINDOW_MS) {
-                LogHelper.d(
+                AstraLog.d(
                     TAG,
                     "updateTexImage frame=$frameCount timestampNs=${targetTexture.timestamp} state=$state"
                 )
                 lastFrameLogAt = now
             }
         } catch (error: Throwable) {
-            LogHelper.e(TAG, "updateTexImage failed: ${error.message}")
+            AstraLog.e(TAG, "updateTexImage failed: ${error.message}")
             throw error
         }
     }
@@ -275,14 +275,14 @@ class LegacyCameraDevice : CameraDevice {
                 try {
                     targetTexture.setDefaultBufferSize(it.width, it.height)
                 } catch (error: Throwable) {
-                    LogHelper.w(TAG, "setDefaultBufferSize failed: ${error.message}")
+                    AstraLog.w(TAG, "setDefaultBufferSize failed: ${error.message}")
                 }
             }
             camera?.setPreviewTexture(targetTexture)
             targetTexture.setOnFrameAvailableListener(listener)
-            LogHelper.d(TAG, "surface bound -> descriptor=${currentDescriptor}")
+            AstraLog.d(TAG, "surface bound -> descriptor=${currentDescriptor}")
         } catch (error: IOException) {
-            LogHelper.e(TAG, "bind surface failed: ${error.message}")
+            AstraLog.e(TAG, "bind surface failed: ${error.message}")
             releaseCamera()
         }
     }

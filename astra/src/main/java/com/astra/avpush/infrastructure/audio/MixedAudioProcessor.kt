@@ -9,7 +9,7 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import com.astra.avpush.domain.config.AudioConfiguration
 import com.astra.avpush.domain.config.ScreenCaptureConfiguration
-import com.astra.avpush.runtime.LogHelper
+import com.astra.avpush.runtime.AstraLog
 import com.astra.avpush.runtime.ThreadImpl
 
 class MixedAudioProcessor(
@@ -57,12 +57,12 @@ class MixedAudioProcessor(
                     bufferSize
                 ).apply {
                     if (state != AudioRecord.STATE_INITIALIZED) {
-                        LogHelper.e(TAG, "mic AudioRecord not initialized")
+                        AstraLog.e(TAG, "mic AudioRecord not initialized")
                         release()
                     }
                 }
             } catch (security: SecurityException) {
-                LogHelper.e(TAG, "microphone permission denied: ${security.message}")
+                AstraLog.e(TAG, "microphone permission denied: ${security.message}")
                 recordListener?.onError("麦克风权限未授予，无法采集音频")
                 null
             }
@@ -89,11 +89,11 @@ class MixedAudioProcessor(
 
     private fun createPlaybackRecord(projection: MediaProjection?): AudioRecord? {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-            LogHelper.w(TAG, "audio playback capture requires API 29+")
+            AstraLog.w(TAG, "audio playback capture requires API 29+")
             return null
         }
         val actualProjection = projection ?: run {
-            LogHelper.w(TAG, "projection missing for playback capture")
+            AstraLog.w(TAG, "projection missing for playback capture")
             return null
         }
         val channelConfig = if (audioConfiguration.channelCount > 1) {
@@ -116,13 +116,13 @@ class MixedAudioProcessor(
                 .build()
                 .also {
                     if (it.state != AudioRecord.STATE_INITIALIZED) {
-                        LogHelper.e(TAG, "playback AudioRecord not initialized")
+                        AstraLog.e(TAG, "playback AudioRecord not initialized")
                         it.release()
                         return null
                     }
                 }
         } catch (security: SecurityException) {
-            LogHelper.e(TAG, "playback capture permission denied: ${security.message}")
+            AstraLog.e(TAG, "playback capture permission denied: ${security.message}")
             recordListener?.onError("缺少录音权限，无法捕获播放音频")
             null
         }
@@ -187,7 +187,7 @@ class MixedAudioProcessor(
             mixInto(mixed, micBuffer, micRead, playbackBuffer, playbackRead)
             recordListener?.onPcmData(mixed)
         }
-        LogHelper.d(TAG) { "audio mix loop finished" }
+        AstraLog.d(TAG) { "audio mix loop finished" }
     }
 
     private fun mixInto(

@@ -12,7 +12,7 @@ import com.astra.avpush.domain.config.RendererConfiguration
 import com.astra.avpush.infrastructure.camera.LegacyCameraDevice
 import com.astra.avpush.infrastructure.camera.Watermark
 import com.astra.avpush.infrastructure.camera.renderer.CameraRenderer
-import com.astra.avpush.runtime.LogHelper
+import com.astra.avpush.runtime.AstraLog
 
 
 open class CameraView @JvmOverloads constructor(
@@ -56,7 +56,7 @@ open class CameraView @JvmOverloads constructor(
         cameraId = cameraConfiguration.facing
         fallbackTried = false
         renderer = CameraRenderer(context)
-        LogHelper.d(TAG, "startPreview: configure renderer and GL thread")
+        AstraLog.d(TAG, "startPreview: configure renderer and GL thread")
         configure(
             RendererConfiguration(
                 renderer = renderer,
@@ -69,16 +69,16 @@ open class CameraView @JvmOverloads constructor(
     }
 
     private fun addRendererListener() {
-        LogHelper.d(TAG, "addRendererListener")
+        AstraLog.d(TAG, "addRendererListener")
         renderer.setOnRendererListener(object : CameraRenderer.OnRendererListener {
             override fun onCreate(surfaceTexture: SurfaceTexture, textureID: Int) {
-                LogHelper.d(TAG, "onRendererCreate(surfaceTexture) textureID=$textureID")
+                AstraLog.d(TAG, "onRendererCreate(surfaceTexture) textureID=$textureID")
                 mTextureId = textureID
                 tryOpenCamera(surfaceTexture)
             }
 
             override fun onCreate(cameraTextureId: Int, textureID: Int) {
-                LogHelper.d(TAG, "onRendererCreate(cameraTextureId=$cameraTextureId, textureID=$textureID)")
+                AstraLog.d(TAG, "onRendererCreate(cameraTextureId=$cameraTextureId, textureID=$textureID)")
 
             }
 
@@ -98,7 +98,7 @@ open class CameraView @JvmOverloads constructor(
 
     @Synchronized
     private fun openCameraWith(surfaceTexture: SurfaceTexture) {
-        LogHelper.d(
+        AstraLog.d(
             TAG,
             "openCameraWith -> request ${mCameraConfiguration.width}x${mCameraConfiguration.height} fps=${mCameraConfiguration.fps}"
         )
@@ -107,7 +107,7 @@ open class CameraView @JvmOverloads constructor(
         currentSurface = surfaceTexture
         cameraDevice.bind(surfaceTexture, this)
         cameraDevice.startPreview()
-        LogHelper.i(
+        AstraLog.i(
             TAG,
             "camera opened with requested ${mCameraConfiguration.width}x${mCameraConfiguration.height}"
         )
@@ -116,7 +116,7 @@ open class CameraView @JvmOverloads constructor(
             try {
                 renderer.setWatemark(it)
             } catch (t: Throwable) {
-                LogHelper.e(TAG, "apply pending watermark failed: ${t.message}")
+                AstraLog.e(TAG, "apply pending watermark failed: ${t.message}")
             }
             pendingWatermark = null
         }
@@ -127,7 +127,7 @@ open class CameraView @JvmOverloads constructor(
     }
 
     private fun handleCameraInitFailure(surfaceTexture: SurfaceTexture, error: Throwable) {
-        LogHelper.e(
+        AstraLog.e(
             TAG,
             "open camera failed (${mCameraConfiguration.width}x${mCameraConfiguration.height}): ${error.javaClass.simpleName} ${error.message}"
         )
@@ -144,17 +144,17 @@ open class CameraView @JvmOverloads constructor(
                 orientation = mCameraConfiguration.orientation,
                 focusMode = mCameraConfiguration.focusMode
             )
-            LogHelper.w(
+            AstraLog.w(
                 TAG,
                 "retry camera with safe preview ${fallback.width}x${fallback.height}"
             )
             mCameraConfiguration = fallback
             try {
                 openCameraWith(surfaceTexture)
-                LogHelper.i(TAG, "camera fallback succeeded with ${fallback.width}x${fallback.height}")
+                AstraLog.i(TAG, "camera fallback succeeded with ${fallback.width}x${fallback.height}")
                 return
             } catch (fallbackError: Throwable) {
-                LogHelper.e(
+                AstraLog.e(
                     TAG,
                     "fallback camera open failed: ${fallbackError.javaClass.simpleName} ${fallbackError.message}"
                 )
@@ -214,7 +214,7 @@ open class CameraView @JvmOverloads constructor(
     }
 
     override fun onFrameAvailable(surfaceTexture: SurfaceTexture) {
-        LogHelper.d(TAG, "onFrameAvailable -> texture=$mTextureId rendererReady=$glReady")
+        AstraLog.d(TAG, "onFrameAvailable -> texture=$mTextureId rendererReady=$glReady")
     }
 
 
@@ -225,7 +225,7 @@ open class CameraView @JvmOverloads constructor(
     private fun previewAngle(context: Context, isResetMatrix: Boolean) {
         val rotation =
             (context.applicationContext.getSystemService(Context.WINDOW_SERVICE) as WindowManager).defaultDisplay.rotation
-        LogHelper.d(TAG, "旋转角度：$rotation")
+        AstraLog.d(TAG, "旋转角度：$rotation")
         renderer.resetMatrix()
         when (rotation) {
             Surface.ROTATION_0 -> {

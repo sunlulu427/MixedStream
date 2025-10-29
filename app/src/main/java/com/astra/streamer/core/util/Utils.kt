@@ -1,4 +1,4 @@
-package com.astrastream.streamer.core.util
+package com.astra.streamer.core.util
 
 import android.app.Application
 import android.content.Context

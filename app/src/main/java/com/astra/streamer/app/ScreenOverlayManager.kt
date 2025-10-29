@@ -1,5 +1,6 @@
-package com.astrastream.streamer.app
+package com.astra.streamer.app
 
+import android.R
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
@@ -17,7 +18,7 @@ import android.view.WindowManager
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.content.ContextCompat
-import com.astrastream.streamer.ui.screen.ScreenLiveUiState
+import com.astra.streamer.ui.screen.ScreenLiveUiState
 
 object ScreenOverlayManager {
 
@@ -79,7 +80,7 @@ object ScreenOverlayManager {
         }
 
         val status = TextView(context).apply {
-            id = android.R.id.text1
+            id = R.id.text1
             setTextColor(Color.WHITE)
             textSize = 12f
         }
@@ -125,7 +126,7 @@ object ScreenOverlayManager {
 
     private fun updateInternal(state: ScreenLiveUiState) {
         val view = overlayView ?: return
-        val status = view.findViewById<TextView>(android.R.id.text1) ?: return
+        val status = view.findViewById<TextView>(R.id.text1) ?: return
         val builder = StringBuilder()
         builder.append("状态: ")
         builder.append(if (state.isStreaming) "直播中" else "空闲")

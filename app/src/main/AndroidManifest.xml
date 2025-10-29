@@ -19,7 +19,7 @@
             android:supportsRtl="true"
             android:theme="@style/Theme.AstraStream.App"
             tools:ignore="GoogleAppIndexingWarning">
-        <activity android:name=".app.LiveActivity"
+        <activity android:name="com.astra.streamer.app.LiveActivity"
                   android:configChanges="orientation|keyboardHidden|screenSize"
                   android:exported="true"
                   android:windowLayoutInDisplayCutoutMode="shortEdges"

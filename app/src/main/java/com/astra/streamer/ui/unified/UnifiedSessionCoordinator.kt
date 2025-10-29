@@ -1,6 +1,7 @@
-package com.astrastream.streamer.ui.unified
+package com.astra.streamer.ui.unified
 
 import android.content.Context
+import android.view.Surface
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import com.astra.avpush.unified.ConnectionQuality
@@ -199,7 +200,7 @@ class UnifiedSessionCoordinator(
                 } else {
                     // 准备会话
                     streamSession?.prepare(context, object : SurfaceProvider {
-                        override fun getPreviewSurface(): android.view.Surface? {
+                        override fun getPreviewSurface(): Surface? {
                             // 这里需要返回实际的预览Surface
                             // 在完整实现中，需要与AVLiveView集成
                             return null

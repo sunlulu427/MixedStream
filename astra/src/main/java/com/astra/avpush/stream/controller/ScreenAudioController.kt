@@ -10,7 +10,7 @@ import com.astra.avpush.domain.config.ScreenCaptureConfiguration
 import com.astra.avpush.infrastructure.audio.AudioProcessor
 import com.astra.avpush.infrastructure.audio.MixedAudioProcessor
 import com.astra.avpush.infrastructure.codec.AudioEncoder
-import com.astra.avpush.runtime.LogHelper
+import com.astra.avpush.runtime.AstraLog
 import java.nio.ByteBuffer
 
 class ScreenAudioController(
@@ -38,7 +38,7 @@ class ScreenAudioController(
     }
 
     override fun start() {
-        LogHelper.d(javaClass.simpleName) { "screen audio start" }
+        AstraLog.d(javaClass.simpleName) { "screen audio start" }
         encoder.start()
         processor.startRecording()
     }
@@ -61,11 +61,11 @@ class ScreenAudioController(
     }
 
     override fun onStart(sampleRate: Int, channels: Int, sampleFormat: Int) {
-        LogHelper.d(javaClass.simpleName) { "audio capture started sampleRate=$sampleRate channels=$channels format=$sampleFormat" }
+        AstraLog.d(javaClass.simpleName) { "audio capture started sampleRate=$sampleRate channels=$channels format=$sampleFormat" }
     }
 
     override fun onError(message: String?) {
-        LogHelper.e(javaClass.simpleName, message)
+        AstraLog.e(javaClass.simpleName, message)
         listener?.onError(message)
     }
 
@@ -74,15 +74,15 @@ class ScreenAudioController(
     }
 
     override fun onPause() {
-        LogHelper.d(javaClass.simpleName) { "audio paused" }
+        AstraLog.d(javaClass.simpleName) { "audio paused" }
     }
 
     override fun onResume() {
-        LogHelper.d(javaClass.simpleName) { "audio resumed" }
+        AstraLog.d(javaClass.simpleName) { "audio resumed" }
     }
 
     override fun onStop() {
-        LogHelper.d(javaClass.simpleName) { "audio stopped" }
+        AstraLog.d(javaClass.simpleName) { "audio stopped" }
     }
 
     override fun onAudioEncode(bb: ByteBuffer, bi: MediaCodec.BufferInfo) {

@@ -24,7 +24,7 @@ jint JNI_OnLoad(JavaVM* vm, void*) {
 extern "C" {
 
 JNIEXPORT void JNICALL
-Java_com_astrastream_avpush_infrastructure_stream_sender_rtmp_RtmpSender_nativeConnect(
+Java_com_astra_avpush_infrastructure_stream_sender_rtmp_RtmpSender_nativeConnect(
         JNIEnv* env, jobject thiz, jstring url) {
     const char* rtmpUrl = env->GetStringUTFChars(url, nullptr);
     auto* callback = new JavaCallback(gJavaVM, env, thiz);
@@ -34,13 +34,13 @@ Java_com_astrastream_avpush_infrastructure_stream_sender_rtmp_RtmpSender_nativeC
 }
 
 JNIEXPORT void JNICALL
-Java_com_astrastream_avpush_infrastructure_stream_sender_rtmp_RtmpSender_nativeClose(
+Java_com_astra_avpush_infrastructure_stream_sender_rtmp_RtmpSender_nativeClose(
         JNIEnv*, jobject) {
     PushProxy::getInstance()->stop();
 }
 
 JNIEXPORT void JNICALL
-Java_com_astrastream_avpush_infrastructure_stream_sender_rtmp_RtmpSender_nativeConfigureVideo(
+Java_com_astra_avpush_infrastructure_stream_sender_rtmp_RtmpSender_nativeConfigureVideo(
         JNIEnv*, jobject, jint width, jint height, jint fps, jint codecOrdinal) {
     astra::VideoConfig config;
     config.width = static_cast<uint32_t>(std::max(0, width));
@@ -51,7 +51,7 @@ Java_com_astrastream_avpush_infrastructure_stream_sender_rtmp_RtmpSender_nativeC
 }
 
 JNIEXPORT void JNICALL
-Java_com_astrastream_avpush_infrastructure_stream_sender_rtmp_RtmpSender_nativeConfigureAudio(
+Java_com_astra_avpush_infrastructure_stream_sender_rtmp_RtmpSender_nativeConfigureAudio(
         JNIEnv* env, jobject, jint sampleRate, jint channels, jint sampleSizeBits, jbyteArray asc) {
     astra::AudioConfig config;
     config.sampleRate = static_cast<uint32_t>(std::max(0, sampleRate));
@@ -68,7 +68,7 @@ Java_com_astrastream_avpush_infrastructure_stream_sender_rtmp_RtmpSender_nativeC
 }
 
 JNIEXPORT void JNICALL
-Java_com_astrastream_avpush_infrastructure_stream_sender_rtmp_RtmpSender_nativePushVideoFrame(
+Java_com_astra_avpush_infrastructure_stream_sender_rtmp_RtmpSender_nativePushVideoFrame(
         JNIEnv* env, jobject, jobject buffer, jint offset, jint size, jlong pts) {
     if (buffer == nullptr || size <= 0) {
         return;
@@ -81,7 +81,7 @@ Java_com_astrastream_avpush_infrastructure_stream_sender_rtmp_RtmpSender_nativeP
 }
 
 JNIEXPORT void JNICALL
-Java_com_astrastream_avpush_infrastructure_stream_sender_rtmp_RtmpSender_nativePushAudioFrame(
+Java_com_astra_avpush_infrastructure_stream_sender_rtmp_RtmpSender_nativePushAudioFrame(
         JNIEnv* env, jobject, jobject buffer, jint offset, jint size, jlong pts) {
     if (buffer == nullptr || size <= 0) {
         return;

@@ -4,7 +4,7 @@ import android.annotation.SuppressLint
 import android.media.AudioFormat
 import android.media.AudioRecord
 import android.media.MediaRecorder
-import com.astra.avpush.runtime.LogHelper
+import com.astra.avpush.runtime.AstraLog
 import com.astra.avpush.runtime.STREAM_LOG_TAG
 import com.astra.avpush.runtime.ThreadImpl
 import java.util.Arrays
@@ -41,7 +41,7 @@ class AudioProcessor : ThreadImpl() {
             throw IllegalStateException(error)
         }
 
-        LogHelper.d(javaClass.simpleName) {
+        AstraLog.d(javaClass.simpleName) {
             "init audio processor source=$audioSource sampleRate=$sampleRateInHz channels=$channelConfig format=$audioFormat bufferSize=$bufferSize"
         }
 
@@ -62,11 +62,11 @@ class AudioProcessor : ThreadImpl() {
         } catch (security: SecurityException) {
             val message = "Record audio permission denied"
             recordListener?.onError(message)
-            LogHelper.e(STREAM_LOG_TAG, message)
+            AstraLog.e(STREAM_LOG_TAG, message)
             throw security
         } catch (error: Exception) {
             recordListener?.onError(error.message)
-            LogHelper.e(STREAM_LOG_TAG, error.message)
+            AstraLog.e(STREAM_LOG_TAG, error.message)
             throw error
         }
     }
@@ -75,10 +75,10 @@ class AudioProcessor : ThreadImpl() {
         super.setPause(pause)
         if (pause) {
             recordListener?.onPause()
-            LogHelper.d(javaClass.simpleName) { "audio processor paused" }
+            AstraLog.d(javaClass.simpleName) { "audio processor paused" }
         } else {
             recordListener?.onResume()
-            LogHelper.d(javaClass.simpleName) { "audio processor resumed" }
+            AstraLog.d(javaClass.simpleName) { "audio processor resumed" }
         }
     }
 
@@ -87,14 +87,14 @@ class AudioProcessor : ThreadImpl() {
         super.start { mainLoop() }
         audioRecord?.startRecording()
         recordListener?.onStart(currentSampleRate, currentChannelConfig, currentEncoding)
-        LogHelper.d(javaClass.simpleName) { "AudioRecord started" }
+        AstraLog.d(javaClass.simpleName) { "AudioRecord started" }
     }
 
     override fun stop() {
         super.stop()
         audioRecord?.takeIf { it.state == AudioRecord.STATE_INITIALIZED }?.stop()
         recordListener?.onStop()
-        LogHelper.d(javaClass.simpleName) { "AudioRecord stopped" }
+        AstraLog.d(javaClass.simpleName) { "AudioRecord stopped" }
     }
 
     fun setMute(muted: Boolean) {
@@ -119,7 +119,7 @@ class AudioProcessor : ThreadImpl() {
                 recordListener?.onPcmData(data.copyOf(read))
             }
         }
-        LogHelper.d(javaClass.simpleName) { "audio capture loop finished" }
+        AstraLog.d(javaClass.simpleName) { "audio capture loop finished" }
     }
 
     fun addRecordListener(listener: OnRecordListener) {
@@ -129,7 +129,7 @@ class AudioProcessor : ThreadImpl() {
     fun release() {
         audioRecord?.release()
         audioRecord = null
-        LogHelper.d(javaClass.simpleName) { "AudioRecord released" }
+        AstraLog.d(javaClass.simpleName) { "AudioRecord released" }
     }
 
     interface OnRecordListener {

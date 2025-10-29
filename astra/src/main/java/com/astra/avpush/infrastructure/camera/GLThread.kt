@@ -2,7 +2,7 @@ package com.astra.avpush.infrastructure.camera
 
 import com.astra.avpush.domain.callback.IGLThreadConfig
 import com.astra.avpush.presentation.widget.GLSurfaceView
-import com.astra.avpush.runtime.LogHelper
+import com.astra.avpush.runtime.AstraLog
 import java.lang.ref.WeakReference
 import kotlin.math.max
 
@@ -74,7 +74,7 @@ open class GLThread(private val weakReference: WeakReference<IGLThreadConfig>) :
                         sleep(500)
                         continue
                     } catch (error: InterruptedException) {
-                        LogHelper.e(TAG, error.message)
+                        AstraLog.e(TAG, error.message)
                     }
                 }
                 if (isStart) {
@@ -84,7 +84,7 @@ open class GLThread(private val weakReference: WeakReference<IGLThreadConfig>) :
                             try {
                                 mLock.wait()
                             } catch (error: InterruptedException) {
-                                LogHelper.e(TAG, error.message)
+                                AstraLog.e(TAG, error.message)
                             }
                         }
 
@@ -92,7 +92,7 @@ open class GLThread(private val weakReference: WeakReference<IGLThreadConfig>) :
                         try {
                             sleep(frameIntervalMs)
                         } catch (error: InterruptedException) {
-                            LogHelper.e(TAG, error.message)
+                            AstraLog.e(TAG, error.message)
                         }
                     } else {
                         throw RuntimeException("mRendererMode is wrong value");
@@ -185,7 +185,7 @@ open class GLThread(private val weakReference: WeakReference<IGLThreadConfig>) :
             try {
                 mLock.notifyAll()
             } catch (error: Exception) {
-                LogHelper.e(TAG, error.message)
+                AstraLog.e(TAG, error.message)
             }
         }
     }

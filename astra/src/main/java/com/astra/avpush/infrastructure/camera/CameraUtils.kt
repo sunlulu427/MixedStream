@@ -6,7 +6,7 @@ import android.graphics.ImageFormat
 import android.hardware.Camera
 import android.util.Log
 import com.astra.avpush.domain.config.CameraConfiguration
-import com.astra.avpush.runtime.LogHelper
+import com.astra.avpush.runtime.AstraLog
 import com.astra.avpush.support.blacklist.BlackListHelper
 
 object CameraUtils {
@@ -303,7 +303,7 @@ object CameraUtils {
         }
 
         optimalSize?.let {
-            LogHelper.i(
+            AstraLog.i(
                 TAG,
                 "selected preview size ${it.width}x${it.height} for request ${width}x$height (ratio=${"%.3f".format(it.width.toFloat() / it.height)})"
             )
@@ -317,9 +317,9 @@ object CameraUtils {
             val sizes = parameters.supportedPreviewSizes ?: return
             val ordered = sizes.sortedByDescending { it.width * it.height }
             val summary = ordered.joinToString(separator = ", ") { "${it.width}x${it.height}" }
-            LogHelper.i(TAG, "supported preview sizes: $summary")
+            AstraLog.i(TAG, "supported preview sizes: $summary")
         } catch (t: Throwable) {
-            LogHelper.w(TAG, "list preview sizes failed: ${t.message}")
+            AstraLog.w(TAG, "list preview sizes failed: ${t.message}")
         }
     }
 

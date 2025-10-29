@@ -36,7 +36,7 @@ std::string toString(JNIEnv* env, jstring value) {
 }  // namespace
 
 extern "C" JNIEXPORT jlong JNICALL
-Java_com_astrastream_avpush_infrastructure_camera_renderer_EncodeRenderer_nativeCreate(
+Java_com_astra_avpush_infrastructure_camera_renderer_EncodeRenderer_nativeCreate(
         JNIEnv* env, jobject /*thiz*/, jint texture_id, jfloatArray vertex_array,
         jfloatArray fragment_array) {
     auto vertexData = toVector(env, vertex_array);
@@ -47,13 +47,13 @@ Java_com_astrastream_avpush_infrastructure_camera_renderer_EncodeRenderer_native
 }
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_astrastream_avpush_infrastructure_camera_renderer_EncodeRenderer_nativeDestroy(
+Java_com_astra_avpush_infrastructure_camera_renderer_EncodeRenderer_nativeDestroy(
         JNIEnv* /*env*/, jobject /*thiz*/, jlong handle) {
     delete fromHandle<EncodeRendererNative>(handle);
 }
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_astrastream_avpush_infrastructure_camera_renderer_EncodeRenderer_nativeOnSurfaceCreate(
+Java_com_astra_avpush_infrastructure_camera_renderer_EncodeRenderer_nativeOnSurfaceCreate(
         JNIEnv* env, jobject /*thiz*/, jlong handle, jstring vertex_source,
         jstring fragment_source) {
     auto* renderer = fromHandle<EncodeRendererNative>(handle);
@@ -64,7 +64,7 @@ Java_com_astrastream_avpush_infrastructure_camera_renderer_EncodeRenderer_native
 }
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_astrastream_avpush_infrastructure_camera_renderer_EncodeRenderer_nativeOnSurfaceChanged(
+Java_com_astra_avpush_infrastructure_camera_renderer_EncodeRenderer_nativeOnSurfaceChanged(
         JNIEnv* /*env*/, jobject /*thiz*/, jlong handle, jint width, jint height) {
     auto* renderer = fromHandle<EncodeRendererNative>(handle);
     if (renderer == nullptr) {
@@ -74,7 +74,7 @@ Java_com_astrastream_avpush_infrastructure_camera_renderer_EncodeRenderer_native
 }
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_astrastream_avpush_infrastructure_camera_renderer_EncodeRenderer_nativeOnDraw(
+Java_com_astra_avpush_infrastructure_camera_renderer_EncodeRenderer_nativeOnDraw(
         JNIEnv* /*env*/, jobject /*thiz*/, jlong handle) {
     auto* renderer = fromHandle<EncodeRendererNative>(handle);
     if (renderer == nullptr) {
@@ -84,7 +84,7 @@ Java_com_astrastream_avpush_infrastructure_camera_renderer_EncodeRenderer_native
 }
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_astrastream_avpush_infrastructure_camera_renderer_EncodeRenderer_nativeUpdateWatermarkCoords(
+Java_com_astra_avpush_infrastructure_camera_renderer_EncodeRenderer_nativeUpdateWatermarkCoords(
         JNIEnv* env, jobject /*thiz*/, jlong handle, jfloatArray coords_array) {
     auto* renderer = fromHandle<EncodeRendererNative>(handle);
     if (renderer == nullptr) {
@@ -94,7 +94,7 @@ Java_com_astrastream_avpush_infrastructure_camera_renderer_EncodeRenderer_native
 }
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_astrastream_avpush_infrastructure_camera_renderer_EncodeRenderer_nativeUpdateWatermarkTexture(
+Java_com_astra_avpush_infrastructure_camera_renderer_EncodeRenderer_nativeUpdateWatermarkTexture(
         JNIEnv* env, jobject /*thiz*/, jlong handle, jobject bitmap) {
     auto* renderer = fromHandle<EncodeRendererNative>(handle);
     if (renderer == nullptr) {

@@ -18,7 +18,7 @@ import android.os.Handler
 import android.os.HandlerThread
 import android.view.Surface
 import com.astra.avpush.domain.config.ScreenCaptureConfiguration
-import com.astra.avpush.runtime.LogHelper
+import com.astra.avpush.runtime.AstraLog
 import java.util.concurrent.CountDownLatch
 
 internal class VulkanScreenRenderer(
@@ -130,7 +130,7 @@ internal class VulkanScreenRenderer(
     private fun recreateVirtualDisplay() {
         releaseVirtualDisplay()
         val projection = projection ?: run {
-            LogHelper.w(tag, "projection missing; waiting")
+            AstraLog.w(tag, "projection missing; waiting")
             return
         }
         val config = configuration
@@ -148,7 +148,7 @@ internal class VulkanScreenRenderer(
                 null,
                 null
             )
-            LogHelper.d(tag) { "legacy virtual display created ${config.width}x${config.height}@${config.fps}" }
+            AstraLog.d(tag) { "legacy virtual display created ${config.width}x${config.height}@${config.fps}" }
             return
         }
         val usage = HardwareBuffer.USAGE_GPU_SAMPLED_IMAGE or HardwareBuffer.USAGE_GPU_COLOR_OUTPUT
@@ -171,7 +171,7 @@ internal class VulkanScreenRenderer(
             null,
             handler
         )
-        LogHelper.d(tag) { "virtual display created ${config.width}x${config.height}@${config.fps}" }
+        AstraLog.d(tag) { "virtual display created ${config.width}x${config.height}@${config.fps}" }
     }
 
     private fun releaseVirtualDisplay() {
@@ -196,7 +196,7 @@ internal class VulkanScreenRenderer(
         try {
             renderBuffer(buffer, image.timestamp)
         } catch (error: Throwable) {
-            LogHelper.e(tag, error, "failed to render frame")
+            AstraLog.e(tag, error, "failed to render frame")
         } finally {
             image.close()
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {

@@ -6,7 +6,7 @@ import android.media.MediaCodecInfo
 import android.media.MediaFormat
 import android.util.Log
 import com.astra.avpush.domain.config.VideoConfiguration
-import com.astra.avpush.runtime.LogHelper
+import com.astra.avpush.runtime.AstraLog
 import com.astra.avpush.support.blacklist.BlackListHelper
 
 object VideoMediaCodec {
@@ -48,7 +48,7 @@ object VideoMediaCodec {
             try {
                 mediaCodec = MediaCodec.createEncoderByType(videoConfiguration.mime)
                 mediaCodec.configure(format, null, null, CONFIGURE_FLAG_ENCODE)
-                LogHelper.d(TAG, "mediacodec init successed!")
+                AstraLog.d(TAG, "mediacodec init successed!")
             } catch (e: Exception) {
                 e.printStackTrace()
                 mediaCodec = release(mediaCodec)

@@ -1,9 +1,7 @@
-package com.astrastream.streamer.app
+package com.astra.streamer.app
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.app.Activity
-import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.Configuration
@@ -16,6 +14,7 @@ import android.view.View
 import android.view.WindowManager
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.background
@@ -52,27 +51,27 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import com.astra.avpush.domain.callback.OnConnectListener
 import com.astra.avpush.domain.config.AudioConfiguration
-import com.astra.avpush.runtime.LogHelper
+import com.astra.avpush.runtime.AstraLog
+import com.astra.streamer.core.util.SPUtils
+import com.astra.streamer.core.util.Utils
+import com.astra.streamer.data.LivePreferencesStore
+import com.astra.streamer.ui.live.LiveScreen
+import com.astra.streamer.ui.live.LiveSessionCoordinator
+import com.astra.streamer.ui.live.LiveUiState
+import com.astra.streamer.ui.screen.ScreenLiveScreen
 import com.astrastream.streamer.R
-import com.astrastream.streamer.core.util.SPUtils
-import com.astrastream.streamer.core.util.Utils
-import com.astrastream.streamer.data.LivePreferencesStore
-import com.astrastream.streamer.ui.live.LiveScreen
-import com.astrastream.streamer.ui.live.LiveSessionCoordinator
-import com.astrastream.streamer.ui.live.LiveUiState
-import com.astrastream.streamer.ui.screen.ScreenLiveScreen
-import com.astrastream.streamer.ui.screen.ScreenLiveSessionCoordinator
-import com.astrastream.streamer.ui.screen.ScreenLiveUiState
-import com.astrastream.streamer.ui.theme.AVLiveTheme
+import com.astra.streamer.ui.screen.ScreenLiveSessionCoordinator
+import com.astra.streamer.ui.screen.ScreenLiveUiState
+import com.astra.streamer.ui.theme.AVLiveTheme
 import com.tbruyelle.rxpermissions2.RxPermissions
 
 class LiveActivity : AppCompatActivity(), OnConnectListener {
 
     private enum class LiveMode { CAMERA, SCREEN }
 
-    private val captureDefaults = LiveSessionCoordinator.defaultCaptureOptions()
-    private val streamDefaults = LiveSessionCoordinator.defaultStreamOptions()
-    private val encoderDefaults = LiveSessionCoordinator.defaultEncoderOptions()
+    private val captureDefaults = LiveSessionCoordinator.Companion.defaultCaptureOptions()
+    private val streamDefaults = LiveSessionCoordinator.Companion.defaultStreamOptions()
+    private val encoderDefaults = LiveSessionCoordinator.Companion.defaultEncoderOptions()
     private val preferences by lazy { LivePreferencesStore(this) }
 
     private val uiState: MutableState<LiveUiState> by lazy {
@@ -96,7 +95,7 @@ class LiveActivity : AppCompatActivity(), OnConnectListener {
     private lateinit var screenCoordinator: ScreenLiveSessionCoordinator
     private lateinit var projectionManager: MediaProjectionManager
 
-    private lateinit var projectionLauncher: androidx.activity.result.ActivityResultLauncher<Intent>
+    private lateinit var projectionLauncher: ActivityResultLauncher<Intent>
 
     private var currentMode: LiveMode = LiveMode.CAMERA
 
@@ -124,12 +123,12 @@ class LiveActivity : AppCompatActivity(), OnConnectListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         initializeEnvironment()
-        projectionManager = getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
+        projectionManager = getSystemService(MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
         screenCoordinator = ScreenLiveSessionCoordinator(this, screenState)
         screenCoordinator.updateStreamUrl(uiState.value.streamUrl)
         screenCoordinator.setOverlayObserver { ScreenOverlayManager.update(applicationContext, it) }
         projectionLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            if (result.resultCode == Activity.RESULT_OK && result.data != null) {
+            if (result.resultCode == RESULT_OK && result.data != null) {
                 val projection = projectionManager.getMediaProjection(result.resultCode, result.data!!)
                 if (projection != null) {
                     screenCoordinator.attachProjection(projection)
@@ -183,8 +182,8 @@ class LiveActivity : AppCompatActivity(), OnConnectListener {
 
     private fun initializeEnvironment() {
         Utils.init(application)
-        LogHelper.initialize(applicationContext)
-        LogHelper.enable(true)
+        AstraLog.initialize(applicationContext)
+        AstraLog.enable(true)
         enableEdgeToEdge()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             window.attributes = window.attributes.apply {
@@ -245,6 +244,7 @@ class LiveActivity : AppCompatActivity(), OnConnectListener {
                             modeSwitcher = modeSwitcherContent,
                             onBack = { finish() }
                         )
+
                         LiveMode.SCREEN -> ScreenLiveScreen(
                             state = screenState.value,
                             onStreamUrlChanged = { updateSharedStreamUrl(it) },
@@ -267,7 +267,7 @@ class LiveActivity : AppCompatActivity(), OnConnectListener {
     @SuppressLint("CheckResult")
     private fun requestRuntimePermissions() {
         val key = getString(R.string.OPEN_PERMISSIONS)
-        val permissionsGranted = SPUtils.getInstance().getBoolean(key) && hasCameraPermission()
+        val permissionsGranted = SPUtils.Companion.getInstance().getBoolean(key) && hasCameraPermission()
         if (permissionsGranted) {
             return
         }
@@ -280,10 +280,10 @@ class LiveActivity : AppCompatActivity(), OnConnectListener {
             )
             .subscribe { allGranted ->
                 if (allGranted) {
-                    SPUtils.getInstance().put(key, true)
+                    SPUtils.Companion.getInstance().put(key, true)
                     Toast.makeText(this, getString(R.string.GET_PERMISSION_ERROR), Toast.LENGTH_SHORT).show()
                 } else {
-                    SPUtils.getInstance().put(key, false)
+                    SPUtils.Companion.getInstance().put(key, false)
                 }
                 handlePermissionsUpdated(allGranted)
             }

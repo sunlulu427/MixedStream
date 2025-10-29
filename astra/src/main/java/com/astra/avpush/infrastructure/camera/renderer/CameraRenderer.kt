@@ -9,7 +9,7 @@ import android.os.SystemClock
 import com.astra.avpush.domain.callback.IRenderer
 import com.astra.avpush.infrastructure.camera.ShaderHelper
 import com.astra.avpush.infrastructure.camera.Watermark
-import com.astra.avpush.runtime.LogHelper
+import com.astra.avpush.runtime.AstraLog
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
@@ -158,7 +158,7 @@ class CameraRenderer(private val context: Context) : IRenderer {
     private var mRendererListener: OnRendererListener? = null
 
     override fun onSurfaceCreate(width: Int, height: Int) {
-        LogHelper.d(TAG, "onSurfaceCreate w=$width h=$height")
+        AstraLog.d(TAG, "onSurfaceCreate w=$width h=$height")
         drawFrameCount = 0
         lastDrawLogTimestamp = 0L
         mScreenWidth = context.resources.displayMetrics.widthPixels
@@ -252,9 +252,9 @@ class CameraRenderer(private val context: Context) : IRenderer {
 
         //5.4 检查 FBO 是否绑定成功
         if (GLES20.glCheckFramebufferStatus(GLES20.GL_FRAMEBUFFER) != GLES20.GL_FRAMEBUFFER_COMPLETE) {
-            LogHelper.e(TAG, "fbo bind error")
+            AstraLog.e(TAG, "fbo bind error")
         } else {
-            LogHelper.e(TAG, "fbo bind success")
+            AstraLog.e(TAG, "fbo bind success")
         }
 
         //5.5 解绑 FBO
@@ -287,7 +287,7 @@ class CameraRenderer(private val context: Context) : IRenderer {
         // 注意：SurfaceTexture.updateTexImage() 在回调中调用
         if (!isTexture) {
             if (drawFrameCount == 0) {
-                LogHelper.d(TAG, "onDraw skip while switching camera")
+                AstraLog.d(TAG, "onDraw skip while switching camera")
             }
             Thread.sleep(300)
             isTexture = switchCametaListener?.onChange()!!
@@ -357,14 +357,14 @@ class CameraRenderer(private val context: Context) : IRenderer {
             else -> "0x${Integer.toHexString(glError)}"
         }
         if (drawFrameCount <= 5 || now - lastDrawLogTimestamp >= 2000 || glError != GLES20.GL_NO_ERROR) {
-            LogHelper.d(
+            AstraLog.d(
                 TAG,
                 "onDraw frame=$drawFrameCount viewport=${mWidth}x${mHeight} cameraTex=$mCameraTextureId fboTex=$mTextureID glError=$errorLabel"
             )
             lastDrawLogTimestamp = now
         }
         if (glError != GLES20.GL_NO_ERROR) {
-            LogHelper.e(TAG, "GL error detected in onDraw: $errorLabel")
+            AstraLog.e(TAG, "GL error detected in onDraw: $errorLabel")
         }
     }
 

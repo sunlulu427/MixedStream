@@ -3,7 +3,7 @@
 #include "RenderUtil.h"
 
 extern "C" JNIEXPORT jfloatArray JNICALL
-Java_com_astrastream_avpush_runtime_NativeRenderUtil_nativeComputeWatermarkQuad(
+Java_com_astra_avpush_runtime_NativeRenderUtil_nativeComputeWatermarkQuad(
         JNIEnv* env,
         jobject /*thiz*/,
         jint surfaceWidth,

@@ -9,7 +9,7 @@ import com.astra.avpush.domain.callback.IGLThreadConfig
 import com.astra.avpush.domain.callback.IRenderer
 import com.astra.avpush.domain.config.RendererConfiguration
 import com.astra.avpush.infrastructure.camera.GLThread
-import com.astra.avpush.runtime.LogHelper
+import com.astra.avpush.runtime.AstraLog
 import java.lang.ref.WeakReference
 import javax.microedition.khronos.egl.EGLContext
 
@@ -97,7 +97,7 @@ open class GLSurfaceView @JvmOverloads constructor(
             this.mEGLContext = it
         }
         if (this::mEglThread.isInitialized) {
-            LogHelper.d(TAG, "configure: renderer updated, force recreate (mode=$mRendererMode)")
+            AstraLog.d(TAG, "configure: renderer updated, force recreate (mode=$mRendererMode)")
             mEglThread.isCreate = true
             mEglThread.isChange = true
             if (mRendererMode == RENDERERMODE_WHEN_DIRTY) {

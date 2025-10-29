@@ -1,4 +1,4 @@
-package com.astrastream.streamer.ui.unified
+package com.astra.streamer.ui.unified
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*

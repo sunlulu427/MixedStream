@@ -1,4 +1,4 @@
-package com.astrastream.streamer.ui.live
+package com.astra.streamer.ui.live
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -63,6 +63,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.LayoutCoordinates
+import androidx.compose.ui.viewinterop.AndroidView
 import kotlin.math.roundToInt
 
 @Composable
@@ -664,7 +665,7 @@ private fun PreviewStatusOverlay(visible: Boolean, message: String?, modifier: M
 
 @Composable
 private fun LivePreview(onLiveViewReady: (AVLiveView) -> Unit, modifier: Modifier) {
-    androidx.compose.ui.viewinterop.AndroidView(
+    AndroidView(
         factory = { context -> AVLiveView(context).also(onLiveViewReady) },
         modifier = modifier
     )

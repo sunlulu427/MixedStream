@@ -3,7 +3,7 @@ package com.astra.avpush.stream.pipeline
 import com.astra.avpush.stream.pipeline.core.PipelineRole
 import com.astra.avpush.stream.pipeline.core.PipelineSource
 import com.astra.avpush.stream.pipeline.frame.EncodedAudioFrame
-import com.astra.avpush.runtime.LogHelper
+import com.astra.avpush.runtime.AstraLog
 import com.astra.avpush.domain.callback.IController
 import android.media.MediaCodec
 import android.media.MediaFormat
@@ -24,23 +24,23 @@ class AudioCaptureNode(
     }
 
     override fun start() {
-        LogHelper.d(name) { "starting audio capture" }
+        AstraLog.d(name) { "starting audio capture" }
         stopped = false
         controller.start()
     }
 
     override fun pause() {
-        LogHelper.d(name) { "pausing audio capture" }
+        AstraLog.d(name) { "pausing audio capture" }
         controller.pause()
     }
 
     override fun resume() {
-        LogHelper.d(name) { "resuming audio capture" }
+        AstraLog.d(name) { "resuming audio capture" }
         controller.resume()
     }
 
     override fun stop() {
-        LogHelper.d(name) { "stopping audio capture" }
+        AstraLog.d(name) { "stopping audio capture" }
         controller.stop()
         stopped = true
     }
@@ -49,7 +49,7 @@ class AudioCaptureNode(
         if (!stopped) {
             controller.stop()
         }
-        LogHelper.d(name) { "releasing audio capture node" }
+        AstraLog.d(name) { "releasing audio capture node" }
         super.release()
     }
 
@@ -58,17 +58,17 @@ class AudioCaptureNode(
     }
 
     override fun onAudioOutformat(outputFormat: MediaFormat?) {
-        LogHelper.i(name) { "audio codec output format changed: ${outputFormat?.toString() ?: "null"}" }
+        AstraLog.i(name) { "audio codec output format changed: ${outputFormat?.toString() ?: "null"}" }
         onOutputFormat(outputFormat)
     }
 
     override fun onError(error: String?) {
-        LogHelper.e(name, error)
+        AstraLog.e(name, error)
         onError(error)
     }
 
     fun setMute(mute: Boolean) {
-        LogHelper.d(name) { "mute toggled: $mute" }
+        AstraLog.d(name) { "mute toggled: $mute" }
         controller.setMute(mute)
     }
 }

@@ -5,7 +5,7 @@ import com.astra.avpush.stream.pipeline.core.PipelineRole
 import com.astra.avpush.stream.pipeline.core.PipelineStage
 import com.astra.avpush.stream.pipeline.frame.EncodedAudioFrame
 import com.astra.avpush.stream.pipeline.frame.EncodedVideoFrame
-import com.astra.avpush.runtime.LogHelper
+import com.astra.avpush.runtime.AstraLog
 import com.astra.avpush.runtime.NativeStats
 import com.astra.avpush.runtime.prepareForCodec
 import com.astra.avpush.domain.config.AudioConfiguration
@@ -35,13 +35,13 @@ class TransportNode(
         audioConfiguration = configuration
         audioSpecificConfig = asc
         configureSender()
-        LogHelper.i(name) { "audio configuration applied: sampleRate=${configuration.sampleRate}, channels=${configuration.channelCount}" }
+        AstraLog.i(name) { "audio configuration applied: sampleRate=${configuration.sampleRate}, channels=${configuration.channelCount}" }
     }
 
     fun updateVideoConfiguration(configuration: VideoConfiguration) {
         videoConfiguration = configuration
         configureSender()
-        LogHelper.i(name) { "video configuration applied: ${configuration.width}x${configuration.height}@${configuration.fps}" }
+        AstraLog.i(name) { "video configuration applied: ${configuration.width}x${configuration.height}@${configuration.fps}" }
     }
 
     fun setStatsListener(listener: ((Int, Int) -> Unit)?) {
@@ -49,25 +49,25 @@ class TransportNode(
     }
 
     override fun start() {
-        LogHelper.d(name) { "transport pipeline starting" }
+        AstraLog.d(name) { "transport pipeline starting" }
         resetStats()
     }
 
     override fun pause() {
-        LogHelper.d(name) { "transport pipeline paused" }
+        AstraLog.d(name) { "transport pipeline paused" }
     }
 
     override fun resume() {
-        LogHelper.d(name) { "transport pipeline resumed" }
+        AstraLog.d(name) { "transport pipeline resumed" }
     }
 
     override fun stop() {
-        LogHelper.d(name) { "transport pipeline stopped" }
+        AstraLog.d(name) { "transport pipeline stopped" }
         resetStats()
     }
 
     override fun release() {
-        LogHelper.d(name) { "releasing transport pipeline" }
+        AstraLog.d(name) { "releasing transport pipeline" }
         if (!statsReleased) {
             NativeStats.release(statsHandle)
             statsReleased = true
@@ -80,7 +80,7 @@ class TransportNode(
             videoConfiguration?.let(sender::configureVideo)
             audioConfiguration?.let { sender.configureAudio(it, audioSpecificConfig) }
         } catch (error: Exception) {
-            LogHelper.e(name, error, "Unable to configure sender")
+            AstraLog.e(name, error, "Unable to configure sender")
         }
     }
 
@@ -102,7 +102,7 @@ class TransportNode(
         val stats = NativeStats.onVideoSample(statsHandle, bytes, SystemClock.elapsedRealtime())
         if (stats != null && stats.size == 2) {
             statsListener?.invoke(stats[0].coerceAtLeast(0), stats[1].coerceAtLeast(0))
-            LogHelper.d(name) { "video stats bitrate=${stats[0]}kbps fps=${stats[1]}" }
+            AstraLog.d(name) { "video stats bitrate=${stats[0]}kbps fps=${stats[1]}" }
         }
     }
 

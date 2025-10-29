@@ -1,4 +1,4 @@
-package com.astrastream.streamer.ui.theme
+package com.astra.streamer.ui.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme

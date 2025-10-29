@@ -9,7 +9,7 @@ import android.os.Handler
 import android.os.HandlerThread
 import android.view.Surface
 import com.astra.avpush.domain.config.VideoConfiguration
-import com.astra.avpush.runtime.LogHelper
+import com.astra.avpush.runtime.AstraLog
 import java.util.concurrent.locks.ReentrantLock
 
 abstract class BaseVideoEncoder : IVideoCodec {
@@ -36,7 +36,7 @@ abstract class BaseVideoEncoder : IVideoCodec {
         videoConfiguration.run {
             mConfiguration = videoConfiguration
             mMediaCodec = VideoMediaCodec.getVideoMediaCodec(mConfiguration)
-            LogHelper.e(TAG, "prepare success!")
+            AstraLog.e(TAG, "prepare success!")
         }
     }
 
@@ -119,7 +119,7 @@ abstract class BaseVideoEncoder : IVideoCodec {
         if (mMediaCodec == null) {
             return
         }
-        LogHelper.d(TAG, "bps :" + bps * 1024)
+        AstraLog.d(TAG, "bps :" + bps * 1024)
         val bitrate = Bundle()
         bitrate.putInt(MediaCodec.PARAMETER_KEY_VIDEO_BITRATE, bps * 1024)
         mMediaCodec?.setParameters(bitrate)
@@ -169,7 +169,7 @@ abstract class BaseVideoEncoder : IVideoCodec {
                             onVideoOutformat(mMediaCodec?.outputFormat)
                         }
                     }
-                    LogHelper.e(TAG, "视频时间戳：${mBufferInfo!!.presentationTimeUs / 1000_000}")
+                    AstraLog.e(TAG, "视频时间戳：${mBufferInfo!!.presentationTimeUs / 1000_000}")
                     if (!mPause && buffer != null) {
                         onVideoEncode(buffer, mBufferInfo!!)
                     }

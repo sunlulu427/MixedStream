@@ -8,7 +8,7 @@ import com.astra.avpush.domain.config.ScreenCaptureConfiguration
 import com.astra.avpush.domain.config.VideoConfiguration
 import com.astra.avpush.infrastructure.camera.Watermark
 import com.astra.avpush.infrastructure.stream.sender.Sender
-import com.astra.avpush.runtime.LogHelper
+import com.astra.avpush.runtime.AstraLog
 import com.astra.avpush.stream.pipeline.AudioCaptureNode
 import com.astra.avpush.stream.pipeline.StreamingPipeline
 import com.astra.avpush.stream.pipeline.TransportNode
@@ -45,7 +45,7 @@ class ScreenStreamController : LiveStreamSession {
 
     override fun setAudioConfigure(audioConfiguration: AudioConfiguration) {
         this.audioConfiguration = audioConfiguration
-        LogHelper.d(tag) { "audio configuration updated for screen capture" }
+        AstraLog.d(tag) { "audio configuration updated for screen capture" }
         applyAudioConfiguration()
     }
 
@@ -56,7 +56,7 @@ class ScreenStreamController : LiveStreamSession {
             height = videoConfiguration.height,
             fps = videoConfiguration.fps
         )
-        LogHelper.d(tag) { "video configuration updated for screen capture" }
+        AstraLog.d(tag) { "video configuration updated for screen capture" }
         applyVideoConfiguration()
     }
 
@@ -78,17 +78,17 @@ class ScreenStreamController : LiveStreamSession {
 
     override fun start() {
         if (sender == null) {
-            LogHelper.w(tag, "start ignored: sender missing")
+            AstraLog.w(tag, "start ignored: sender missing")
             return
         }
         if (projection == null) {
-            LogHelper.w(tag, "start ignored: projection missing")
+            AstraLog.w(tag, "start ignored: projection missing")
             return
         }
         if (pipeline == null || pipeline?.isEmpty() == true) {
             buildPipeline()
         }
-        LogHelper.d(tag) { "starting screen streaming" }
+        AstraLog.d(tag) { "starting screen streaming" }
         pipeline?.start()
         statsListener?.onVideoStats(0, screenConfiguration.fps)
     }
@@ -132,7 +132,7 @@ class ScreenStreamController : LiveStreamSession {
     private fun buildPipeline() {
         val context = appContext ?: return
         val projection = projection ?: run {
-            LogHelper.w(tag, "projection not yet available; pipeline deferred")
+            AstraLog.w(tag, "projection not yet available; pipeline deferred")
             return
         }
         disposePipeline(true)
@@ -153,7 +153,7 @@ class ScreenStreamController : LiveStreamSession {
         pipeline = StreamingPipeline().add(audioNode).add(videoNode).add(transport)
         applyVideoConfiguration()
         applyAudioConfiguration()
-        LogHelper.d(tag) { "screen pipeline initialised" }
+        AstraLog.d(tag) { "screen pipeline initialised" }
     }
 
     private fun handleAudioOutputFormat(outputFormat: MediaFormat?) {
@@ -166,11 +166,11 @@ class ScreenStreamController : LiveStreamSession {
     }
 
     private fun handleVideoOutputFormat(outputFormat: MediaFormat?) {
-        LogHelper.d(tag) { "video output format for screen: ${outputFormat?.toString() ?: "null"}" }
+        AstraLog.d(tag) { "video output format for screen: ${outputFormat?.toString() ?: "null"}" }
     }
 
     private fun handleError(message: String?) {
-        LogHelper.e(tag, message)
+        AstraLog.e(tag, message)
     }
 
     private fun applyAudioConfiguration() {

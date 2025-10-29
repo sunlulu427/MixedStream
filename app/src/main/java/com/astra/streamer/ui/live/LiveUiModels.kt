@@ -1,4 +1,4 @@
-package com.astrastream.streamer.ui.live
+package com.astra.streamer.ui.live
 
 import com.astra.avpush.domain.config.VideoConfiguration
 

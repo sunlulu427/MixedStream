@@ -3,7 +3,7 @@
 #include "ShaderLibrary.h"
 
 extern "C" JNIEXPORT jstring JNICALL
-Java_com_astrastream_avpush_runtime_NativeShaders_nativeGetScript(
+Java_com_astra_avpush_runtime_NativeShaders_nativeGetScript(
         JNIEnv* env, jobject /*thiz*/, jint id) {
     const char* script = astra::GetShaderScript(id);
     if (script == nullptr) {

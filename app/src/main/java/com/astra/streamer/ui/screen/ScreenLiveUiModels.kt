@@ -1,4 +1,4 @@
-package com.astrastream.streamer.ui.screen
+package com.astra.streamer.ui.screen
 
 data class ScreenLiveUiState(
     val streamUrl: String,

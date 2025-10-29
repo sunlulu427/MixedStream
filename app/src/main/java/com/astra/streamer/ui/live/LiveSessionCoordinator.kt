@@ -1,4 +1,4 @@
-package com.astrastream.streamer.ui.live
+package com.astra.streamer.ui.live
 
 import android.content.Context
 import android.graphics.Color
@@ -18,10 +18,9 @@ import com.astra.avpush.unified.UnifiedStreamSession
 import com.astra.avpush.unified.builder.createStreamSession
 import com.astra.avpush.unified.config.VideoCodec
 import com.astra.avpush.unified.config.AudioCodec
-import com.astra.avpush.runtime.LogHelper
+import com.astra.avpush.runtime.AstraLog
 import com.astra.avpush.presentation.widget.AVLiveView
-import com.astrastream.streamer.data.LivePreferencesStore
-import com.astrastream.streamer.ui.live.StreamUrlFormatter.buildPullUrls
+import com.astra.streamer.data.LivePreferencesStore
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -138,10 +137,10 @@ class LiveSessionCoordinator(
             }
 
             unifiedSession = session
-            LogHelper.i(tag, "Unified streaming session created for URL: ${currentState.streamUrl}")
+            AstraLog.i(tag, "Unified streaming session created for URL: ${currentState.streamUrl}")
             true
         } catch (t: Throwable) {
-            LogHelper.e(tag, "Failed to create unified session: ${t.message}")
+            AstraLog.e(tag, "Failed to create unified session: ${t.message}")
             onError("Failed to initialise unified streaming: ${t.message}")
             false
         }
@@ -166,7 +165,7 @@ class LiveSessionCoordinator(
     fun startPreview() {
         if (previewStarted) return
         if (!hasCameraPermission()) {
-            LogHelper.w(tag, "startPreview skipped: camera permission missing")
+            AstraLog.w(tag, "startPreview skipped: camera permission missing")
             previewRequested = true
             state.value = state.value.copy(previewReady = false, cameraError = null)
             if (!permissionWarningShown) {
@@ -231,7 +230,10 @@ class LiveSessionCoordinator(
     }
 
     fun updateStreamUrl(url: String) {
-        state.value = state.value.copy(streamUrl = url, pullUrls = buildPullUrls(url))
+        state.value = state.value.copy(streamUrl = url, pullUrls = StreamUrlFormatter.buildPullUrls(
+            url
+        )
+        )
         persistState()
     }
 
@@ -264,14 +266,14 @@ class LiveSessionCoordinator(
         state.value = state.value.copy(
             streamUrl = clean,
             showUrlDialog = false,
-            pullUrls = buildPullUrls(clean)
+            pullUrls = StreamUrlFormatter.buildPullUrls(clean)
         )
         persistState()
         onValid()
     }
 
     private fun onCameraPreviewSize(width: Int, height: Int) {
-        LogHelper.i(tag, "camera preview ready with ${width}x$height")
+        AstraLog.i(tag, "camera preview ready with ${width}x$height")
         val current = state.value
         if (current.captureResolution.width == width && current.captureResolution.height == height) {
             if (!current.previewReady) {
@@ -301,7 +303,7 @@ class LiveSessionCoordinator(
     }
 
     private fun onCameraError(message: String) {
-        LogHelper.e(tag, "camera pipeline error: $message")
+        AstraLog.e(tag, "camera pipeline error: $message")
         Toast.makeText(context, message, Toast.LENGTH_LONG).show()
         state.value = state.value.copy(
             captureResolution = safeCaptureOption,
@@ -326,7 +328,7 @@ class LiveSessionCoordinator(
             targetBitrate = current.targetBitrate.coerceIn(minBps, maxBps)
         )
         if (adjusted != current) state.value = adjusted
-        LogHelper.d(
+        AstraLog.d(
             tag,
             "applyStreamConfiguration capture=${adjusted.captureResolution.width}x${adjusted.captureResolution.height}, stream=${adjusted.streamResolution.width}x${adjusted.streamResolution.height}, fps=${adjusted.videoFps}"
         )
@@ -364,7 +366,7 @@ class LiveSessionCoordinator(
         previewStarted = false
         previewRequested = true
         state.value = state.value.copy(previewReady = false, cameraError = null)
-        LogHelper.d(tag, "preview marked pending (permission or surface not ready)")
+        AstraLog.d(tag, "preview marked pending (permission or surface not ready)")
     }
 
     fun markStreamingStarted(targetBitrate: Int, fps: Int) {

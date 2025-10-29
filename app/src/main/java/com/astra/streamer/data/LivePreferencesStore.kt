@@ -1,13 +1,13 @@
-package com.astrastream.streamer.data
+package com.astra.streamer.data
 
 import android.content.Context
 import android.content.SharedPreferences
+import com.astra.streamer.ui.live.EncoderOption
+import com.astra.streamer.ui.live.LiveUiState
+import com.astra.streamer.ui.live.ResolutionOption
+import com.astra.streamer.ui.live.StreamUrlFormatter
 import kotlin.math.max
 import kotlin.math.roundToInt
-import com.astrastream.streamer.ui.live.EncoderOption
-import com.astrastream.streamer.ui.live.LiveUiState
-import com.astrastream.streamer.ui.live.ResolutionOption
-import com.astrastream.streamer.ui.live.StreamUrlFormatter
 
 class LivePreferencesStore(context: Context) {
 

@@ -10,7 +10,7 @@ import com.astra.avpush.domain.config.ScreenCaptureConfiguration
 import com.astra.avpush.domain.config.VideoConfiguration
 import com.astra.avpush.infrastructure.camera.Watermark
 import com.astra.avpush.infrastructure.screen.ScreenRecorder
-import com.astra.avpush.runtime.LogHelper
+import com.astra.avpush.runtime.AstraLog
 import java.nio.ByteBuffer
 
 class ScreenVideoController(
@@ -44,22 +44,22 @@ class ScreenVideoController(
     }
 
     override fun start() {
-        LogHelper.d(javaClass.simpleName) { "screen recorder start" }
+        AstraLog.d(javaClass.simpleName) { "screen recorder start" }
         recorder.start()
     }
 
     override fun pause() {
-        LogHelper.d(javaClass.simpleName) { "screen recorder pause" }
+        AstraLog.d(javaClass.simpleName) { "screen recorder pause" }
         recorder.pause()
     }
 
     override fun resume() {
-        LogHelper.d(javaClass.simpleName) { "screen recorder resume" }
+        AstraLog.d(javaClass.simpleName) { "screen recorder resume" }
         recorder.resume()
     }
 
     override fun stop() {
-        LogHelper.d(javaClass.simpleName) { "screen recorder stop" }
+        AstraLog.d(javaClass.simpleName) { "screen recorder stop" }
         recorder.stop()
     }
 
@@ -80,6 +80,6 @@ class ScreenVideoController(
     }
 
     override fun setWatermark(watermark: Watermark) {
-        LogHelper.d(javaClass.simpleName) { "watermark update ignored for screen capture" }
+        AstraLog.d(javaClass.simpleName) { "watermark update ignored for screen capture" }
     }
 }

@@ -1,18 +1,15 @@
 package com.astra.avpush.runtime
 
 import android.content.Context
-import com.astra.avpush.domain.callback.ILog
 import java.io.File
 import java.util.concurrent.atomic.AtomicBoolean
 
-object LogHelper : ILog {
-
-    @PublishedApi internal const val LEVEL_VERBOSE = 0
-    @PublishedApi internal const val LEVEL_DEBUG = 1
-    @PublishedApi internal const val LEVEL_INFO = 2
-    @PublishedApi internal const val LEVEL_WARN = 3
-    @PublishedApi internal const val LEVEL_ERROR = 4
-
+object AstraLog {
+    const val LEVEL_VERBOSE = 0
+    const val LEVEL_DEBUG = 1
+    const val LEVEL_INFO = 2
+    const val LEVEL_WARN = 3
+    const val LEVEL_ERROR = 4
     private val configured = AtomicBoolean(false)
 
     @Volatile
@@ -21,7 +18,12 @@ object LogHelper : ILog {
             field = value
         }
 
-    fun initialize(context: Context, directory: String = "logs", fileName: String = "astra.log", enable: Boolean = true) {
+    fun initialize(
+        context: Context,
+        directory: String = "logs",
+        fileName: String = "astra.log",
+        enable: Boolean = true
+    ) {
         val targetDir = File(context.getExternalFilesDir(null), directory)
         if (!targetDir.exists()) {
             targetDir.mkdirs()
@@ -37,13 +39,13 @@ object LogHelper : ILog {
         isShowLog = enable
     }
 
-    override fun i(tag: String, info: String?) = log(LEVEL_INFO, tag, info)
+    fun i(tag: String, info: String?) = log(LEVEL_INFO, tag, info)
 
-    override fun e(tag: String, info: String?) = log(LEVEL_ERROR, tag, info)
+    fun e(tag: String, info: String?) = log(LEVEL_ERROR, tag, info)
 
-    override fun w(tag: String, info: String?) = log(LEVEL_WARN, tag, info)
+    fun w(tag: String, info: String?) = log(LEVEL_WARN, tag, info)
 
-    override fun d(tag: String, info: String?) = log(LEVEL_DEBUG, tag, info)
+    fun d(tag: String, info: String?) = log(LEVEL_DEBUG, tag, info)
 
     inline fun i(tag: String, crossinline block: () -> String) {
         if (isShowLog) log(LEVEL_INFO, tag, block())
@@ -70,8 +72,8 @@ object LogHelper : ILog {
         log(LEVEL_ERROR, tag, content)
     }
 
-    @PublishedApi
-    internal fun log(priority: Int, tag: String, message: String?) {
+
+    fun log(priority: Int, tag: String, message: String?) {
         if (!isShowLog || !configured.get()) return
         NativeLogger.write(priority, tag, message.orEmpty())
     }

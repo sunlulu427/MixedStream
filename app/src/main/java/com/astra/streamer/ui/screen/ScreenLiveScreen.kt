@@ -1,4 +1,4 @@
-package com.astrastream.streamer.ui.screen
+package com.astra.streamer.ui.screen
 
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
@@ -51,6 +51,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -529,4 +530,4 @@ private fun ScreenFeatureRow() {
     }
 }
 
-private data class ScreenFeature(val icon: androidx.compose.ui.graphics.vector.ImageVector, val label: String)
+private data class ScreenFeature(val icon: ImageVector, val label: String)

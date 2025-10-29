@@ -5,7 +5,7 @@ import android.media.projection.MediaProjection
 import android.view.Surface
 import com.astra.avpush.domain.config.ScreenCaptureConfiguration
 import com.astra.avpush.infrastructure.codec.VideoEncoder
-import com.astra.avpush.runtime.LogHelper
+import com.astra.avpush.runtime.AstraLog
 
 class ScreenRecorder(
     private val context: Context
@@ -30,7 +30,7 @@ class ScreenRecorder(
         val targetSurface = surface ?: return
         val configuration = captureConfiguration
         if (configuration == null) {
-            LogHelper.e(javaClass.simpleName, "screen recorder surface ready but configuration missing")
+            AstraLog.e(javaClass.simpleName, "screen recorder surface ready but configuration missing")
             return
         }
         val renderer = VulkanScreenRenderer(

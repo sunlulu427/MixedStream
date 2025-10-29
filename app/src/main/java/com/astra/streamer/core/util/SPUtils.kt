@@ -1,4 +1,4 @@
-package com.astrastream.streamer.core.util
+package com.astra.streamer.core.util
 
 import android.content.Context
 import android.content.SharedPreferences
