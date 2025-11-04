@@ -173,7 +173,7 @@ class LiveActivity : AppCompatActivity(), OnConnectListener {
 
     override fun onDestroy() {
         super.onDestroy()
-        coordinator.sender?.close()
+        coordinator.releaseStreaming()
         coordinator.liveView?.stopLive()
         coordinator.liveView?.releaseCamera()
         screenCoordinator.release()
@@ -199,6 +199,7 @@ class LiveActivity : AppCompatActivity(), OnConnectListener {
 
     private fun createContentView(): View = ComposeView(this).apply {
         coordinator = LiveSessionCoordinator(this@LiveActivity, uiState, audioConfig, preferences)
+        coordinator.registerConnectListener(this@LiveActivity)
         setContent {
             AVLiveTheme {
                 var selectedMode by rememberSaveable { mutableStateOf(currentMode) }
@@ -316,56 +317,15 @@ class LiveActivity : AppCompatActivity(), OnConnectListener {
             return
         }
         coordinator.markConnecting()
-        if (!ensureCameraSender()) {
+        coordinator.startStreaming {
+            Toast.makeText(this, it, Toast.LENGTH_LONG).show()
             coordinator.clearConnecting()
-            return
-        }
-        if (coordinator.useUnifiedApi) {
-            // 使用统一API启动推流
-            startUnifiedStreaming()
-        } else {
-            // 使用传统RTMP推流
-            coordinator.sender?.setDataSource(uiState.value.streamUrl)
-            coordinator.sender?.connect()
-        }
-    }
-
-    private fun startUnifiedStreaming() {
-        // TODO: 实现统一API的推流启动逻辑
-        // 这里需要与UnifiedStreamSession集成
-        coordinator.unifiedSession?.let { session ->
-            // 暂时标记为连接成功，实际实现需要异步处理
-            coordinator.markStreamingStarted(uiState.value.targetBitrate, uiState.value.videoFps)
-            Toast.makeText(this, "统一API推流已启动 (${uiState.value.streamUrl})", Toast.LENGTH_SHORT).show()
         }
     }
 
     private fun stopCameraStreaming() {
-        if (coordinator.useUnifiedApi) {
-            // 停止统一API推流
-            coordinator.unifiedSession?.let { session ->
-                // TODO: 实现统一API的停止逻辑
-                coordinator.markStreamingStopped(uiState.value.videoFps)
-            }
-        } else {
-            // 停止传统RTMP推流
-            coordinator.liveView?.stopLive()
-            coordinator.sender?.close()
-            coordinator.markStreamingStopped(uiState.value.videoFps)
-        }
-    }
-
-    private fun ensureCameraSender(): Boolean {
-        if (!coordinator.ensureSender { Toast.makeText(this, it, Toast.LENGTH_LONG).show() }) return false
-
-        if (coordinator.useUnifiedApi) {
-            // 统一API不需要设置连接监听器，有自己的状态管理
-            return coordinator.unifiedSession != null
-        } else {
-            // 传统RTMP需要设置连接监听器
-            coordinator.sender?.setOnConnectListener(this)
-            return coordinator.sender != null
-        }
+        coordinator.stopStreaming()
+        coordinator.markStreamingStopped(uiState.value.videoFps)
     }
 
     private fun handleScreenStart() {
@@ -412,6 +372,7 @@ class LiveActivity : AppCompatActivity(), OnConnectListener {
             Toast.makeText(applicationContext, message, Toast.LENGTH_LONG).show()
             coordinator.clearConnecting()
             coordinator.markStreamingStopped(uiState.value.videoFps)
+            coordinator.stopStreaming()
         }
     }
 

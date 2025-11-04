@@ -3,8 +3,47 @@
 #include <cstdlib>
 #include <cstring>
 #include <string>
+#include <cstdarg>
+
+extern "C" {
+#include "../librtmp/include/log.h"
+}
 
 namespace {
+std::string AValToString(const AVal& v) {
+    if (!v.av_val || v.av_len <= 0) return "";
+    return std::string(v.av_val, v.av_len);
+}
+
+const char* ProtocolName(int protocol) {
+    switch (protocol) {
+        case RTMP_PROTOCOL_RTMP: return "rtmp";
+        case RTMP_PROTOCOL_RTMPE: return "rtmpe";
+        case RTMP_PROTOCOL_RTMPT: return "rtmpt";
+        case RTMP_PROTOCOL_RTMPS: return "rtmps";
+        case RTMP_PROTOCOL_RTMPTE: return "rtmpte";
+        case RTMP_PROTOCOL_RTMPTS: return "rtmpts";
+        case RTMP_PROTOCOL_RTMFP: return "rtmfp";
+        default: return "unknown";
+    }
+}
+
+void RtmpAndroidLogCallback(int level, const char* fmt, va_list args) {
+    int prio = ANDROID_LOG_DEBUG;
+    switch (level) {
+        case RTMP_LOGCRIT:   prio = ANDROID_LOG_FATAL; break;
+        case RTMP_LOGERROR:  prio = ANDROID_LOG_ERROR; break;
+        case RTMP_LOGWARNING:prio = ANDROID_LOG_WARN;  break;
+        case RTMP_LOGINFO:   prio = ANDROID_LOG_INFO;  break;
+        case RTMP_LOGDEBUG:
+        case RTMP_LOGDEBUG2:
+        case RTMP_LOGALL:    prio = ANDROID_LOG_DEBUG; break;
+        default:             prio = ANDROID_LOG_DEBUG; break;
+    }
+    char buffer[1024];
+    vsnprintf(buffer, sizeof(buffer), fmt, args);
+    __android_log_print(prio, "librtmp", "%s", buffer);
+}
 std::string MaskUrl(const char* url) {
     if (url == nullptr) {
         return "null";
@@ -234,6 +273,10 @@ void RTMPPush::onConnecting() {
         return;
     }
 
+    // Enable verbose librtmp logs to Android logcat for diagnosis
+    RTMP_LogSetCallback(RtmpAndroidLogCallback);
+    RTMP_LogSetLevel(RTMP_LOGDEBUG);
+
     RTMP_Init(mRtmp);
     const int setupResult = RTMP_SetupURL(mRtmp, mRtmpUrl);
     if (!setupResult) {
@@ -245,7 +288,21 @@ void RTMPPush::onConnecting() {
         return;
     }
 
-    mRtmp->Link.timeout = 5;
+    // Dump parsed URL details for clarity before connecting
+    {
+        const char* proto = ProtocolName(mRtmp->Link.protocol);
+        std::string host = AValToString(mRtmp->Link.hostname);
+        std::string app = AValToString(mRtmp->Link.app);
+        std::string play = AValToString(mRtmp->Link.playpath);
+        std::string tc   = AValToString(mRtmp->Link.tcUrl);
+        LOGD("rtmp parsed protocol=%s host=%s port=%u app=%s playpath=%s tcUrl=%s",
+             proto, host.c_str(), mRtmp->Link.port, app.c_str(), play.c_str(), tc.c_str());
+        if (mRtmp->Link.protocol == RTMP_PROTOCOL_RTMPS || mRtmp->Link.protocol == RTMP_PROTOCOL_RTMPTS) {
+            LOGE("RTMPS detected; ensure librtmp built with TLS support (OpenSSL/mbedTLS)");
+        }
+    }
+
+    mRtmp->Link.timeout = 10;
     RTMP_EnableWrite(mRtmp);
     const int connectResult = RTMP_Connect(mRtmp, nullptr);
     if (!connectResult) {

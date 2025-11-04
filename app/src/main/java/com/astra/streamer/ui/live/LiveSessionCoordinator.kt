@@ -1,25 +1,24 @@
 package com.astra.streamer.ui.live
 
-import android.content.Context
-import android.graphics.Color
 import android.Manifest
+import android.content.Context
 import android.content.pm.PackageManager
+import android.graphics.Color
 import android.widget.Toast
 import androidx.compose.runtime.MutableState
 import androidx.core.content.ContextCompat
-import com.astra.avpush.infrastructure.camera.Watermark
+import com.astra.avpush.domain.callback.OnConnectListener
 import com.astra.avpush.domain.config.AudioConfiguration
 import com.astra.avpush.domain.config.CameraConfiguration
 import com.astra.avpush.domain.config.VideoConfiguration
-import com.astra.avpush.stream.controller.LiveStreamSession
-import com.astra.avpush.unified.config.CameraFacing
-import com.astra.avpush.infrastructure.stream.sender.rtmp.RtmpSender
-import com.astra.avpush.unified.UnifiedStreamSession
-import com.astra.avpush.unified.builder.createStreamSession
-import com.astra.avpush.unified.config.VideoCodec
-import com.astra.avpush.unified.config.AudioCodec
-import com.astra.avpush.runtime.AstraLog
+import com.astra.avpush.infrastructure.camera.Watermark
+import com.astra.avpush.infrastructure.stream.sender.Sender
+import com.astra.avpush.infrastructure.stream.sender.SenderFactory
 import com.astra.avpush.presentation.widget.AVLiveView
+import com.astra.avpush.runtime.AstraLog
+import com.astra.avpush.stream.controller.LiveStreamSession
+import com.astra.avpush.unified.ProtocolDetector
+import com.astra.avpush.unified.config.TransportProtocol
 import com.astra.streamer.data.LivePreferencesStore
 import kotlin.math.max
 import kotlin.math.min
@@ -39,15 +38,14 @@ class LiveSessionCoordinator(
     val encoderOptions = defaultEncoderOptions()
     private val safeCaptureOption = captureOptions.first()
 
-    var sender: RtmpSender? = null
-    var unifiedSession: UnifiedStreamSession? = null
     var liveView: AVLiveView? = null
     private var previewStarted = false
     private var previewRequested = false
     private var permissionWarningShown = false
     private var resumeStreamingWhenReady = false
-    var useUnifiedApi = false
-        private set
+    private var connectListener: OnConnectListener? = null
+    private var activeProtocol: TransportProtocol? = null
+    private var sender: Sender? = null
 
     override fun onVideoStats(bitrateKbps: Int, fps: Int) {
         state.value = state.value.copy(currentBitrate = bitrateKbps, currentFps = fps)
@@ -79,87 +77,105 @@ class LiveSessionCoordinator(
         resumeStreamingWhenReady = wasStreaming
     }
 
-    fun ensureSender(onError: (String) -> Unit): Boolean {
-        val streamUrl = state.value.streamUrl
+    fun registerConnectListener(listener: OnConnectListener?) {
+        connectListener = listener
+        sender?.setOnConnectListener(listener)
+    }
 
-        // 检测是否应该使用统一API（基于URL协议）
-        useUnifiedApi = shouldUseUnifiedApi(streamUrl)
+    fun startStreaming(onError: (String) -> Unit) {
+        val snapshot = state.value
+        val sanitizedUrl = snapshot.streamUrl.trim()
+        if (sanitizedUrl.isBlank()) {
+            onError("Stream URL cannot be empty")
+            return
+        }
 
-        if (useUnifiedApi) {
-            return ensureUnifiedSession(onError)
-        } else {
-            return ensureLegacySender(onError)
+        if (liveView == null) {
+            onError("Preview surface not ready")
+            return
+        }
+
+        if (sanitizedUrl != snapshot.streamUrl) {
+            state.value = snapshot.copy(
+                streamUrl = sanitizedUrl,
+                pullUrls = StreamUrlFormatter.buildPullUrls(sanitizedUrl)
+            )
+            persistState()
+        }
+
+        val preparedSender = ensureSender(sanitizedUrl, onError) ?: return
+
+        try {
+            preparedSender.setDataSource(sanitizedUrl)
+            preparedSender.connect()
+        } catch (error: UnsatisfiedLinkError) {
+            AstraLog.e(tag, error, "Sender not supported on this ABI")
+            onError("Streaming is not supported on this device ABI. Please use an ARM device")
+            releaseSender()
+        } catch (throwable: Throwable) {
+            AstraLog.e(tag, throwable, "Failed to connect sender")
+            onError("Failed to initialise streaming module: ${throwable.message}")
+            releaseSender()
         }
     }
 
-    private fun shouldUseUnifiedApi(url: String): Boolean {
-        // 目前仅对非RTMP协议使用统一API，保持RTMP使用传统实现
-        // 未来可以通过配置开关来决定RTMP是否也使用统一API
-        return url.startsWith("webrtc://", ignoreCase = true) ||
-               url.startsWith("wss://", ignoreCase = true) ||
-               url.startsWith("ws://", ignoreCase = true) ||
-               url.startsWith("srt://", ignoreCase = true) ||
-               url.contains("webrtc", ignoreCase = true)
-
-        // 如果需要RTMP也使用统一API，可以添加：
-        // || url.startsWith("rtmp://", ignoreCase = true) ||
-        // || url.startsWith("rtmps://", ignoreCase = true)
+    fun stopStreaming() {
+        val shouldStopPreview = state.value.isStreaming || state.value.isConnecting
+        if (shouldStopPreview) {
+            liveView?.stopLive()
+        }
+        sender?.close()
+        sender = null
+        activeProtocol = null
     }
 
-    private fun ensureUnifiedSession(onError: (String) -> Unit): Boolean {
-        if (unifiedSession != null) return true
-        return try {
-            val currentState = state.value
-            val session = createStreamSession {
-                video {
-                    width = currentState.captureResolution.width
-                    height = currentState.captureResolution.height
-                    frameRate = 30
-                    bitrate = currentState.targetBitrate * 1000
-                    codec = VideoCodec.H264
-                }
+    fun releaseStreaming() {
+        stopStreaming()
+        releaseSender()
+        connectListener = null
+    }
 
-                audio {
-                    sampleRate = 44100
-                    bitrate = 128_000
-                    channels = 2
-                    codec = AudioCodec.AAC
-                }
-
-                camera {
-                    facing = CameraFacing.BACK
-                    autoFocus = true
-                    stabilization = true
-                }
-
-                // 使用协议透明的addStream方法
-                addStream(currentState.streamUrl)
+    private fun ensureSender(
+        streamUrl: String,
+        onError: (String) -> Unit
+    ): Sender? {
+        val protocol = runCatching { ProtocolDetector.detectProtocol(streamUrl) }
+            .getOrElse { error ->
+                AstraLog.e(tag, "Failed to detect protocol for $streamUrl: ${error.message}")
+                onError("Unsupported stream protocol")
+                return null
             }
 
-            unifiedSession = session
-            AstraLog.i(tag, "Unified streaming session created for URL: ${currentState.streamUrl}")
-            true
-        } catch (t: Throwable) {
-            AstraLog.e(tag, "Failed to create unified session: ${t.message}")
-            onError("Failed to initialise unified streaming: ${t.message}")
-            false
+        releaseSender()
+
+        val newSender = runCatching { SenderFactory.createForProtocol(protocol) }
+            .onFailure { error ->
+                AstraLog.e(tag, error, "Failed to create sender for protocol=${protocol.displayName}")
+                when (error) {
+                    is UnsatisfiedLinkError -> onError("Streaming is not supported on this device ABI. Please use an ARM device")
+                    else -> onError(error.message ?: "Failed to create streaming sender")
+                }
+            }
+            .getOrNull()
+            ?: return null
+
+        sender = newSender
+        activeProtocol = protocol
+        connectListener?.let(newSender::setOnConnectListener)
+        liveView?.let { view ->
+            view.setSender(newSender)
+            applyStreamConfiguration(view)
         }
+
+        AstraLog.i(tag, "Sender initialised for protocol=${protocol.displayName}")
+
+        return newSender
     }
 
-    private fun ensureLegacySender(onError: (String) -> Unit): Boolean {
-        if (sender != null) return true
-        return try {
-            val newSender = RtmpSender()
-            sender = newSender
-            liveView?.setSender(newSender)
-            true
-        } catch (error: UnsatisfiedLinkError) {
-            onError("Streaming is not supported on this device ABI. Please use an ARM device")
-            false
-        } catch (t: Throwable) {
-            onError("Failed to initialise streaming module: ${t.message}")
-            false
-        }
+    private fun releaseSender() {
+        runCatching { sender?.close() }
+        sender = null
+        activeProtocol = null
     }
 
     fun startPreview() {
@@ -230,10 +246,18 @@ class LiveSessionCoordinator(
     }
 
     fun updateStreamUrl(url: String) {
-        state.value = state.value.copy(streamUrl = url, pullUrls = StreamUrlFormatter.buildPullUrls(
-            url
+        val previousState = state.value
+        state.value = previousState.copy(
+            streamUrl = url,
+            pullUrls = StreamUrlFormatter.buildPullUrls(url)
         )
-        )
+        if (previousState.streamUrl != url) {
+            if (!previousState.isStreaming) {
+                releaseSender()
+            } else {
+                activeProtocol = null
+            }
+        }
         persistState()
     }
 
@@ -263,11 +287,19 @@ class LiveSessionCoordinator(
             Toast.makeText(context, "Publish URL cannot be empty", Toast.LENGTH_SHORT).show()
             return
         }
-        state.value = state.value.copy(
+        val previousState = state.value
+        state.value = previousState.copy(
             streamUrl = clean,
             showUrlDialog = false,
             pullUrls = StreamUrlFormatter.buildPullUrls(clean)
         )
+        if (previousState.streamUrl != clean) {
+            if (!previousState.isStreaming) {
+                releaseSender()
+            } else {
+                activeProtocol = null
+            }
+        }
         persistState()
         onValid()
     }
