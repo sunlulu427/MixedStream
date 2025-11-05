@@ -53,7 +53,6 @@ import com.astra.avpush.domain.callback.OnConnectListener
 import com.astra.avpush.domain.config.AudioConfiguration
 import com.astra.avpush.runtime.AstraLog
 import com.astra.streamer.core.util.SPUtils
-import com.astra.streamer.core.util.Utils
 import com.astra.streamer.data.LivePreferencesStore
 import com.astra.streamer.ui.live.LiveScreen
 import com.astra.streamer.ui.live.LiveSessionCoordinator
@@ -181,7 +180,6 @@ class LiveActivity : AppCompatActivity(), OnConnectListener {
     }
 
     private fun initializeEnvironment() {
-        Utils.init(application)
         AstraLog.initialize(applicationContext)
         AstraLog.enable(true)
         enableEdgeToEdge()

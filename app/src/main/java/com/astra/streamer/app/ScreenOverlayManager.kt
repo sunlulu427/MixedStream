@@ -19,11 +19,12 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import com.astra.streamer.ui.screen.ScreenLiveUiState
+import java.lang.ref.WeakReference
 
 object ScreenOverlayManager {
 
     private val handler = Handler(Looper.getMainLooper())
-    private var overlayView: View? = null
+    private var overlayViewRef: WeakReference<View>? = null
     private var windowManager: WindowManager? = null
     private var layoutParams: WindowManager.LayoutParams? = null
     private var touchSlop: Int = 0
@@ -36,7 +37,7 @@ object ScreenOverlayManager {
     fun show(context: Context, state: ScreenLiveUiState) {
         if (!Settings.canDrawOverlays(context)) return
         handler.post {
-            if (overlayView == null) {
+            if (overlayViewRef?.get() == null) {
                 createOverlay(context.applicationContext)
             }
             updateInternal(state)
@@ -50,10 +51,10 @@ object ScreenOverlayManager {
 
     fun hide(@Suppress("UNUSED_PARAMETER") context: Context) {
         handler.post {
-            overlayView?.let { view ->
+            overlayViewRef?.get()?.let { view ->
                 windowManager?.removeView(view)
             }
-            overlayView = null
+            overlayViewRef = null
             windowManager = null
             layoutParams = null
         }
@@ -115,7 +116,7 @@ object ScreenOverlayManager {
         }
 
         windowManager = wm
-        overlayView = container
+        overlayViewRef = WeakReference(container)
         layoutParams = params
         container.setOnTouchListener { view, event ->
             handleDrag(view, event)
@@ -125,7 +126,7 @@ object ScreenOverlayManager {
     }
 
     private fun updateInternal(state: ScreenLiveUiState) {
-        val view = overlayView ?: return
+        val view = overlayViewRef?.get() ?: return
         val status = view.findViewById<TextView>(R.id.text1) ?: return
         val builder = StringBuilder()
         builder.append("状态: ")

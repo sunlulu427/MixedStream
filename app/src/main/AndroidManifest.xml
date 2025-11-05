@@ -18,6 +18,7 @@
             android:roundIcon="@mipmap/ic_launcher_round"
             android:supportsRtl="true"
             android:theme="@style/Theme.AstraStream.App"
+            android:name=".AstraStreamerApplication"
             tools:ignore="GoogleAppIndexingWarning">
         <activity android:name="com.astra.streamer.app.LiveActivity"
                   android:configChanges="orientation|keyboardHidden|screenSize"

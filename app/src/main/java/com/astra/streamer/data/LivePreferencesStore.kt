@@ -2,6 +2,7 @@ package com.astra.streamer.data
 
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.core.content.edit
 import com.astra.streamer.ui.live.EncoderOption
 import com.astra.streamer.ui.live.LiveUiState
 import com.astra.streamer.ui.live.ResolutionOption
@@ -20,10 +21,10 @@ class LivePreferencesStore(context: Context) {
         streamOptions: List<ResolutionOption>,
         encoderOptions: List<EncoderOption>
     ): LiveUiState {
-        val streamUrl = preferences.getString(KEY_STREAM_URL, defaultState.streamUrl) ?: ""
+        val streamUrl = preferences.getString(PreferenceKey.STREAM_URL.key, defaultState.streamUrl) ?: ""
 
-        val captureWidth = preferences.getInt(KEY_CAPTURE_WIDTH, defaultState.captureResolution.width)
-        val captureHeight = preferences.getInt(KEY_CAPTURE_HEIGHT, defaultState.captureResolution.height)
+        val captureWidth = preferences.getInt(PreferenceKey.CAPTURE_WIDTH.key, defaultState.captureResolution.width)
+        val captureHeight = preferences.getInt(PreferenceKey.CAPTURE_HEIGHT.key, defaultState.captureResolution.height)
         val captureResolution = findResolution(
             captureWidth,
             captureHeight,
@@ -31,8 +32,8 @@ class LivePreferencesStore(context: Context) {
             captureOptions
         )
 
-        val streamWidth = preferences.getInt(KEY_STREAM_WIDTH, defaultState.streamResolution.width)
-        val streamHeight = preferences.getInt(KEY_STREAM_HEIGHT, defaultState.streamResolution.height)
+        val streamWidth = preferences.getInt(PreferenceKey.STREAM_WIDTH.key, defaultState.streamResolution.width)
+        val streamHeight = preferences.getInt(PreferenceKey.STREAM_HEIGHT.key, defaultState.streamResolution.height)
         val streamResolution = findResolution(
             streamWidth,
             streamHeight,
@@ -40,9 +41,9 @@ class LivePreferencesStore(context: Context) {
             streamOptions
         )
 
-        val encoderLabel = preferences.getString(KEY_ENCODER_LABEL, defaultState.encoder.label)
-        val encoderCodec = preferences.getString(KEY_ENCODER_CODEC, defaultState.encoder.videoCodec.name)
-        val encoderHardware = preferences.getBoolean(KEY_ENCODER_HARDWARE, defaultState.encoder.useHardware)
+        val encoderLabel = preferences.getString(PreferenceKey.ENCODER_LABEL.key, defaultState.encoder.label)
+        val encoderCodec = preferences.getString(PreferenceKey.ENCODER_CODEC.key, defaultState.encoder.videoCodec.name)
+        val encoderHardware = preferences.getBoolean(PreferenceKey.ENCODER_HARDWARE.key, defaultState.encoder.useHardware)
         val encoder = findEncoder(
             encoderLabel,
             encoderCodec,
@@ -51,9 +52,9 @@ class LivePreferencesStore(context: Context) {
             encoderOptions
         )
 
-        val storedBitrate = preferences.getInt(KEY_TARGET_BITRATE, defaultState.targetBitrate)
-        val showPanel = preferences.getBoolean(KEY_SHOW_PANEL, defaultState.showParameterPanel)
-        val showStats = preferences.getBoolean(KEY_SHOW_STATS, defaultState.showStats)
+        val storedBitrate = preferences.getInt(PreferenceKey.TARGET_BITRATE.key, defaultState.targetBitrate)
+        val showPanel = preferences.getBoolean(PreferenceKey.SHOW_PANEL.key, defaultState.showParameterPanel)
+        val showStats = preferences.getBoolean(PreferenceKey.SHOW_STATS.key, defaultState.showStats)
 
         val minBitrate = max(300, (storedBitrate * 0.7f).roundToInt())
         val maxBitrate = max(minBitrate + 200, (storedBitrate * 1.3f).roundToInt())
@@ -74,19 +75,19 @@ class LivePreferencesStore(context: Context) {
     }
 
     fun save(state: LiveUiState) {
-        preferences.edit().apply {
-            putString(KEY_STREAM_URL, state.streamUrl)
-            putInt(KEY_CAPTURE_WIDTH, state.captureResolution.width)
-            putInt(KEY_CAPTURE_HEIGHT, state.captureResolution.height)
-            putInt(KEY_STREAM_WIDTH, state.streamResolution.width)
-            putInt(KEY_STREAM_HEIGHT, state.streamResolution.height)
-            putString(KEY_ENCODER_LABEL, state.encoder.label)
-            putString(KEY_ENCODER_CODEC, state.encoder.videoCodec.name)
-            putBoolean(KEY_ENCODER_HARDWARE, state.encoder.useHardware)
-            putInt(KEY_TARGET_BITRATE, state.targetBitrate)
-            putBoolean(KEY_SHOW_PANEL, state.showParameterPanel)
-            putBoolean(KEY_SHOW_STATS, state.showStats)
-        }.apply()
+        preferences.edit {
+            putString(PreferenceKey.STREAM_URL.key, state.streamUrl)
+            putInt(PreferenceKey.CAPTURE_WIDTH.key, state.captureResolution.width)
+            putInt(PreferenceKey.CAPTURE_HEIGHT.key, state.captureResolution.height)
+            putInt(PreferenceKey.STREAM_WIDTH.key, state.streamResolution.width)
+            putInt(PreferenceKey.STREAM_HEIGHT.key, state.streamResolution.height)
+            putString(PreferenceKey.ENCODER_LABEL.key, state.encoder.label)
+            putString(PreferenceKey.ENCODER_CODEC.key, state.encoder.videoCodec.name)
+            putBoolean(PreferenceKey.ENCODER_HARDWARE.key, state.encoder.useHardware)
+            putInt(PreferenceKey.TARGET_BITRATE.key, state.targetBitrate)
+            putBoolean(PreferenceKey.SHOW_PANEL.key, state.showParameterPanel)
+            putBoolean(PreferenceKey.SHOW_STATS.key, state.showStats)
+        }
     }
 
     private fun findResolution(
@@ -115,17 +116,20 @@ class LivePreferencesStore(context: Context) {
 
     companion object {
         private const val PREF_NAME = "live_session_preferences"
-        private const val KEY_STREAM_URL = "stream_url"
-        private const val KEY_CAPTURE_WIDTH = "capture_width"
-        private const val KEY_CAPTURE_HEIGHT = "capture_height"
-        private const val KEY_STREAM_WIDTH = "stream_width"
-        private const val KEY_STREAM_HEIGHT = "stream_height"
-        private const val KEY_ENCODER_LABEL = "encoder_label"
-        private const val KEY_ENCODER_CODEC = "encoder_codec"
-        private const val KEY_ENCODER_HARDWARE = "encoder_hardware"
-        private const val KEY_TARGET_BITRATE = "target_bitrate"
-        private const val KEY_SHOW_PANEL = "show_parameter_panel"
-        private const val KEY_SHOW_STATS = "show_stats_overlay"
+
+        private enum class PreferenceKey(val key: String) {
+            STREAM_URL("stream_url"),
+            CAPTURE_WIDTH("capture_width"),
+            CAPTURE_HEIGHT("capture_height"),
+            STREAM_WIDTH("stream_width"),
+            STREAM_HEIGHT("stream_height"),
+            ENCODER_LABEL("encoder_label"),
+            ENCODER_CODEC("encoder_codec"),
+            ENCODER_HARDWARE("encoder_hardware"),
+            TARGET_BITRATE("target_bitrate"),
+            SHOW_PANEL("show_parameter_panel"),
+            SHOW_STATS("show_stats_overlay")
+        }
     }
 
 }
