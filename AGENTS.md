@@ -143,13 +143,6 @@ Replace `YOUR_STREAM_SERVER` and `YOUR_STREAM_KEY` with actual values when testi
 - `Watermark` accepts `Bitmap` or plain text. `scale` adjusts relative size (1.0 baseline). Custom vertex arrays remain supported
 - Updating the watermark rebuilds textures and refreshes VBOs. Resolution/rotation changes reuse the latest config while preserving clarity
 
-## Screen Recording Mode
-- `LiveActivity` exposes a segmented control that switches between camera and screen live flows
-- `ScreenStreamController` reuses the GStreamer-style pipeline while swapping capture sources:
-  - **Video:** `ScreenVideoController` drives `ScreenRecorder`, which delegates to `VulkanScreenRenderer`
-  - **Audio:** `ScreenAudioController` composes microphone and playback streams via `MixedAudioProcessor`
-- `ScreenOverlayManager` renders a draggable floating card using `WindowManager` when the app is backgrounded
-
 ## Code Style & Naming
 - Kotlin/Java: 4 spaces; UpperCamelCase classes; lowerCamelCase methods/fields; UPPER_SNAKE_CASE constants; lowercase package names; snake_case resources and IDs
 - C++: `.h`/`.cpp` separation; UpperCamelCase classes, lowerCamelCase methods; RAII; avoid naked pointer leaks; unified error codes to enums

@@ -1,10 +1,8 @@
 package com.astra.avpush.stream.controller
 
 import android.content.Context
-import android.media.projection.MediaProjection
 import com.astra.avpush.infrastructure.camera.Watermark
 import com.astra.avpush.domain.config.AudioConfiguration
-import com.astra.avpush.domain.config.ScreenCaptureConfiguration
 import com.astra.avpush.domain.config.VideoConfiguration
 import com.astra.avpush.infrastructure.stream.sender.Sender
 import javax.microedition.khronos.egl.EGLContext
@@ -41,6 +39,4 @@ interface LiveStreamSession {
     fun setWatermark(watermark: Watermark)
 
     fun setStatsListener(listener: StatsListener?)
-
-    fun setScreenCapture(projection: MediaProjection?, configuration: ScreenCaptureConfiguration?) {}
 }

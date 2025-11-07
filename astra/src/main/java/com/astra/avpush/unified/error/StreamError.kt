@@ -230,14 +230,6 @@ sealed class MediaError : StreamError() {
         override val recoverable: Boolean = true
     }
 
-    data class ScreenCaptureError(
-        override val code: String = "SCREEN_CAPTURE_ERROR",
-        override val message: String,
-        override val timestamp: Instant = Instant.now()
-    ) : MediaError() {
-        override val recoverable: Boolean = true
-    }
-
     data class SurfaceError(
         override val code: String = "SURFACE_ERROR",
         override val message: String,

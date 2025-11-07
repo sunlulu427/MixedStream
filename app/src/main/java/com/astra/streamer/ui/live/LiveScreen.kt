@@ -88,7 +88,6 @@ fun LiveScreen(
     onSwitchCamera: () -> Unit,
     onToggleLive: () -> Unit,
     onLiveViewReady: (AVLiveView) -> Unit,
-    modeSwitcher: @Composable () -> Unit = {},
     onBack: (() -> Unit)? = null
 ) {
     val hasUrl = state.streamUrl.isNotBlank()
@@ -229,8 +228,6 @@ fun LiveScreen(
                             )
                         }
                     }
-
-                    modeSwitcher()
 
                     LivePreparationCard(
                         state = state,

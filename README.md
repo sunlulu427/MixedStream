@@ -8,7 +8,6 @@ A Kotlin + C++ streaming toolkit for Android live streaming with RTMP. Features 
 - Real-time bitrate control and camera switching
 - OpenGL watermark composition and FBO rendering
 - FLV muxing and RTMP delivery with native `librtmp`
-- Screen recording mode with Vulkan compositor
 - Clean Architecture with clear layer separation
 
 ## Architecture
