@@ -1,15 +1,11 @@
 package com.astra.avpush.stream.controller
 
 import android.content.Context
-import android.media.MediaCodec
-import android.media.MediaFormat
-import com.astra.avpush.domain.callback.IController
-import com.astra.avpush.domain.callback.OnVideoEncodeListener
 import com.astra.avpush.domain.config.VideoConfiguration
 import com.astra.avpush.infrastructure.camera.CameraRecorder
 import com.astra.avpush.infrastructure.camera.Watermark
+import com.astra.avpush.infrastructure.stream.sender.Sender
 import com.astra.avpush.runtime.AstraLog
-import java.nio.ByteBuffer
 import javax.microedition.khronos.egl.EGLContext
 
 
@@ -17,24 +13,36 @@ class VideoController(
     context: Context,
     textureId: Int,
     eglContext: EGLContext?,
-    videoConfiguration: VideoConfiguration
-) : VideoSourceController, OnVideoEncodeListener {
+    private var videoConfiguration: VideoConfiguration,
+    private val senderProvider: () -> Sender?
+) : VideoSourceController {
 
-    private var recorder = CameraRecorder(context, textureId, eglContext).also {
+    private val recorder = CameraRecorder(context, textureId, eglContext).also {
         it.prepare(videoConfiguration)
-        it.setOnVideoEncodeListener(this)
     }
 
-    private var mListener: IController.OnVideoDataListener? = null
-
     override fun start() {
+        val sender = senderProvider() ?: run {
+            AstraLog.w(javaClass.simpleName, "start skipped: sender not available")
+            return
+        }
+        val surface = sender.prepareVideoSurface(videoConfiguration) ?: run {
+            AstraLog.e(javaClass.simpleName, "Failed to obtain video surface from sender")
+            return
+        }
         AstraLog.d(javaClass.simpleName) { "video recorder start" }
-        recorder.start()
+        recorder.prepare(videoConfiguration)
+        recorder.start(surface)
+        sender.startVideo()
     }
 
     override fun stop() {
         AstraLog.d(javaClass.simpleName) { "video recorder stop" }
         recorder.stop()
+        senderProvider()?.run {
+            stopVideo()
+            releaseVideoSurface()
+        }
     }
 
     override fun pause() {
@@ -47,26 +55,19 @@ class VideoController(
         recorder.resume()
     }
 
-    override fun onVideoEncode(bb: ByteBuffer?, bi: MediaCodec.BufferInfo?) {
-        mListener?.onVideoData(bb, bi)
-    }
-
-    override fun onVideoOutformat(outputFormat: MediaFormat?) {
-        AstraLog.i(javaClass.simpleName) { "video encoder output format: ${outputFormat?.toString() ?: "null"}" }
-        mListener?.onVideoOutformat(outputFormat)
-    }
-
     override fun setVideoBps(bps: Int) {
         AstraLog.d(javaClass.simpleName) { "video bitrate request: $bps" }
-        recorder.setEncodeBps(bps)
-    }
-
-    override fun setVideoDataListener(videoDataListener: IController.OnVideoDataListener) {
-        mListener = videoDataListener
+        senderProvider()?.updateVideoBps(bps)
     }
 
     override fun setWatermark(watermark: Watermark) {
         AstraLog.d(javaClass.simpleName) { "watermark update" }
         recorder.setWatermark(watermark)
     }
+
+    fun updateConfiguration(configuration: VideoConfiguration) {
+        videoConfiguration = configuration
+        recorder.prepare(configuration)
+    }
+
 }

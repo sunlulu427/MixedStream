@@ -57,6 +57,7 @@ JavaCallback::JavaCallback(JavaVM* vm, JNIEnv* env, jobject obj)
     jmid_success = env->GetMethodID(clazz, "onConnected", "()V");
     jmid_close = env->GetMethodID(clazz, "onClose", "()V");
     jmid_fail = env->GetMethodID(clazz, "onError", "(I)V");
+    jmid_stats = env->GetMethodID(clazz, "onStreamStats", "(II)V");
     env->DeleteLocalRef(clazz);
 }
 
@@ -77,6 +78,7 @@ JavaCallback::~JavaCallback() {
     jmid_success = nullptr;
     jmid_close = nullptr;
     jmid_fail = nullptr;
+    jmid_stats = nullptr;
 }
 
 void JavaCallback::onConnecting(ThreadContext threadContext) {
@@ -139,4 +141,16 @@ void JavaCallback::onConnectFail(RtmpErrorCode errorCode) {
         return;
     }
     scopedEnv->CallVoidMethod(jobject1, jmid_fail, static_cast<jint>(errorCode));
+}
+
+void JavaCallback::onStats(int bitrateKbps, int fps) {
+    if (!javaVM || !jobject1 || !jmid_stats) {
+        return;
+    }
+    LocalEnv env(javaVM, jniEnv, false, true);
+    JNIEnv* scopedEnv = env.get();
+    if (!scopedEnv) {
+        return;
+    }
+    scopedEnv->CallVoidMethod(jobject1, jmid_stats, static_cast<jint>(bitrateKbps), static_cast<jint>(fps));
 }

@@ -1,7 +1,6 @@
 package com.astra.avpush.stream.controller
 
 import android.content.Context
-import android.media.MediaFormat
 import android.media.projection.MediaProjection
 import com.astra.avpush.domain.config.AudioConfiguration
 import com.astra.avpush.domain.config.ScreenCaptureConfiguration
@@ -9,10 +8,6 @@ import com.astra.avpush.domain.config.VideoConfiguration
 import com.astra.avpush.infrastructure.camera.Watermark
 import com.astra.avpush.infrastructure.stream.sender.Sender
 import com.astra.avpush.runtime.AstraLog
-import com.astra.avpush.stream.pipeline.AudioCaptureNode
-import com.astra.avpush.stream.pipeline.StreamingPipeline
-import com.astra.avpush.stream.pipeline.TransportNode
-import com.astra.avpush.stream.pipeline.VideoCaptureNode
 import javax.microedition.khronos.egl.EGLContext
 
 class ScreenStreamController : LiveStreamSession {
@@ -34,19 +29,14 @@ class ScreenStreamController : LiveStreamSession {
 
     private var appContext: Context? = null
 
-    private var pipeline: StreamingPipeline? = null
-    private var audioNode: AudioCaptureNode? = null
-    private var videoNode: VideoCaptureNode? = null
-    private var transportNode: TransportNode? = null
-    private var screenAudioController: ScreenAudioController? = null
-    private var screenVideoController: ScreenVideoController? = null
+    private var audioController: ScreenAudioController? = null
+    private var videoController: ScreenVideoController? = null
 
-    private var audioSpecificConfig: ByteArray? = null
+    private val senderProvider = { sender }
 
     override fun setAudioConfigure(audioConfiguration: AudioConfiguration) {
         this.audioConfiguration = audioConfiguration
-        AstraLog.d(tag) { "audio configuration updated for screen capture" }
-        applyAudioConfiguration()
+        sender?.configureAudio(audioConfiguration)
     }
 
     override fun setVideoConfigure(videoConfiguration: VideoConfiguration) {
@@ -56,68 +46,80 @@ class ScreenStreamController : LiveStreamSession {
             height = videoConfiguration.height,
             fps = videoConfiguration.fps
         )
-        AstraLog.d(tag) { "video configuration updated for screen capture" }
-        applyVideoConfiguration()
+        sender?.configureVideo(videoConfiguration)
+        videoController?.updateConfigurations(videoConfiguration, screenConfiguration)
     }
 
     override fun setSender(sender: Sender) {
         this.sender = sender
-        applyVideoConfiguration()
-        applyAudioConfiguration()
+        sender.setOnStatsListener { bitrate, fps -> statsListener?.onVideoStats(bitrate, fps) }
+        sender.configureVideo(videoConfiguration)
+        sender.configureAudio(audioConfiguration)
     }
 
     override fun setStatsListener(listener: LiveStreamSession.StatsListener?) {
         statsListener = listener
-        transportNode?.setStatsListener { bitrate, fps -> statsListener?.onVideoStats(bitrate, fps) }
+        sender?.setOnStatsListener { bitrate, fps -> statsListener?.onVideoStats(bitrate, fps) }
     }
 
     override fun prepare(context: Context, textureId: Int, eglContext: EGLContext?) {
         appContext = context.applicationContext
-        buildPipeline()
+        audioController = ScreenAudioController(audioConfiguration, screenConfiguration, projection, senderProvider)
+        videoController = ScreenVideoController(
+            context.applicationContext,
+            screenConfiguration,
+            videoConfiguration,
+            projection,
+            senderProvider
+        )
     }
 
     override fun start() {
-        if (sender == null) {
-            AstraLog.w(tag, "start ignored: sender missing")
+        val sender = sender ?: run {
+            AstraLog.w(tag, "screen start ignored: sender missing")
             return
         }
-        if (projection == null) {
-            AstraLog.w(tag, "start ignored: projection missing")
+        val projection = projection ?: run {
+            AstraLog.w(tag, "screen start ignored: projection missing")
             return
         }
-        if (pipeline == null || pipeline?.isEmpty() == true) {
-            buildPipeline()
-        }
-        AstraLog.d(tag) { "starting screen streaming" }
-        pipeline?.start()
+        ensureControllers()
+        videoController?.updateProjection(projection)
+        audioController?.updateProjection(projection)
+        sender.configureVideo(videoConfiguration)
+        sender.configureAudio(audioConfiguration)
+        videoController?.start()
+        audioController?.start()
         statsListener?.onVideoStats(0, screenConfiguration.fps)
     }
 
     override fun pause() {
-        pipeline?.pause()
+        audioController?.pause()
+        videoController?.pause()
     }
 
     override fun resume() {
-        pipeline?.resume()
+        audioController?.resume()
+        videoController?.resume()
     }
 
     override fun stop() {
-        pipeline?.stop()
-        disposePipeline(true)
+        audioController?.stop()
+        videoController?.stop()
         statsListener?.onVideoStats(0, 0)
     }
 
     override fun setMute(isMute: Boolean) {
-        audioNode?.setMute(isMute)
+        audioController?.setMute(isMute)
     }
 
     override fun setVideoBps(bps: Int) {
-        videoNode?.setVideoBitrate(bps)
+        sender?.updateVideoBps(bps)
     }
 
     override fun setWatermark(watermark: Watermark) {
         this.watermark = watermark
-        (videoNode ?: return).setWatermark(watermark)
+        AstraLog.d(tag) { "watermark ignored for screen stream" }
     }
 
     override fun setScreenCapture(projection: MediaProjection?, configuration: ScreenCaptureConfiguration?) {
@@ -125,75 +127,22 @@ class ScreenStreamController : LiveStreamSession {
         if (configuration != null) {
             this.screenConfiguration = configuration
         }
-        screenAudioController?.updateProjection(projection)
-        screenVideoController?.updateProjection(projection)
+        audioController?.updateProjection(projection)
+        videoController?.updateProjection(projection)
     }
 
-    private fun buildPipeline() {
-        val context = appContext ?: return
-        val projection = projection ?: run {
-            AstraLog.w(tag, "projection not yet available; pipeline deferred")
-            return
+    private fun ensureControllers() {
+        if (audioController == null) {
+            audioController = ScreenAudioController(audioConfiguration, screenConfiguration, projection, senderProvider)
         }
-        disposePipeline(true)
-        val audioController = ScreenAudioController(audioConfiguration, screenConfiguration, projection)
-        val videoController = ScreenVideoController(context, screenConfiguration, videoConfiguration, projection)
-        val transport = TransportNode { sender }
-        val audioNode = AudioCaptureNode(audioController, ::handleAudioOutputFormat, ::handleError)
-        val videoNode = VideoCaptureNode(videoController, ::handleVideoOutputFormat, ::handleError)
-        audioNode.connect(transport.audioPad)
-        videoNode.connect(transport.videoPad)
-        watermark?.let(videoNode::setWatermark)
-        transport.setStatsListener { bitrate, fps -> statsListener?.onVideoStats(bitrate, fps) }
-        this.audioNode = audioNode
-        this.videoNode = videoNode
-        this.transportNode = transport
-        screenAudioController = audioController
-        screenVideoController = videoController
-        pipeline = StreamingPipeline().add(audioNode).add(videoNode).add(transport)
-        applyVideoConfiguration()
-        applyAudioConfiguration()
-        AstraLog.d(tag) { "screen pipeline initialised" }
-    }
-
-    private fun handleAudioOutputFormat(outputFormat: MediaFormat?) {
-        val buffer = outputFormat?.getByteBuffer("csd-0")?.duplicate() ?: return
-        buffer.position(0)
-        val asc = ByteArray(buffer.remaining())
-        buffer.get(asc)
-        audioSpecificConfig = asc
-        applyAudioConfiguration()
-    }
-
-    private fun handleVideoOutputFormat(outputFormat: MediaFormat?) {
-        AstraLog.d(tag) { "video output format for screen: ${outputFormat?.toString() ?: "null"}" }
-    }
-
-    private fun handleError(message: String?) {
-        AstraLog.e(tag, message)
-    }
-
-    private fun applyAudioConfiguration() {
-        val sender = sender ?: return
-        sender.configureAudio(audioConfiguration, audioSpecificConfig)
-        transportNode?.updateAudioConfiguration(audioConfiguration, audioSpecificConfig)
-    }
-
-    private fun applyVideoConfiguration() {
-        val sender = sender ?: return
-        sender.configureVideo(videoConfiguration)
-        transportNode?.updateVideoConfiguration(videoConfiguration)
-    }
-
-    private fun disposePipeline(shutdown: Boolean) {
-        pipeline?.let { pipeline ->
-            if (shutdown) pipeline.shutdown() else pipeline.release()
+        if (videoController == null && appContext != null) {
+            videoController = ScreenVideoController(
+                appContext!!,
+                screenConfiguration,
+                videoConfiguration,
+                projection,
+                senderProvider
+            )
         }
-        pipeline = null
-        audioNode = null
-        videoNode = null
-        transportNode = null
-        screenAudioController = null
-        screenVideoController = null
     }
 }

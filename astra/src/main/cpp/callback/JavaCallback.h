@@ -24,6 +24,7 @@ public:
     void onConnectSuccess();
     void onConnectFail(RtmpErrorCode errorCode);
     void onClose(ThreadContext threadContext);
+    void onStats(int bitrateKbps, int fps);
 
 private:
     JNIEnv* jniEnv = nullptr;
@@ -33,6 +34,7 @@ private:
     jmethodID jmid_success = nullptr;
     jmethodID jmid_close = nullptr;
     jmethodID jmid_fail = nullptr;
+    jmethodID jmid_stats = nullptr;
 };
 
 #endif  // ASTRASTREAM_JAVACALLBACK_H

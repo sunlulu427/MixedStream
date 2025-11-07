@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "PushProxy.h"
+#include "../codec/NativeStreamEngine.h"
 
 namespace {
 JavaVM* gJavaVM = nullptr;
@@ -53,6 +54,7 @@ Java_com_astra_avpush_infrastructure_stream_sender_rtmp_RtmpSender_nativeConnect
     __android_log_print(ANDROID_LOG_INFO, kTag, "nativeConnect invoked url=%s", MaskUrl(rtmpUrl).c_str());
     auto* callback = new JavaCallback(gJavaVM, env, thiz);
     PushProxy::getInstance()->init(rtmpUrl, &callback);
+    NativeStreamEngine::Instance().setCallback(callback);
     PushProxy::getInstance()->start();
     env->ReleaseStringUTFChars(url, rtmpUrl);
 }
@@ -61,6 +63,8 @@ JNIEXPORT void JNICALL
 Java_com_astra_avpush_infrastructure_stream_sender_rtmp_RtmpSender_nativeClose(
         JNIEnv*, jobject) {
     __android_log_print(ANDROID_LOG_INFO, kTag, "nativeClose invoked");
+    NativeStreamEngine::Instance().shutdown();
+    NativeStreamEngine::Instance().setCallback(nullptr);
     PushProxy::getInstance()->stop();
 }
 

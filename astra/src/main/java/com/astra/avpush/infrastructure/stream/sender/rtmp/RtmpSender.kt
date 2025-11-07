@@ -1,19 +1,22 @@
 package com.astra.avpush.infrastructure.stream.sender.rtmp
 
 import android.media.AudioFormat
-import android.media.MediaCodec
 import com.astra.avpush.domain.callback.OnConnectListener
 import com.astra.avpush.domain.config.AudioConfiguration
 import com.astra.avpush.domain.config.VideoConfiguration
 import com.astra.avpush.infrastructure.stream.sender.Sender
 import com.astra.avpush.runtime.AstraLog
 import com.astra.avpush.runtime.RtmpErrorCode
-import java.nio.ByteBuffer
+import android.view.Surface
 
 class RtmpSender : Sender {
     private val tag = javaClass.simpleName
     private var listener: OnConnectListener? = null
     private var rtmpUrl: String? = null
+    private var statsListener: ((Int, Int) -> Unit)? = null
+    private var videoSurface: Surface? = null
+    private var videoConfig: VideoConfiguration = VideoConfiguration()
+    private var audioConfig: AudioConfiguration = AudioConfiguration()
 
     companion object {
         init {
@@ -31,6 +34,11 @@ class RtmpSender : Sender {
         AstraLog.d(tag) { "connect listener updated=${listener != null}" }
     }
 
+    override fun setOnStatsListener(listener: ((Int, Int) -> Unit)?) {
+        statsListener = listener
+        AstraLog.d(tag) { "stats listener updated=${listener != null}" }
+    }
+
     override fun connect() {
         AstraLog.d(tag) { "connect invoked url=${maskUrl(rtmpUrl)}" }
         nativeConnect(rtmpUrl)
@@ -38,38 +46,95 @@ class RtmpSender : Sender {
 
     override fun close() {
         AstraLog.d(tag) { "close invoked" }
+        releaseVideoSurface()
         nativeClose()
         listener?.onClose()
+        statsListener = null
     }
 
     override fun configureVideo(config: VideoConfiguration) {
+        videoConfig = config
+        AstraLog.d(tag) {
+            "cache video config width=${config.width} height=${config.height} fps=${config.fps} codec=${config.codec}"
+        }
+    }
+
+    override fun configureAudio(config: AudioConfiguration) {
+        audioConfig = config
+        val bytesPerSample = when (config.encoding) {
+            AudioFormat.ENCODING_PCM_8BIT -> 1
+            AudioFormat.ENCODING_PCM_FLOAT -> 4
+            else -> 2
+        }
+        AstraLog.d(tag) {
+            "configure audio sampleRate=${config.sampleRate} channels=${config.channelCount} bytesPerSample=$bytesPerSample"
+        }
+        nativeConfigureAudioEncoder(
+            config.sampleRate,
+            config.channelCount,
+            config.maxBps,
+            bytesPerSample
+        )
+    }
+
+    override fun prepareVideoSurface(config: VideoConfiguration): Surface? {
+        videoConfig = config
+        if (videoSurface != null) {
+            return videoSurface
+        }
         val codecOrdinal = when (config.codec) {
             VideoConfiguration.VideoCodec.H264 -> 0
             VideoConfiguration.VideoCodec.H265 -> 1
         }
         AstraLog.d(tag) {
-            "configure video width=${config.width} height=${config.height} fps=${config.fps} codec=${config.codec}"
+            "prepare video surface width=${config.width} height=${config.height} fps=${config.fps} codec=${config.codec}"
         }
-        nativeConfigureVideo(config.width, config.height, config.fps, codecOrdinal)
+        videoSurface = nativePrepareVideoSurface(
+            config.width,
+            config.height,
+            config.fps,
+            config.maxBps,
+            config.ifi,
+            codecOrdinal
+        )
+        return videoSurface
     }
 
-    override fun configureAudio(config: AudioConfiguration, audioSpecificConfig: ByteArray?) {
-        val sampleSizeBits = when (config.encoding) {
-            AudioFormat.ENCODING_PCM_8BIT -> 8
-            else -> 16
-        }
-        AstraLog.d(tag) {
-            "configure audio sampleRate=${config.sampleRate} channels=${config.channelCount} sampleSizeBits=$sampleSizeBits asc=${audioSpecificConfig?.size ?: 0}"
-        }
-        nativeConfigureAudio(config.sampleRate, config.channelCount, sampleSizeBits, audioSpecificConfig)
+    override fun releaseVideoSurface() {
+        AstraLog.d(tag) { "release video surface" }
+        videoSurface?.release()
+        videoSurface = null
+        nativeReleaseVideoSurface()
     }
 
-    override fun pushVideo(buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
-        nativePushVideoFrame(buffer, info.offset, info.size, info.presentationTimeUs)
+    override fun startVideo() {
+        AstraLog.d(tag) { "start video encoder" }
+        nativeStartVideoEncoder()
     }
 
-    override fun pushAudio(buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
-        nativePushAudioFrame(buffer, info.offset, info.size, info.presentationTimeUs)
+    override fun stopVideo() {
+        AstraLog.d(tag) { "stop video encoder" }
+        nativeStopVideoEncoder()
+    }
+
+    override fun updateVideoBps(bps: Int) {
+        AstraLog.d(tag) { "update video bitrate=$bps" }
+        nativeUpdateVideoBitrate(bps)
+    }
+
+    override fun startAudio() {
+        AstraLog.d(tag) { "start audio encoder" }
+        nativeStartAudioEncoder()
+    }
+
+    override fun stopAudio() {
+        AstraLog.d(tag) { "stop audio encoder" }
+        nativeStopAudioEncoder()
+    }
+
+    override fun pushAudioPcm(data: ByteArray, length: Int) {
+        if (length <= 0) return
+        nativePushAudioPcm(data, length)
     }
 
     fun onConnecting() {
@@ -100,6 +165,11 @@ class RtmpSender : Sender {
         listener?.onFail(readable)
     }
 
+    fun onStreamStats(bitrateKbps: Int, fps: Int) {
+        AstraLog.d(tag) { "native stats bitrate=${bitrateKbps}kbps fps=$fps" }
+        statsListener?.invoke(bitrateKbps, fps)
+    }
+
     private fun maskUrl(url: String?): String {
         if (url.isNullOrBlank()) return "null"
         val separatorIndex = url.lastIndexOf('/')
@@ -117,8 +187,25 @@ class RtmpSender : Sender {
 
     private external fun nativeConnect(url: String?)
     private external fun nativeClose()
-    private external fun nativeConfigureVideo(width: Int, height: Int, fps: Int, codecOrdinal: Int)
-    private external fun nativeConfigureAudio(sampleRate: Int, channels: Int, sampleSizeBits: Int, asc: ByteArray?)
-    private external fun nativePushVideoFrame(buffer: ByteBuffer, offset: Int, size: Int, ptsUs: Long)
-    private external fun nativePushAudioFrame(buffer: ByteBuffer, offset: Int, size: Int, ptsUs: Long)
+    private external fun nativePrepareVideoSurface(
+        width: Int,
+        height: Int,
+        fps: Int,
+        bitrateKbps: Int,
+        iframeInterval: Int,
+        codecOrdinal: Int
+    ): Surface?
+    private external fun nativeReleaseVideoSurface()
+    private external fun nativeStartVideoEncoder()
+    private external fun nativeStopVideoEncoder()
+    private external fun nativeUpdateVideoBitrate(bitrateKbps: Int)
+    private external fun nativeConfigureAudioEncoder(
+        sampleRate: Int,
+        channels: Int,
+        bitrateKbps: Int,
+        bytesPerSample: Int
+    )
+    private external fun nativeStartAudioEncoder()
+    private external fun nativeStopAudioEncoder()
+    private external fun nativePushAudioPcm(data: ByteArray, length: Int)
 }
