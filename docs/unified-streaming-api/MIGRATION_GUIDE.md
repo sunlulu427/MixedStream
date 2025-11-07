@@ -27,7 +27,7 @@ live.setAudioConfigure(audioConfig)
 live.setVideoConfigure(videoConfig)
 live.setCameraConfigure(cameraConfig)
 
-val sender = RtmpSender()
+val sender = RtmpStreamSession()
 sender.connect("rtmp://live.example.com/live/stream")
 
 live.startPreview()
@@ -74,7 +74,7 @@ live.setAudioConfigure(audioConfig)
 live.setVideoConfigure(videoConfig)
 live.setCameraConfigure(cameraConfig)
 
-val sender = RtmpSender()
+val sender = RtmpStreamSession()
 sender.connect("rtmp://live.example.com/live/stream")
 
 live.startPreview()
@@ -200,13 +200,13 @@ val session = createStreamSession {
 ```kotlin
 class LiveActivity : AppCompatActivity() {
     private lateinit var live: AVLiveView
-    private lateinit var sender: RtmpSender
+    private lateinit var sender: RtmpStreamSession
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         live = findViewById(R.id.live_view)
-        sender = RtmpSender()
+        sender = RtmpStreamSession()
 
         // 配置
         live.setAudioConfigure(audioConfig)
@@ -447,10 +447,10 @@ class AVLiveViewAdapter(context: Context) : AVLiveView(context) {
 }
 ```
 
-### RtmpSenderAdapter
+### RtmpStreamSessionAdapter
 
 ```kotlin
-class RtmpSenderAdapter : RtmpSender {
+class RtmpStreamSessionAdapter : RtmpStreamSession {
     private var transportId: TransportId? = null
     private lateinit var session: UnifiedStreamSession
 

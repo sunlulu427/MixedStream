@@ -635,7 +635,7 @@ class VideoCaptureNodeAdapter(
 ```kotlin
 // RTMP传输节点 (复用现有实现)
 class RtmpTransportNode(
-    private val rtmpSender: RtmpSender
+    private val streamSession: RtmpStreamSession
 ) : MediaPipelineNode {
 
     override val name = "RtmpTransport"
@@ -645,7 +645,7 @@ class RtmpTransportNode(
     private val audioInputPad = object : MediaInputPad {
         override fun acceptFrame(frame: MediaFrame) {
             if (frame is AudioFrame) {
-                rtmpSender.pushAudio(frame.buffer, createBufferInfo(frame))
+                streamSession.pushAudio(frame.buffer, createBufferInfo(frame))
             }
         }
 
@@ -657,7 +657,7 @@ class RtmpTransportNode(
     private val videoInputPad = object : MediaInputPad {
         override fun acceptFrame(frame: MediaFrame) {
             if (frame is VideoFrame) {
-                rtmpSender.pushVideo(frame.buffer, createBufferInfo(frame))
+                streamSession.pushVideo(frame.buffer, createBufferInfo(frame))
             }
         }
 
@@ -893,7 +893,7 @@ fun setupDependencies() {
 
         // 注册传输组件
         registerFactory<RtmpTransport> {
-            RtmpTransportImpl(get<RtmpSender>())
+            RtmpTransportImpl(get<RtmpStreamSession>())
         }
 
         registerFactory<WebRtcTransport> {

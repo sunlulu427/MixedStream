@@ -63,7 +63,7 @@ val session = createStreamSession {
 
 **第3周: RTMP适配器实现**
 - [ ] 创建RtmpTransport实现
-- [ ] 集成现有RtmpSender
+- [ ] 集成现有RtmpStreamSession
 - [ ] 实现RTMP状态管理
 - [ ] 添加RTMP错误处理
 - [ ] 编写RTMP传输测试

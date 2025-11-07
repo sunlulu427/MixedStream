@@ -1,15 +1,18 @@
 package com.astra.avpush.infrastructure.stream.sender.rtmp
 
 import android.media.AudioFormat
+import android.view.Surface
 import com.astra.avpush.domain.callback.OnConnectListener
 import com.astra.avpush.domain.config.AudioConfiguration
 import com.astra.avpush.domain.config.VideoConfiguration
 import com.astra.avpush.infrastructure.stream.sender.Sender
 import com.astra.avpush.runtime.AstraLog
 import com.astra.avpush.runtime.RtmpErrorCode
-import android.view.Surface
 
-class RtmpSender : Sender {
+/**
+ * Represents the full RTMP streaming session: connection, encoder control, surfaces, and stats.
+ */
+class RtmpStreamSession : Sender {
     private val tag = javaClass.simpleName
     private var listener: OnConnectListener? = null
     private var rtmpUrl: String? = null

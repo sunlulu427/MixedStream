@@ -8,13 +8,13 @@
 - `app/src/main/java/com/astrastream/streamer/app/LiveActivity.kt`
   - Initialises Compose content in `onCreate()` via `setContent { LiveScreen(...) }` and wires `AVLiveView` through `LiveSessionCoordinator`.
   - Requests camera/microphone/storage permissions using RxPermissions; caches consent in `SharedPreferences` for re-entry.
-  - Lazily creates `RtmpSender` inside the RTMP dialog to avoid loading native binaries on unsupported ABIs.
+  - Lazily creates `RtmpStreamSession` inside the RTMP dialog to avoid loading native binaries on unsupported ABIs.
   - Cleans up `sender`, stops the live session, and releases the camera in `onDestroy()`.
 
 ## Permissions & Stability
 - `LiveActivity.requestRuntimePermissions()` handles CAMERA, RECORD_AUDIO, and storage permissions. When denied, preview remains pending until granted.
 - Watermark configuration is safe pre-preview: the coordinator defers actual GL calls until the renderer is ready.
-- `RtmpSender` instantiation is wrapped in try/catch to surface friendly errors when the ABI is unsupported.
+- `RtmpStreamSession` instantiation is wrapped in try/catch to surface friendly errors when the ABI is unsupported.
 
 ## Logging
 - Use `LogHelper` for important lifecycle events (preview start, encoder changes, bitrate updates, RTMP state).

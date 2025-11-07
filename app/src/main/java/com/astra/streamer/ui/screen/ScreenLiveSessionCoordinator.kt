@@ -11,7 +11,7 @@ import com.astra.avpush.domain.callback.OnConnectListener
 import com.astra.avpush.domain.config.AudioConfiguration
 import com.astra.avpush.domain.config.ScreenCaptureConfiguration
 import com.astra.avpush.domain.config.VideoConfiguration
-import com.astra.avpush.infrastructure.stream.sender.rtmp.RtmpSender
+import com.astra.avpush.infrastructure.stream.sender.rtmp.RtmpStreamSession
 import com.astra.avpush.runtime.AstraLog
 import com.astra.avpush.stream.controller.LiveStreamSession
 import com.astra.avpush.stream.controller.ScreenStreamController
@@ -30,7 +30,7 @@ class ScreenLiveSessionCoordinator(
         it.setStatsListener(this)
     }
 
-    var sender: RtmpSender? = null
+    var sender: RtmpStreamSession? = null
         private set
 
     private var mediaProjection: MediaProjection? = null
@@ -74,7 +74,7 @@ class ScreenLiveSessionCoordinator(
     fun ensureSender(onError: (String) -> Unit): Boolean {
         if (sender != null) return true
         return try {
-            val newSender = RtmpSender()
+            val newSender = RtmpStreamSession()
             sender = newSender
             session.setSender(newSender)
             true

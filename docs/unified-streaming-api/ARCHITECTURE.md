@@ -269,13 +269,14 @@ class RtmpTransport(private val config: RtmpConfig) : StreamTransport {
     private val _state = MutableStateFlow<TransportState>(TransportState.DISCONNECTED)
     override val state: StateFlow<TransportState> = _state.asStateFlow()
 
-    private val rtmpSender = RtmpSender() // 使用现有实现
+    private val streamSession = RtmpStreamSession() // 使用现有实现
 
     override suspend fun connect() {
         _state.value = TransportState.CONNECTING
 
         try {
-            rtmpSender.connect(config.pushUrl)
+            streamSession.setDataSource(config.pushUrl)
+            streamSession.connect()
             _state.value = TransportState.CONNECTED
         } catch (e: Exception) {
             _state.value = TransportState.ERROR(TransportError.ConnectionFailed(
@@ -287,8 +288,8 @@ class RtmpTransport(private val config: RtmpConfig) : StreamTransport {
 
     override suspend fun send(data: StreamData) {
         when (data) {
-            is AudioData -> rtmpSender.sendAudio(data.bytes, data.timestamp)
-            is VideoData -> rtmpSender.sendVideo(data.bytes, data.timestamp, data.isKeyFrame)
+            is AudioData -> streamSession.sendAudio(data.bytes, data.timestamp)
+            is VideoData -> streamSession.sendVideo(data.bytes, data.timestamp, data.isKeyFrame)
         }
     }
 }

@@ -1,6 +1,6 @@
 package com.astra.avpush.unified.transport.rtmp
 
-import com.astra.avpush.infrastructure.stream.sender.rtmp.RtmpSender
+import com.astra.avpush.infrastructure.stream.sender.rtmp.RtmpStreamSession
 import com.astra.avpush.unified.ConnectionQuality
 import com.astra.avpush.unified.TransportState
 import com.astra.avpush.unified.TransportStats
@@ -26,7 +26,7 @@ import java.util.concurrent.atomic.AtomicLong
 /**
  * RTMP传输实现
  *
- * 适配现有的RtmpSender到新的统一传输接口
+ * 适配现有的RtmpStreamSession到新的统一传输接口
  */
 class RtmpTransport(
     private val config: RtmpConfig
@@ -41,8 +41,8 @@ class RtmpTransport(
     private val _stats = MutableStateFlow(createInitialStats())
     override val stats: StateFlow<TransportStats> = _stats.asStateFlow()
 
-    // 使用现有的RtmpSender实现
-    private var rtmpSender: RtmpSender? = null
+    // 使用现有的RtmpStreamSession实现
+    private var streamSession: RtmpStreamSession? = null
 
     // 统计信息
     private val bytesSent = AtomicLong(0)
@@ -66,15 +66,15 @@ class RtmpTransport(
         connectionStartTime.set(System.currentTimeMillis())
 
         try {
-            // 创建RtmpSender实例
-            rtmpSender = RtmpSender().apply {
+            // 创建RtmpStreamSession实例
+            streamSession = RtmpStreamSession().apply {
                 // 配置RTMP参数
-                configureRtmpSender(this)
+                configureRtmpSession(this)
             }
 
             // 配置RTMP服务器地址并连接
-            rtmpSender?.setDataSource(config.pushUrl)
-            rtmpSender?.connect()
+            streamSession?.setDataSource(config.pushUrl)
+            streamSession?.connect()
 
             _state.value = TransportState.CONNECTED
             retryCount = 0
@@ -102,12 +102,12 @@ class RtmpTransport(
         scope.cancel()
 
         try {
-            rtmpSender?.close()
+            streamSession?.close()
         } catch (e: Exception) {
             // 忽略断开连接时的错误
         }
 
-        rtmpSender = null
+        streamSession = null
         _state.value = TransportState.DISCONNECTED
 
         // 重置统计信息
@@ -120,10 +120,10 @@ class RtmpTransport(
         ensureConnected()
 
         try {
-            // Convert AudioData to the format expected by RtmpSender
+            // Convert AudioData to the format expected by RtmpStreamSession
             // For now, we'll need to create a ByteBuffer and MediaCodec.BufferInfo
             // This is a placeholder implementation that needs proper integration
-            // rtmpSender?.pushAudio(audioBuffer, bufferInfo)
+            // streamSession?.pushAudio(audioBuffer, bufferInfo)
             bytesSent.addAndGet(data.bytes.size.toLong())
 
             if (_state.value != TransportState.STREAMING) {
@@ -138,10 +138,10 @@ class RtmpTransport(
         ensureConnected()
 
         try {
-            // Convert VideoData to the format expected by RtmpSender
+            // Convert VideoData to the format expected by RtmpStreamSession
             // For now, we'll need to create a ByteBuffer and MediaCodec.BufferInfo
             // This is a placeholder implementation that needs proper integration
-            // rtmpSender?.pushVideo(videoBuffer, bufferInfo)
+            // streamSession?.pushVideo(videoBuffer, bufferInfo)
             bytesSent.addAndGet(data.bytes.size.toLong())
 
             if (_state.value != TransportState.STREAMING) {
@@ -216,7 +216,7 @@ class RtmpTransport(
         )
     }
 
-    private fun configureRtmpSender(sender: RtmpSender) {
+    private fun configureRtmpSession(session: RtmpStreamSession) {
         // 配置RTMP发送器的参数
         // 这里可以根据config设置各种RTMP参数
     }

@@ -1,6 +1,6 @@
 package com.astra.avpush.infrastructure.stream.sender
 
-import com.astra.avpush.infrastructure.stream.sender.rtmp.RtmpSender
+import com.astra.avpush.infrastructure.stream.sender.rtmp.RtmpStreamSession
 import com.astra.avpush.runtime.AstraLog
 import com.astra.avpush.unified.ProtocolDetector
 import com.astra.avpush.unified.config.TransportProtocol
@@ -32,7 +32,7 @@ object SenderFactory {
     fun createForProtocol(protocol: TransportProtocol): Sender {
         AstraLog.d(TAG, "Resolving sender for protocol=${protocol.displayName}")
         return when (protocol) {
-            TransportProtocol.RTMP -> RtmpSender()
+            TransportProtocol.RTMP -> RtmpStreamSession()
             else -> throw UnsupportedOperationException(
                 "Protocol ${protocol.displayName} is not supported yet"
             )
