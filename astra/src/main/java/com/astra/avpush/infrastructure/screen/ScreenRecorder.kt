@@ -4,12 +4,11 @@ import android.content.Context
 import android.media.projection.MediaProjection
 import android.view.Surface
 import com.astra.avpush.domain.config.ScreenCaptureConfiguration
-import com.astra.avpush.infrastructure.codec.VideoEncoder
 import com.astra.avpush.runtime.AstraLog
 
 class ScreenRecorder(
     private val context: Context
-) : VideoEncoder() {
+) {
 
     private var captureConfiguration: ScreenCaptureConfiguration? = null
     private var mediaProjection: MediaProjection? = null
@@ -25,32 +24,23 @@ class ScreenRecorder(
         renderer?.updateProjection(projection)
     }
 
-    override fun onSurfaceCreate(surface: Surface?) {
-        super.onSurfaceCreate(surface)
-        val targetSurface = surface ?: return
+    fun start(targetSurface: Surface) {
         val configuration = captureConfiguration
         if (configuration == null) {
-            AstraLog.e(javaClass.simpleName, "screen recorder surface ready but configuration missing")
+            AstraLog.e(javaClass.simpleName, "screen recorder start requested without configuration")
             return
         }
-        val renderer = VulkanScreenRenderer(
+        val screenRenderer = VulkanScreenRenderer(
             context = context,
             configuration = configuration,
             targetSurface = targetSurface
         )
-        renderer.updateProjection(mediaProjection)
-        renderer.start()
-        this.renderer = renderer
+        screenRenderer.updateProjection(mediaProjection)
+        screenRenderer.start()
+        renderer = screenRenderer
     }
 
-    override fun stop() {
-        super.stop()
-        renderer?.stop()
-        renderer = null
-    }
-
-    override fun onSurfaceDestory(surface: Surface?) {
-        super.onSurfaceDestory(surface)
+    fun stop() {
         renderer?.stop()
         renderer = null
     }

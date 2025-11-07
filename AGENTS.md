@@ -83,7 +83,7 @@ sender.close()
 - **Clean**: `./gradlew clean`
 
 ### Requirements
-- Android SDK 34 (compile/target) with minimum API level 21
+- Android SDK 34 (compile/target) with minimum API level 26 (native `AMediaCodec` support)
 - Android NDK 27.1.12297006
 - CMake 3.22.1
 - JDK 17

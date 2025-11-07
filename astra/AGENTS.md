@@ -2,7 +2,7 @@
 
 ## Layering Overview
 - Capture/Render: `camera/*`, `camera/renderer/*`, `widget/*` (see `docs/video_capture.puml`, `docs/video_render.puml`).
-- Encode: `mediacodec/*` (see `docs/video_encode.puml`).
+- Encode: native `src/main/cpp/codec/*` (see `docs/video_encode.puml`).
 - Transport: `stream/sender/*` (RTMP sender + JNI bridge) backed by native FLV/AMF muxing.
 - Controllers: `controller/*` coordinate the pipeline end-to-end.
 - Config/Callback: `config/*`, `callback/*` define host-facing contracts.
@@ -13,7 +13,7 @@
 - **Watermark Application**: `CameraView.setWatermark()` buffers requests until GL is ready; watermarks are applied once `onSurfaceCreated` fires to prevent `lateinit` crashes.
 - **FBO Rendering**: `FboRenderer` manages off-screen rendering. Create textures only after the EGL context is live.
 - **Camera Management**: `CameraHolder` centralises open/start/stop/release and downgrades gracefully when hardware is busy or unavailable.
-- **Codec Output**: Encoded buffers flow from `VideoMediaCodec`/`AudioMediaCodec` through `StreamController` to `RtmpSender`, which forwards raw frames to the native muxer.
+- **Codec Output**: Kotlin controllers supply raw surfaces/PCM; native `NativeStreamEngine` drives `AMediaCodec` encoders and pushes encoded frames directly into the FLV/RTMP muxer.
 - **RTMP Sender**: `RtmpSender` calls into native code lazily, avoiding ABI mismatches. Refer to `docs/video_streaming.puml` for flow details.
 
 ## Native Build

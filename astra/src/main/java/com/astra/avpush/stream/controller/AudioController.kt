@@ -1,34 +1,21 @@
 package com.astra.avpush.stream.controller
 
-import android.media.MediaCodec
-import android.media.MediaFormat
 import com.astra.avpush.domain.callback.IController
-import com.astra.avpush.domain.callback.OnAudioEncodeListener
 import com.astra.avpush.domain.config.AudioConfiguration
 import com.astra.avpush.infrastructure.audio.AudioProcessor
-import com.astra.avpush.infrastructure.codec.AudioEncoder
+import com.astra.avpush.infrastructure.stream.sender.Sender
 import com.astra.avpush.runtime.AstraLog
-import java.nio.ByteBuffer
 
-class AudioController(private val audioConfiguration: AudioConfiguration) : IController,
-    AudioProcessor.OnRecordListener,
-    OnAudioEncodeListener {
-
-    /**
-     * 音频编解码用到的实体程序
-     */
-    private val mAudioEncoder: AudioEncoder = AudioEncoder(audioConfiguration)
+class AudioController(
+    private val audioConfiguration: AudioConfiguration,
+    private val senderProvider: () -> Sender?
+) : IController,
+    AudioProcessor.OnRecordListener {
 
     /**
      * 音频采集用到的实体程序
      */
     private val mAudioProcessor: AudioProcessor = AudioProcessor()
-
-    /**
-     * 音频数据的监听
-     */
-    private var mAudioDataListener: IController.OnAudioDataListener? = null
-
 
     init {
         mAudioProcessor.init(
@@ -37,7 +24,6 @@ class AudioController(private val audioConfiguration: AudioConfiguration) : ICon
             audioConfiguration.channelCount
         )
         mAudioProcessor.addRecordListener(this)
-        mAudioEncoder.setOnAudioEncodeListener(this)
     }
 
     /**
@@ -78,7 +64,7 @@ class AudioController(private val audioConfiguration: AudioConfiguration) : ICon
      * 当采集 PCM 数据的时候返回
      */
     override fun onPcmData(byteArray: ByteArray) {
-        mAudioEncoder.enqueueCodec(byteArray)
+        senderProvider()?.pushAudioPcm(byteArray, byteArray.size)
     }
 
     /**
@@ -86,7 +72,7 @@ class AudioController(private val audioConfiguration: AudioConfiguration) : ICon
      */
     override fun onStart(sampleRate: Int, channels: Int, sampleFormat: Int) {
         AstraLog.d(javaClass.simpleName) { "audio recorder started sampleRate=$sampleRate channels=$channels format=$sampleFormat" }
-        mAudioEncoder.start()
+        senderProvider()?.startAudio()
     }
 
     /**
@@ -101,7 +87,7 @@ class AudioController(private val audioConfiguration: AudioConfiguration) : ICon
     override fun onStop() {
         super.onStop()
         AstraLog.d(javaClass.simpleName) { "audio recorder stop callback" }
-        mAudioEncoder.stop()
+        senderProvider()?.stopAudio()
     }
 
     /**
@@ -109,25 +95,9 @@ class AudioController(private val audioConfiguration: AudioConfiguration) : ICon
      */
     override fun onError(meg: String?) {
         AstraLog.e(javaClass.simpleName, meg)
-        mAudioDataListener?.onError(meg)
     }
 
     /**
      * 当 Audio 编码数据的时候
      */
-    override fun onAudioEncode(bb: ByteBuffer, bi: MediaCodec.BufferInfo) {
-        mAudioDataListener?.onAudioData(bb, bi)
-    }
-
-    /**
-     * 编码的输出格式
-     */
-    override fun onAudioOutformat(outputFormat: MediaFormat?) {
-        mAudioDataListener?.onAudioOutformat(outputFormat)
-    }
-
-    override fun setAudioDataListener(audioDataListener: IController.OnAudioDataListener) {
-        super.setAudioDataListener(audioDataListener)
-        mAudioDataListener = audioDataListener
-    }
 }

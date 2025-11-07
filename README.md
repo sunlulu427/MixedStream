@@ -4,7 +4,7 @@ A Kotlin + C++ streaming toolkit for Android live streaming with RTMP. Features 
 
 ## Key Features
 
-- Hardware-based audio/video encoding via `MediaCodec`
+- Hardware-based audio/video encoding via native `AMediaCodec` (NDK)
 - Real-time bitrate control and camera switching
 - OpenGL watermark composition and FBO rendering
 - FLV muxing and RTMP delivery with native `librtmp`
@@ -15,12 +15,13 @@ A Kotlin + C++ streaming toolkit for Android live streaming with RTMP. Features 
 
 - **UI Layer**: `app/` demo and `widget/AVLiveView`
 - **Use-Case Layer**: `controller/*` orchestrating capture/encode/package/send
-- **Infrastructure**: `camera/*`, `mediacodec/*`, `stream/*`, native `librtmp`
+- **Infrastructure**: `camera/*`, native `codec/*` + `stream/*`, RTMP bridge via `librtmp`
 
 ## Getting Started
 
 ### Prerequisites
 - Android SDK 34, NDK 27.1.12297006, CMake 3.22.1, JDK 17
+- Minimum device API level 26 (native MediaCodec surface APIs)
 - Gradle 8.6 with Android Gradle Plugin 8.4.2 and Kotlin 1.9.24
 
 ### Build
