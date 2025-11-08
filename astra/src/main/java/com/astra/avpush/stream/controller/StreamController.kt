@@ -18,7 +18,6 @@ class StreamController : LiveStreamSession {
     private var sender: Sender? = null
     private var statsListener: LiveStreamSession.StatsListener? = null
 
-    private var appContext: Context? = null
     private var textureId: Int = 0
     private var eglContext: EGLContext? = null
 
@@ -33,7 +32,7 @@ class StreamController : LiveStreamSession {
             "audio configuration updated: sampleRate=${audioConfiguration.sampleRate}, channels=${audioConfiguration.channelCount}"
         }
         sender?.configureAudio(audioConfiguration)
-        if (audioController == null && appContext != null) {
+        if (audioController == null) {
             audioController = AudioController(audioConfiguration, senderProvider)
         } else {
             audioController?.updateConfiguration(audioConfiguration)
@@ -63,7 +62,6 @@ class StreamController : LiveStreamSession {
     }
 
     override fun prepare(context: Context, textureId: Int, eglContext: EGLContext?) {
-        appContext = context.applicationContext
         this.textureId = textureId
         this.eglContext = eglContext
         audioController = AudioController(audioConfiguration, senderProvider)

@@ -9,17 +9,10 @@ import com.astra.avpush.infrastructure.camera.Watermark
 import com.astra.avpush.presentation.widget.GlRenderer
 import com.astra.avpush.runtime.AstraLog
 import com.astra.avpush.runtime.BitmapUtils
-import com.astra.avpush.runtime.NativeRenderUtil
 
 class CameraRenderer : GlRenderer {
 
     companion object {
-        private const val MAX_HEIGHT_NDC = 0.3f
-        private const val MIN_HEIGHT_NDC = 0.1f
-        private const val MAX_WIDTH_NDC = 0.6f
-        private const val HORIZONTAL_MARGIN = 0.05f
-        private const val VERTICAL_MARGIN = 0.06f
-
         init {
             System.loadLibrary("astra")
         }
@@ -70,7 +63,6 @@ class CameraRenderer : GlRenderer {
         surfaceWidth = width
         surfaceHeight = height
         nativeUpdateMatrix(nativeHandle, matrix)
-        cachedBitmap?.let { nativeUpdateWatermarkTexture(nativeHandle, it) }
         attemptApplyWatermark()
     }
 
@@ -110,6 +102,7 @@ class CameraRenderer : GlRenderer {
 
     fun setWatemark(watermark: Watermark) {
         pendingWatermark = watermark
+        attemptApplyWatermark()
     }
 
     interface OnRendererListener {
@@ -160,12 +153,9 @@ class CameraRenderer : GlRenderer {
     private fun applyWatermark(watermark: Watermark): Boolean {
         val bitmap = prepareBitmap(watermark)
         val coords = watermark.floatArray?.takeIf { it.size >= 8 }?.copyOf(8)
-            ?: computeDefaultQuad(bitmap, watermark)
-            ?: return false
 
         val handle = ensureHandle()
-        nativeUpdateWatermarkCoords(handle, coords)
-        nativeUpdateWatermarkTexture(handle, bitmap)
+        nativeApplyWatermark(handle, bitmap, coords, watermark.scale)
         currentWatermark = watermark
         AstraLog.d(tag, "watermark applied scale=${watermark.scale}")
         return true
@@ -187,21 +177,6 @@ class CameraRenderer : GlRenderer {
         return bitmap
     }
 
-    private fun computeDefaultQuad(bitmap: Bitmap, watermark: Watermark): FloatArray? {
-        return NativeRenderUtil.computeWatermarkQuad(
-            surfaceWidth = surfaceWidth,
-            surfaceHeight = surfaceHeight,
-            bitmapWidth = bitmap.width,
-            bitmapHeight = bitmap.height,
-            scale = watermark.scale,
-            minHeight = MIN_HEIGHT_NDC,
-            maxHeight = MAX_HEIGHT_NDC,
-            maxWidth = MAX_WIDTH_NDC,
-            horizontalMargin = HORIZONTAL_MARGIN,
-            verticalMargin = VERTICAL_MARGIN
-        )
-    }
-
     private fun ensureHandle(): Long {
         if (nativeHandle == 0L) {
             nativeHandle = nativeCreate()
@@ -215,8 +190,12 @@ class CameraRenderer : GlRenderer {
     private external fun nativeOnSurfaceChanged(handle: Long, width: Int, height: Int)
     private external fun nativeOnDraw(handle: Long)
     private external fun nativeUpdateMatrix(handle: Long, matrix: FloatArray)
-    private external fun nativeUpdateWatermarkCoords(handle: Long, coords: FloatArray)
-    private external fun nativeUpdateWatermarkTexture(handle: Long, bitmap: Bitmap)
+    private external fun nativeApplyWatermark(
+        handle: Long,
+        bitmap: Bitmap,
+        coords: FloatArray?,
+        scale: Float
+    )
 
     interface OnSwitchCameraListener {
         fun onChange(): Boolean

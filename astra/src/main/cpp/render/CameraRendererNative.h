@@ -21,8 +21,7 @@ public:
     void surfaceChanged(int width, int height);
     void draw();
     void updateMatrix(const std::vector<float>& matrix);
-    void updateWatermarkCoords(const std::vector<float>& coords);
-    void updateWatermarkTexture(JNIEnv* env, jobject bitmap);
+    void updateWatermark(JNIEnv* env, jobject bitmap, const std::vector<float>& coords, float scale);
     void release();
 
     GLuint cameraTextureId() const { return cameraTextureId_; }
@@ -39,6 +38,9 @@ private:
     void destroyPrograms();
     void destroyBuffers();
     void destroyTextures();
+    bool applyWatermarkCoords(const std::vector<float>& coords);
+    void applyWatermarkTexture(JNIEnv* env, jobject bitmap);
+    void applyPendingDefaultWatermark();
 
     GLuint cameraProgram_ = 0;
     GLuint screenProgram_ = 0;
@@ -60,6 +62,10 @@ private:
     std::array<float, 16> matrix_{};
     int surfaceWidth_ = 0;
     int surfaceHeight_ = 0;
+    int watermarkWidth_ = 0;
+    int watermarkHeight_ = 0;
+    bool pendingDefaultWatermark_ = false;
+    float pendingScale_ = 1.f;
     bool initialized_ = false;
 };
 

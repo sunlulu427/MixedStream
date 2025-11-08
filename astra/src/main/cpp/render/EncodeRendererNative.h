@@ -14,8 +14,7 @@ public:
     void initialize(int width, int height);
     void surfaceChanged(int width, int height);
     void draw();
-    void updateWatermarkCoords(const std::vector<float>& coords);
-    void updateWatermarkTexture(JNIEnv* env, jobject bitmap);
+    void updateWatermark(JNIEnv* env, jobject bitmap, const std::vector<float>& coords, float scale);
     void release();
 
 private:
@@ -27,6 +26,10 @@ private:
     void destroyProgram();
     void destroyBuffers();
     void destroyWatermarkTexture();
+    bool applyWatermarkCoords(const std::vector<float>& coords);
+    void applyPendingDefaultWatermark();
+
+    void applyWatermarkTexture(JNIEnv* env, jobject bitmap);
 
     GLuint program_ = 0;
     GLint positionLocation_ = -1;
@@ -39,6 +42,10 @@ private:
     std::vector<float> watermarkCoords_;
     int surfaceWidth_ = 0;
     int surfaceHeight_ = 0;
+    int watermarkWidth_ = 0;
+    int watermarkHeight_ = 0;
+    bool pendingDefaultWatermark_ = false;
+    float pendingScale_ = 1.f;
     bool initialized_ = false;
 };
 

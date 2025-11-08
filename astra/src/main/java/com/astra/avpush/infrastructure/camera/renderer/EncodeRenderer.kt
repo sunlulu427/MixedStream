@@ -6,17 +6,10 @@ import com.astra.avpush.infrastructure.camera.Watermark
 import com.astra.avpush.presentation.widget.GlRenderer
 import com.astra.avpush.runtime.AstraLog
 import com.astra.avpush.runtime.BitmapUtils
-import com.astra.avpush.runtime.NativeRenderUtil
 
 class EncodeRenderer(private val textureId: Int) : GlRenderer {
 
     companion object {
-        private const val MAX_HEIGHT_NDC = 0.3f
-        private const val MIN_HEIGHT_NDC = 0.1f
-        private const val MAX_WIDTH_NDC = 0.6f
-        private const val HORIZONTAL_MARGIN = 0.05f
-        private const val VERTICAL_MARGIN = 0.06f
-
         init {
             System.loadLibrary("astra")
         }
@@ -37,7 +30,6 @@ class EncodeRenderer(private val textureId: Int) : GlRenderer {
         nativeOnSurfaceCreate(handle, width, height)
         surfaceWidth = width
         surfaceHeight = height
-        cachedBitmap?.let { nativeUpdateWatermarkTexture(handle, it) }
         attemptApplyWatermark()
         AstraLog.d(javaClass.simpleName) { "surface created width=$width height=$height" }
     }
@@ -74,7 +66,7 @@ class EncodeRenderer(private val textureId: Int) : GlRenderer {
 
     private fun attemptApplyWatermark() {
         val watermark = pendingWatermark ?: return
-        if (watermark.floatArray == null && (surfaceWidth == 0 || surfaceHeight == 0)) {
+        if (surfaceWidth == 0 || surfaceHeight == 0) {
             return
         }
         if (applyWatermark(watermark)) {
@@ -85,12 +77,9 @@ class EncodeRenderer(private val textureId: Int) : GlRenderer {
     private fun applyWatermark(watermark: Watermark): Boolean {
         val bitmap = prepareBitmap(watermark)
         val coords = watermark.floatArray?.takeIf { it.size >= 8 }?.copyOf(8)
-            ?: computeDefaultQuad(bitmap, watermark)
-            ?: return false
 
         val handle = ensureHandle()
-        nativeUpdateWatermarkCoords(handle, coords)
-        nativeUpdateWatermarkTexture(handle, bitmap)
+        nativeApplyWatermark(handle, bitmap, coords, watermark.scale)
         currentWatermark = watermark
         AstraLog.d(javaClass.simpleName) { "watermark applied scale=${watermark.scale}" }
         return true
@@ -112,22 +101,6 @@ class EncodeRenderer(private val textureId: Int) : GlRenderer {
         return bitmap
     }
 
-    private fun computeDefaultQuad(bitmap: Bitmap, watermark: Watermark): FloatArray? {
-        if (surfaceWidth <= 0 || surfaceHeight <= 0) return null
-        return NativeRenderUtil.computeWatermarkQuad(
-            surfaceWidth = surfaceWidth,
-            surfaceHeight = surfaceHeight,
-            bitmapWidth = bitmap.width,
-            bitmapHeight = bitmap.height,
-            scale = watermark.scale,
-            minHeight = MIN_HEIGHT_NDC,
-            maxHeight = MAX_HEIGHT_NDC,
-            maxWidth = MAX_WIDTH_NDC,
-            horizontalMargin = HORIZONTAL_MARGIN,
-            verticalMargin = VERTICAL_MARGIN
-        )
-    }
-
     private fun ensureHandle(): Long {
         if (nativeHandle == 0L) {
             nativeHandle = nativeCreate(textureId)
@@ -140,6 +113,10 @@ class EncodeRenderer(private val textureId: Int) : GlRenderer {
     private external fun nativeOnSurfaceCreate(handle: Long, width: Int, height: Int)
     private external fun nativeOnSurfaceChanged(handle: Long, width: Int, height: Int)
     private external fun nativeOnDraw(handle: Long)
-    private external fun nativeUpdateWatermarkCoords(handle: Long, coords: FloatArray)
-    private external fun nativeUpdateWatermarkTexture(handle: Long, bitmap: Bitmap)
+    private external fun nativeApplyWatermark(
+        handle: Long,
+        bitmap: Bitmap,
+        coords: FloatArray?,
+        scale: Float
+    )
 }

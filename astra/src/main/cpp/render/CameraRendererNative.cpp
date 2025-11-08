@@ -10,6 +10,7 @@
 #include <string>
 
 #include "NativeLogger.h"
+#include "RenderUtil.h"
 #include "ShaderLibrary.h"
 
 namespace {
@@ -43,6 +44,12 @@ constexpr std::array<float, 8> kDefaultWatermarkCoords = {
         0.9f, -0.7f
 };
 
+constexpr float kMinHeightNdc = 0.1f;
+constexpr float kMaxHeightNdc = 0.3f;
+constexpr float kMaxWidthNdc = 0.6f;
+constexpr float kHorizontalMargin = 0.05f;
+constexpr float kVerticalMargin = 0.06f;
+
 size_t bytesForVertices(size_t vertexCount) {
     return vertexCount * kCoordsPerVertex * sizeof(float);
 }
@@ -74,6 +81,7 @@ CameraRendererNative::InitResult CameraRendererNative::initialize(int width, int
     ensureCameraTexture();
     uploadGeometry();
     initialized_ = true;
+    applyPendingDefaultWatermark();
     return {cameraTextureId_, fboTextureId_};
 }
 
@@ -81,6 +89,7 @@ void CameraRendererNative::surfaceChanged(int width, int height) {
     surfaceWidth_ = width;
     surfaceHeight_ = height;
     ensureFramebuffer();
+    applyPendingDefaultWatermark();
 }
 
 void CameraRendererNative::draw() {
@@ -176,81 +185,32 @@ void CameraRendererNative::updateMatrix(const std::vector<float>& matrix) {
     std::copy(matrix.begin(), matrix.begin() + 16, matrix_.begin());
 }
 
-void CameraRendererNative::updateWatermarkCoords(const std::vector<float>& coords) {
-    if (coords.size() < kQuadVertexCount * kCoordsPerVertex) {
-        return;
-    }
-    watermarkCoords_ = coords;
-    std::copy(watermarkCoords_.begin(), watermarkCoords_.end(),
-              vertexData_.begin() + kQuadVertexCount * kCoordsPerVertex);
-
-    if (vbo_ == 0) {
-        return;
-    }
-
-    glBindBuffer(GL_ARRAY_BUFFER, vbo_);
-    const GLsizeiptr offset = static_cast<GLsizeiptr>(bytesForVertices(kQuadVertexCount));
-    glBufferSubData(GL_ARRAY_BUFFER, offset,
-                    static_cast<GLsizeiptr>(bytesForVertices(kQuadVertexCount)),
-                    vertexData_.data() + kQuadVertexCount * kCoordsPerVertex);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-}
-
-void CameraRendererNative::updateWatermarkTexture(JNIEnv* env, jobject bitmap) {
+void CameraRendererNative::updateWatermark(JNIEnv* env,
+                                           jobject bitmap,
+                                           const std::vector<float>& coords,
+                                           float scale) {
     if (bitmap == nullptr) {
         if (watermarkTextureId_ != 0) {
             glDeleteTextures(1, &watermarkTextureId_);
             watermarkTextureId_ = 0;
         }
+        watermarkWidth_ = 0;
+        watermarkHeight_ = 0;
+        pendingDefaultWatermark_ = false;
         return;
     }
 
-    AndroidBitmapInfo info{};
-    if (AndroidBitmap_getInfo(env, bitmap, &info) != ANDROID_BITMAP_RESULT_SUCCESS) {
-        astra::logLine(4, "CameraRendererNative", "Unable to get watermark bitmap info");
+    applyWatermarkTexture(env, bitmap);
+
+    if (!coords.empty()) {
+        pendingDefaultWatermark_ = false;
+        applyWatermarkCoords(coords);
         return;
     }
 
-    if (info.format != ANDROID_BITMAP_FORMAT_RGB_565 &&
-        info.format != ANDROID_BITMAP_FORMAT_RGBA_8888) {
-        astra::logLine(3, "CameraRendererNative", "Unsupported watermark bitmap format");
-        return;
-    }
-
-    void* pixels = nullptr;
-    if (AndroidBitmap_lockPixels(env, bitmap, &pixels) != ANDROID_BITMAP_RESULT_SUCCESS) {
-        astra::logLine(4, "CameraRendererNative", "Unable to lock watermark pixels");
-        return;
-    }
-
-    if (watermarkTextureId_ == 0) {
-        glGenTextures(1, &watermarkTextureId_);
-    }
-    glBindTexture(GL_TEXTURE_2D, watermarkTextureId_);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-    GLenum format = GL_RGBA;
-    GLenum type = GL_UNSIGNED_BYTE;
-    if (info.format == ANDROID_BITMAP_FORMAT_RGB_565) {
-        format = GL_RGB;
-        type = GL_UNSIGNED_SHORT_5_6_5;
-    }
-
-    glTexImage2D(GL_TEXTURE_2D,
-                 0,
-                 format,
-                 static_cast<GLsizei>(info.width),
-                 static_cast<GLsizei>(info.height),
-                 0,
-                 format,
-                 type,
-                 pixels);
-    glBindTexture(GL_TEXTURE_2D, 0);
-
-    AndroidBitmap_unlockPixels(env, bitmap);
+    pendingDefaultWatermark_ = true;
+    pendingScale_ = scale > 0.f ? scale : 1.f;
+    applyPendingDefaultWatermark();
 }
 
 void CameraRendererNative::release() {
@@ -461,5 +421,110 @@ void CameraRendererNative::destroyTextures() {
             glDeleteTextures(1, &watermarkTextureId_);
         }
         watermarkTextureId_ = 0;
+    }
+    watermarkWidth_ = 0;
+    watermarkHeight_ = 0;
+    pendingDefaultWatermark_ = false;
+}
+
+bool CameraRendererNative::applyWatermarkCoords(const std::vector<float>& coords) {
+    if (coords.size() < kQuadVertexCount * kCoordsPerVertex) {
+        return false;
+    }
+
+    watermarkCoords_ = coords;
+    std::copy(watermarkCoords_.begin(), watermarkCoords_.end(),
+              vertexData_.begin() + kQuadVertexCount * kCoordsPerVertex);
+
+    if (vbo_ == 0) {
+        return false;
+    }
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo_);
+    const GLsizeiptr offset = static_cast<GLsizeiptr>(bytesForVertices(kQuadVertexCount));
+    glBufferSubData(GL_ARRAY_BUFFER, offset,
+                    static_cast<GLsizeiptr>(bytesForVertices(kQuadVertexCount)),
+                    vertexData_.data() + kQuadVertexCount * kCoordsPerVertex);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    return true;
+}
+
+void CameraRendererNative::applyWatermarkTexture(JNIEnv* env, jobject bitmap) {
+    AndroidBitmapInfo info{};
+    if (AndroidBitmap_getInfo(env, bitmap, &info) != ANDROID_BITMAP_RESULT_SUCCESS) {
+        astra::logLine(4, "CameraRendererNative", "Unable to get watermark bitmap info");
+        return;
+    }
+
+    if (info.format != ANDROID_BITMAP_FORMAT_RGB_565 &&
+        info.format != ANDROID_BITMAP_FORMAT_RGBA_8888) {
+        astra::logLine(3, "CameraRendererNative", "Unsupported watermark bitmap format");
+        return;
+    }
+
+    void* pixels = nullptr;
+    if (AndroidBitmap_lockPixels(env, bitmap, &pixels) != ANDROID_BITMAP_RESULT_SUCCESS) {
+        astra::logLine(4, "CameraRendererNative", "Unable to lock watermark pixels");
+        return;
+    }
+
+    if (watermarkTextureId_ == 0) {
+        glGenTextures(1, &watermarkTextureId_);
+    }
+    glBindTexture(GL_TEXTURE_2D, watermarkTextureId_);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    GLenum format = GL_RGBA;
+    GLenum type = GL_UNSIGNED_BYTE;
+    if (info.format == ANDROID_BITMAP_FORMAT_RGB_565) {
+        format = GL_RGB;
+        type = GL_UNSIGNED_SHORT_5_6_5;
+    }
+
+    glTexImage2D(GL_TEXTURE_2D,
+                 0,
+                 format,
+                 static_cast<GLsizei>(info.width),
+                 static_cast<GLsizei>(info.height),
+                 0,
+                 format,
+                 type,
+                 pixels);
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    AndroidBitmap_unlockPixels(env, bitmap);
+
+    watermarkWidth_ = static_cast<int>(info.width);
+    watermarkHeight_ = static_cast<int>(info.height);
+}
+
+void CameraRendererNative::applyPendingDefaultWatermark() {
+    if (!pendingDefaultWatermark_ || surfaceWidth_ <= 0 || surfaceHeight_ <= 0 ||
+        watermarkWidth_ <= 0 || watermarkHeight_ <= 0) {
+        return;
+    }
+
+    bool valid = false;
+    const auto quad = astra::ComputeWatermarkQuad(surfaceWidth_,
+                                                 surfaceHeight_,
+                                                 watermarkWidth_,
+                                                 watermarkHeight_,
+                                                 pendingScale_,
+                                                 kMinHeightNdc,
+                                                 kMaxHeightNdc,
+                                                 kMaxWidthNdc,
+                                                 kHorizontalMargin,
+                                                 kVerticalMargin,
+                                                 valid);
+    if (!valid) {
+        return;
+    }
+
+    std::vector<float> coords(quad.begin(), quad.end());
+    if (applyWatermarkCoords(coords)) {
+        pendingDefaultWatermark_ = false;
     }
 }

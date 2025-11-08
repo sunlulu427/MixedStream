@@ -69,23 +69,14 @@ Java_com_astra_avpush_infrastructure_camera_renderer_EncodeRenderer_nativeOnDraw
 }
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_astra_avpush_infrastructure_camera_renderer_EncodeRenderer_nativeUpdateWatermarkCoords(
-        JNIEnv* env, jobject /*thiz*/, jlong handle, jfloatArray coords_array) {
+Java_com_astra_avpush_infrastructure_camera_renderer_EncodeRenderer_nativeApplyWatermark(
+        JNIEnv* env, jobject /*thiz*/, jlong handle, jobject bitmap, jfloatArray coords_array,
+        jfloat scale) {
     auto* renderer = fromHandle<EncodeRendererNative>(handle);
     if (renderer == nullptr) {
         return;
     }
-    renderer->updateWatermarkCoords(toVector(env, coords_array));
-}
-
-extern "C" JNIEXPORT void JNICALL
-Java_com_astra_avpush_infrastructure_camera_renderer_EncodeRenderer_nativeUpdateWatermarkTexture(
-        JNIEnv* env, jobject /*thiz*/, jlong handle, jobject bitmap) {
-    auto* renderer = fromHandle<EncodeRendererNative>(handle);
-    if (renderer == nullptr) {
-        return;
-    }
-    renderer->updateWatermarkTexture(env, bitmap);
+    renderer->updateWatermark(env, bitmap, toVector(env, coords_array), scale);
 }
 
 extern "C" JNIEXPORT jlong JNICALL
@@ -150,21 +141,12 @@ Java_com_astra_avpush_infrastructure_camera_renderer_CameraRenderer_nativeUpdate
 }
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_astra_avpush_infrastructure_camera_renderer_CameraRenderer_nativeUpdateWatermarkCoords(
-        JNIEnv* env, jobject /*thiz*/, jlong handle, jfloatArray coords_array) {
+Java_com_astra_avpush_infrastructure_camera_renderer_CameraRenderer_nativeApplyWatermark(
+        JNIEnv* env, jobject /*thiz*/, jlong handle, jobject bitmap, jfloatArray coords_array,
+        jfloat scale) {
     auto* renderer = fromHandle<CameraRendererNative>(handle);
     if (renderer == nullptr) {
         return;
     }
-    renderer->updateWatermarkCoords(toVector(env, coords_array));
-}
-
-extern "C" JNIEXPORT void JNICALL
-Java_com_astra_avpush_infrastructure_camera_renderer_CameraRenderer_nativeUpdateWatermarkTexture(
-        JNIEnv* env, jobject /*thiz*/, jlong handle, jobject bitmap) {
-    auto* renderer = fromHandle<CameraRendererNative>(handle);
-    if (renderer == nullptr) {
-        return;
-    }
-    renderer->updateWatermarkTexture(env, bitmap);
+    renderer->updateWatermark(env, bitmap, toVector(env, coords_array), scale);
 }
