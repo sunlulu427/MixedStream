@@ -19,6 +19,8 @@ cmake.dir=/Users/bytedance/Library/Android/sdk/cmake/3.22.1
 - move camera (Camera2 NDK) and audio (AAudio) capture to native `capture/*` layer with JNI bridges
 - replace Java camera/audio callbacks with typed lambdas + `NativeCameraDevice`/`NativeAudioCapturer`
 - simplify GL renderer contracts (`GlRenderer`/`GlThreadConfig`) to keep the Kotlin layer leaner
+- move preview rendering + watermark composition into native GL (`render/CameraRendererNative`) and drop the Kotlin FBO stack
+- collapse the encoder renderer + shader utilities into C++, removing `ShaderHelper`/`NativeShaders`/`FboRenderer` code paths from Kotlin
 
 - update default preview resolution and push resolution
 - change camera facing to back (for emulator)

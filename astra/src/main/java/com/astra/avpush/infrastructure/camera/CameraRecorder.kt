@@ -1,6 +1,5 @@
 package com.astra.avpush.infrastructure.camera
 
-import android.content.Context
 import android.view.Surface
 import com.astra.avpush.domain.config.VideoConfiguration
 import com.astra.avpush.infrastructure.camera.renderer.EncodeRenderer
@@ -11,12 +10,11 @@ import java.lang.ref.WeakReference
 import javax.microedition.khronos.egl.EGLContext
 
 class CameraRecorder(
-    context: Context,
     textureId: Int,
     private val eglContext: EGLContext?
 ) : GlThreadConfig {
 
-    private val renderer: EncodeRenderer = EncodeRenderer(context, textureId)
+    private val renderer: EncodeRenderer = EncodeRenderer(textureId)
     private var rendererMode = GLSurfaceView.RENDERERMODE_CONTINUOUSLY
     private var glThread: EncodeRendererThread? = null
     private var surface: Surface? = null

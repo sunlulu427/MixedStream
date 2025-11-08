@@ -6,8 +6,10 @@
 
 #include <array>
 #include <cstring>
+#include <string>
 
 #include "NativeLogger.h"
+#include "ShaderLibrary.h"
 
 namespace {
 
@@ -23,49 +25,51 @@ namespace {
 constexpr size_t kQuadVertexCount = 4;
 constexpr size_t kCoordsPerVertex = 2;
 
+constexpr std::array<float, 16> kDefaultVertexData = {
+        -1.f, -1.f,
+        1.f, -1.f,
+        -1.f, 1.f,
+        1.f, 1.f,
+
+        0.55f, -0.9f,
+        0.9f, -0.9f,
+        0.55f, -0.7f,
+        0.9f, -0.7f
+};
+
+constexpr std::array<float, 8> kDefaultFragmentData = {
+        0.f, 1.f,
+        1.f, 1.f,
+        0.f, 0.f,
+        1.f, 0.f
+};
+
 size_t bytesForVertices(size_t vertexCount) {
     return vertexCount * kCoordsPerVertex * sizeof(float);
 }
 
 }  // namespace
 
-EncodeRendererNative::EncodeRendererNative(GLuint textureId,
-                                           std::vector<float> vertexData,
-                                           std::vector<float> fragmentData)
-    : videoTextureId_(textureId),
-      vertexData_(std::move(vertexData)),
-      fragmentData_(std::move(fragmentData)) {
-    watermarkCoords_.assign(vertexData_.begin() + kQuadVertexCount * kCoordsPerVertex,
-                             vertexData_.end());
+EncodeRendererNative::EncodeRendererNative(GLuint textureId)
+    : videoTextureId_(textureId) {
+    vertexData_.assign(kDefaultVertexData.begin(), kDefaultVertexData.end());
+    fragmentData_.assign(kDefaultFragmentData.begin(), kDefaultFragmentData.end());
+    watermarkCoords_.assign(kDefaultVertexData.begin() + kQuadVertexCount * kCoordsPerVertex,
+                            kDefaultVertexData.end());
 }
 
 EncodeRendererNative::~EncodeRendererNative() {
     release();
 }
 
-void EncodeRendererNative::initialize(const std::string& vertexSource,
-                                      const std::string& fragmentSource) {
+void EncodeRendererNative::initialize(int width, int height) {
+    surfaceWidth_ = width;
+    surfaceHeight_ = height;
     destroyProgram();
     destroyBuffers();
     destroyWatermarkTexture();
 
-    GLuint vertexShader = compileShader(GL_VERTEX_SHADER, vertexSource);
-    GLuint fragmentShader = compileShader(GL_FRAGMENT_SHADER, fragmentSource);
-    program_ = linkProgram(vertexShader, fragmentShader);
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
-
-    if (program_ == 0) {
-        astra::logLine(4, "EncodeRendererNative", "Failed to create shader program");
-        return;
-    }
-
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-    positionLocation_ = glGetAttribLocation(program_, "v_Position");
-    texCoordLocation_ = glGetAttribLocation(program_, "f_Position");
-
+    ensureProgram();
     ensureVbo();
     uploadGeometry();
     initialized_ = true;
@@ -193,10 +197,9 @@ void EncodeRendererNative::release() {
     initialized_ = false;
 }
 
-GLuint EncodeRendererNative::compileShader(GLenum type, const std::string& source) {
+GLuint EncodeRendererNative::compileShader(GLenum type, const char* source) {
     GLuint shader = glCreateShader(type);
-    const char* src = source.c_str();
-    glShaderSource(shader, 1, &src, nullptr);
+    glShaderSource(shader, 1, &source, nullptr);
     glCompileShader(shader);
 
     GLint compiled = 0;
@@ -212,6 +215,30 @@ GLuint EncodeRendererNative::compileShader(GLenum type, const std::string& sourc
         return 0;
     }
     return shader;
+}
+
+void EncodeRendererNative::ensureProgram() {
+    if (program_ != 0) {
+        return;
+    }
+    const char* vertexSource = astra::GetShaderScript(0);
+    const char* fragmentSource = astra::GetShaderScript(1);
+    GLuint vertexShader = compileShader(GL_VERTEX_SHADER, vertexSource);
+    GLuint fragmentShader = compileShader(GL_FRAGMENT_SHADER, fragmentSource);
+    program_ = linkProgram(vertexShader, fragmentShader);
+    glDeleteShader(vertexShader);
+    glDeleteShader(fragmentShader);
+
+    if (program_ == 0) {
+        astra::logLine(4, "EncodeRendererNative", "Failed to create shader program");
+        return;
+    }
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    positionLocation_ = glGetAttribLocation(program_, "v_Position");
+    texCoordLocation_ = glGetAttribLocation(program_, "f_Position");
 }
 
 GLuint EncodeRendererNative::linkProgram(GLuint vertexShader, GLuint fragmentShader) {

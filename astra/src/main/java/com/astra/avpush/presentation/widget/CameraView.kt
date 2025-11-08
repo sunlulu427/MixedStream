@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.SurfaceTexture
 import android.util.AttributeSet
 import android.view.Surface
+import android.view.SurfaceHolder
 import android.view.WindowManager
 import com.astra.avpush.domain.camera.CameraDevice
 import com.astra.avpush.domain.config.CameraConfiguration
@@ -68,7 +69,7 @@ open class CameraView @JvmOverloads constructor(
         this.mCameraConfiguration = cameraConfiguration
         cameraId = cameraConfiguration.facing
         fallbackTried = false
-        previewRenderer = CameraRenderer(context)
+        previewRenderer = CameraRenderer()
         AstraLog.d(TAG, "startPreview: configure renderer and GL thread")
         configure(
             RendererConfiguration(
@@ -79,6 +80,13 @@ open class CameraView @JvmOverloads constructor(
         //第一次需要初始化预览角度
         previewAngle(context)
         addRendererListener()
+    }
+
+    override fun surfaceDestroyed(holder: SurfaceHolder) {
+        super.surfaceDestroyed(holder)
+        if (this::previewRenderer.isInitialized) {
+            previewRenderer.release()
+        }
     }
 
     private fun addRendererListener() {

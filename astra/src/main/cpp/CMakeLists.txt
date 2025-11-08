@@ -66,6 +66,7 @@ find_library(mediandk_lib mediandk)
 find_library(android_lib android)
 find_library(camera2ndk_lib camera2ndk)
 find_library(aaudio_lib aaudio)
+find_library(egl_lib EGL)
 
 target_link_libraries(
         astra
@@ -78,4 +79,5 @@ target_link_libraries(
         ${android_lib}
         ${camera2ndk_lib}
         ${aaudio_lib}
+        ${egl_lib}
 )

@@ -1,6 +1,5 @@
 package com.astra.avpush.stream.controller
 
-import android.content.Context
 import com.astra.avpush.domain.config.VideoConfiguration
 import com.astra.avpush.infrastructure.camera.CameraRecorder
 import com.astra.avpush.infrastructure.camera.Watermark
@@ -10,14 +9,13 @@ import javax.microedition.khronos.egl.EGLContext
 
 
 class VideoController(
-    context: Context,
     textureId: Int,
     eglContext: EGLContext?,
     private var videoConfiguration: VideoConfiguration,
     private val senderProvider: () -> Sender?
 ) {
 
-    private val recorder = CameraRecorder(context, textureId, eglContext).also {
+    private val recorder = CameraRecorder(textureId, eglContext).also {
         it.prepare(videoConfiguration)
     }
 

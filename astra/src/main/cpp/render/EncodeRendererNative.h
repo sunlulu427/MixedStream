@@ -4,17 +4,14 @@
 #include <GLES2/gl2.h>
 #include <jni.h>
 
-#include <string>
 #include <vector>
 
 class EncodeRendererNative {
 public:
-    EncodeRendererNative(GLuint textureId,
-                         std::vector<float> vertexData,
-                         std::vector<float> fragmentData);
+    explicit EncodeRendererNative(GLuint textureId);
     ~EncodeRendererNative();
 
-    void initialize(const std::string& vertexSource, const std::string& fragmentSource);
+    void initialize(int width, int height);
     void surfaceChanged(int width, int height);
     void draw();
     void updateWatermarkCoords(const std::vector<float>& coords);
@@ -22,9 +19,10 @@ public:
     void release();
 
 private:
-    GLuint compileShader(GLenum type, const std::string& source);
+    GLuint compileShader(GLenum type, const char* source);
     GLuint linkProgram(GLuint vertexShader, GLuint fragmentShader);
     void ensureVbo();
+    void ensureProgram();
     void uploadGeometry();
     void destroyProgram();
     void destroyBuffers();

@@ -68,7 +68,6 @@ class StreamController : LiveStreamSession {
         this.eglContext = eglContext
         audioController = AudioController(audioConfiguration, senderProvider)
         videoController = VideoController(
-            context.applicationContext,
             textureId,
             eglContext,
             videoConfiguration,
@@ -131,9 +130,8 @@ class StreamController : LiveStreamSession {
         if (audioController == null) {
             audioController = AudioController(audioConfiguration, senderProvider)
         }
-        if (videoController == null && appContext != null) {
+        if (videoController == null) {
             videoController = VideoController(
-                appContext!!,
                 textureId,
                 eglContext,
                 videoConfiguration,
