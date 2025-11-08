@@ -1,16 +1,5 @@
 package com.astra.avpush.unified
 
-import com.astra.avpush.unified.config.AudioCodec
-import com.astra.avpush.unified.config.IceServer
-import com.astra.avpush.unified.config.RetryPolicy
-import com.astra.avpush.unified.config.RtmpConfig
-import com.astra.avpush.unified.config.SrtConfig
-import com.astra.avpush.unified.config.SrtEncryption
-import com.astra.avpush.unified.config.TransportConfig
-import com.astra.avpush.unified.config.TransportProtocol
-import com.astra.avpush.unified.config.VideoCodec
-import com.astra.avpush.unified.config.WebRtcConfig
-import java.net.URI
 import java.time.Duration
 
 /**
@@ -26,7 +15,6 @@ object ProtocolDetector {
     fun detectAndCreateConfig(url: String): TransportConfig {
         return when {
             isRtmpUrl(url) -> createRtmpConfig(url)
-            isWebRtcUrl(url) -> createWebRtcConfig(url)
             isSrtUrl(url) -> createSrtConfig(url)
             else -> throw IllegalArgumentException("Unsupported streaming URL: $url")
         }
@@ -38,7 +26,6 @@ object ProtocolDetector {
     fun detectProtocol(url: String): TransportProtocol {
         return when {
             isRtmpUrl(url) -> TransportProtocol.RTMP
-            isWebRtcUrl(url) -> TransportProtocol.WEBRTC
             isSrtUrl(url) -> TransportProtocol.SRT
             else -> throw IllegalArgumentException("Unsupported streaming URL: $url")
         }
@@ -50,16 +37,6 @@ object ProtocolDetector {
     private fun isRtmpUrl(url: String): Boolean {
         return url.startsWith("rtmp://", ignoreCase = true) ||
                url.startsWith("rtmps://", ignoreCase = true)
-    }
-
-    /**
-     * 检查是否为WebRTC协议URL
-     */
-    private fun isWebRtcUrl(url: String): Boolean {
-        return url.startsWith("webrtc://", ignoreCase = true) ||
-               url.startsWith("wss://", ignoreCase = true) ||
-               url.startsWith("ws://", ignoreCase = true) ||
-               url.contains("webrtc", ignoreCase = true)
     }
 
     /**
@@ -84,26 +61,6 @@ object ProtocolDetector {
     }
 
     /**
-     * 创建WebRTC传输配置
-     */
-    private fun createWebRtcConfig(url: String): WebRtcConfig {
-        // 解析WebRTC URL，提取信令服务器和房间信息
-        val (signalingUrl, roomId) = parseWebRtcUrl(url)
-
-        return WebRtcConfig(
-            signalingUrl = signalingUrl,
-            roomId = roomId,
-            iceServers = listOf(
-                IceServer("stun:stun.l.google.com:19302"),
-                IceServer("stun:stun1.l.google.com:19302")
-            ),
-            audioCodec = AudioCodec.OPUS,
-            videoCodec = VideoCodec.H264,
-            enableDataChannel = false
-        )
-    }
-
-    /**
      * 创建SRT传输配置
      */
     private fun createSrtConfig(url: String): SrtConfig {
@@ -116,53 +73,11 @@ object ProtocolDetector {
     }
 
     /**
-     * 解析WebRTC URL
-     * 支持格式：
-     * - webrtc://signal.example.com/room123
-     * - wss://signal.example.com?room=room123
-     */
-    private fun parseWebRtcUrl(url: String): Pair<String, String> {
-        return when {
-            url.startsWith("webrtc://") -> {
-                val withoutProtocol = url.removePrefix("webrtc://")
-                val parts = withoutProtocol.split("/", limit = 2)
-                val signalingUrl = "wss://${parts[0]}"
-                val roomId = if (parts.size > 1) parts[1] else "default"
-                Pair(signalingUrl, roomId)
-            }
-            url.startsWith("wss://") || url.startsWith("ws://") -> {
-                val roomId = extractRoomIdFromUrl(url) ?: "default"
-                Pair(url, roomId)
-            }
-            else -> {
-                throw IllegalArgumentException("Invalid WebRTC URL format: $url")
-            }
-        }
-    }
-
-    /**
-     * 从URL中提取房间ID
-     */
-    private fun extractRoomIdFromUrl(url: String): String? {
-        return try {
-            val uri = URI(url)
-            val query = uri.query ?: return null
-            query.split("&")
-                .map { it.split("=", limit = 2) }
-                .find { it.size == 2 && it[0] == "room" }
-                ?.get(1)
-        } catch (e: Exception) {
-            null
-        }
-    }
-
-    /**
      * 获取协议的显示名称
      */
     fun getProtocolDisplayName(protocol: TransportProtocol): String {
         return when (protocol) {
             TransportProtocol.RTMP -> "RTMP"
-            TransportProtocol.WEBRTC -> "WebRTC"
             TransportProtocol.SRT -> "SRT"
             TransportProtocol.RTSP -> "RTSP"
         }
@@ -173,7 +88,6 @@ object ProtocolDetector {
      */
     fun supportsLowLatency(protocol: TransportProtocol): Boolean {
         return when (protocol) {
-            TransportProtocol.WEBRTC -> true
             TransportProtocol.SRT -> true
             TransportProtocol.RTMP -> false
             TransportProtocol.RTSP -> true

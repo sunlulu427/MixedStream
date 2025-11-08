@@ -1,4 +1,4 @@
-package com.astra.avpush.unified.config
+package com.astra.avpush.unified
 
 import android.graphics.Bitmap
 

@@ -7,7 +7,6 @@ import android.hardware.Camera
 import android.util.Log
 import com.astra.avpush.domain.config.CameraConfiguration
 import com.astra.avpush.runtime.AstraLog
-import com.astra.avpush.support.blacklist.BlackListHelper
 
 object CameraUtils {
 
@@ -124,12 +123,6 @@ object CameraUtils {
      * 设置帧率
      */
     fun setPreviewFps(camera: Camera, fps: Int, parameters: Camera.Parameters) {
-        var fps = fps
-        //设置摄像头预览帧率
-        if (BlackListHelper.deviceInFpsBlacklisted()) {
-            Log.d(TAG, "Device in fps setting black list, so set the camera fps 15")
-            fps = 15
-        }
         try {
             parameters.previewFrameRate = fps
             camera.parameters = parameters

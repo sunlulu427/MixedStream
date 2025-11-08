@@ -182,16 +182,4 @@ class AVLiveView @JvmOverloads constructor(
     fun setVideoBps(bps: Int) {
         streamSession.setVideoBps(bps)
     }
-
-    /**
-     * 注入自定义推流会话，便于测试或扩展不同策略实现。
-     */
-    fun attachStreamSession(session: LiveStreamSession) {
-        streamSession = session
-        streamSession.setAudioConfigure(mAudioConfiguration)
-        streamSession.setVideoConfigure(mVideoConfiguration)
-        currentSender?.let { streamSession.setSender(it) }
-        currentWatermark?.let { streamSession.setWatermark(it) }
-        statsListener?.let { streamSession.setStatsListener(it) }
-    }
 }

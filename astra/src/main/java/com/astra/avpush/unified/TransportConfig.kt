@@ -1,4 +1,4 @@
-package com.astra.avpush.unified.config
+package com.astra.avpush.unified
 
 import java.time.Duration
 import java.util.UUID
@@ -13,7 +13,6 @@ typealias TransportId = String
  */
 enum class TransportProtocol(val displayName: String, val defaultLatency: Int) {
     RTMP("RTMP", 3000),
-    WEBRTC("WebRTC", 100),
     SRT("SRT", 500),
     RTSP("RTSP", 1000)
 }
@@ -50,25 +49,6 @@ data class RtmpConfig(
 }
 
 /**
- * WebRTC传输配置
- */
-data class WebRtcConfig(
-    override val id: TransportId = generateId(),
-    override val priority: Int = 0, // 最高优先级
-    override val enabled: Boolean = true,
-    val signalingUrl: String,
-    val roomId: String,
-    val iceServers: List<IceServer> = emptyList(),
-    val audioCodec: AudioCodec = AudioCodec.OPUS,
-    val videoCodec: VideoCodec = VideoCodec.H264,
-    val enableDataChannel: Boolean = false,
-    val maxBitrate: Int = 2_000_000,
-    val enableDtls: Boolean = true
-) : TransportConfig() {
-    override val protocol = TransportProtocol.WEBRTC
-}
-
-/**
  * SRT传输配置
  */
 data class SrtConfig(
@@ -82,15 +62,6 @@ data class SrtConfig(
 ) : TransportConfig() {
     override val protocol = TransportProtocol.SRT
 }
-
-/**
- * ICE服务器配置
- */
-data class IceServer(
-    val url: String,
-    val username: String? = null,
-    val credential: String? = null
-)
 
 /**
  * 音频编解码器

@@ -18,7 +18,7 @@ import com.astra.avpush.presentation.widget.AVLiveView
 import com.astra.avpush.runtime.AstraLog
 import com.astra.avpush.stream.controller.LiveStreamSession
 import com.astra.avpush.unified.ProtocolDetector
-import com.astra.avpush.unified.config.TransportProtocol
+import com.astra.avpush.unified.TransportProtocol
 import com.astra.streamer.data.LivePreferencesStore
 import kotlin.math.max
 import kotlin.math.min

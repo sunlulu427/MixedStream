@@ -3,7 +3,7 @@ package com.astra.avpush.infrastructure.stream.sender
 import com.astra.avpush.infrastructure.stream.sender.rtmp.RtmpStreamSession
 import com.astra.avpush.runtime.AstraLog
 import com.astra.avpush.unified.ProtocolDetector
-import com.astra.avpush.unified.config.TransportProtocol
+import com.astra.avpush.unified.TransportProtocol
 
 /**
  * Factory responsible for creating protocol-specific [Sender] implementations.
