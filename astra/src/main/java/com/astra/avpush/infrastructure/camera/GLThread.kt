@@ -1,12 +1,12 @@
 package com.astra.avpush.infrastructure.camera
 
-import com.astra.avpush.domain.callback.IGLThreadConfig
 import com.astra.avpush.presentation.widget.GLSurfaceView
+import com.astra.avpush.presentation.widget.GlThreadConfig
 import com.astra.avpush.runtime.AstraLog
 import java.lang.ref.WeakReference
 import kotlin.math.max
 
-open class GLThread(private val weakReference: WeakReference<IGLThreadConfig>) : Thread() {
+open class GLThread(private val weakReference: WeakReference<GlThreadConfig>) : Thread() {
 
     private var TAG = this.javaClass.simpleName
     /**
@@ -61,7 +61,7 @@ open class GLThread(private val weakReference: WeakReference<IGLThreadConfig>) :
         mEGLHelper = EglHelper()
         //初始化 EGL
         weakReference.get()?.let { thread ->
-            mEGLHelper.create(thread.getSurface(), thread.getEGLContext())
+            mEGLHelper.create(thread.surface(), thread.eglContext())
 
             while (true) {
                 if (isExit) {
@@ -79,7 +79,7 @@ open class GLThread(private val weakReference: WeakReference<IGLThreadConfig>) :
                 }
                 if (isStart) {
                     //判断是手动刷新还是自动 刷新
-                    if (thread.getRendererMode() == GLSurfaceView.Companion.RENDERERMODE_WHEN_DIRTY) {
+                    if (thread.rendererMode() == GLSurfaceView.Companion.RENDERERMODE_WHEN_DIRTY) {
                         synchronized(mLock) {
                             try {
                                 mLock.wait()
@@ -88,7 +88,7 @@ open class GLThread(private val weakReference: WeakReference<IGLThreadConfig>) :
                             }
                         }
 
-                    } else if (thread.getRendererMode() == GLSurfaceView.Companion.RENDERERMODE_CONTINUOUSLY) {
+                    } else if (thread.rendererMode() == GLSurfaceView.Companion.RENDERERMODE_CONTINUOUSLY) {
                         try {
                             sleep(frameIntervalMs)
                         } catch (error: InterruptedException) {
@@ -132,7 +132,7 @@ open class GLThread(private val weakReference: WeakReference<IGLThreadConfig>) :
         }
         weakReference.get()?.let { view ->
             this.isCreate = false
-            view.getRenderer()?.onSurfaceCreate(width, height)
+            view.renderer()?.onSurfaceCreate(width, height)
         }
     }
 
@@ -145,7 +145,7 @@ open class GLThread(private val weakReference: WeakReference<IGLThreadConfig>) :
         }
         weakReference.get()?.let { view ->
             this.isChange = false
-            view.getRenderer()?.onSurfaceChange(width, height)
+            view.renderer()?.onSurfaceChange(width, height)
         }
     }
 
@@ -169,9 +169,9 @@ open class GLThread(private val weakReference: WeakReference<IGLThreadConfig>) :
      */
     private fun onDraw() {
         weakReference.get()?.let { view ->
-            view.getRenderer()?.onDraw()
+            view.renderer()?.onDraw()
             if (!isStart)
-                view.getRenderer()?.onDraw()
+                view.renderer()?.onDraw()
 
             this.mEGLHelper.swapBuffers()
         }

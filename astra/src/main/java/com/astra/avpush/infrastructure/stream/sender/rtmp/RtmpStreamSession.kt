@@ -135,10 +135,6 @@ class RtmpStreamSession : Sender {
         nativeStopAudioEncoder()
     }
 
-    override fun pushAudioPcm(data: ByteArray, length: Int) {
-        if (length <= 0) return
-        nativePushAudioPcm(data, length)
-    }
 
     fun onConnecting() {
         AstraLog.i(tag) { "native reported connecting" }
@@ -210,5 +206,4 @@ class RtmpStreamSession : Sender {
     )
     private external fun nativeStartAudioEncoder()
     private external fun nativeStopAudioEncoder()
-    private external fun nativePushAudioPcm(data: ByteArray, length: Int)
 }

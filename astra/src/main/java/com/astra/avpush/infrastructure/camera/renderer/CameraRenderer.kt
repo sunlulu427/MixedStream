@@ -6,7 +6,7 @@ import android.opengl.GLES11Ext
 import android.opengl.GLES20
 import android.opengl.Matrix
 import android.os.SystemClock
-import com.astra.avpush.domain.callback.IRenderer
+import com.astra.avpush.presentation.widget.GlRenderer
 import com.astra.avpush.infrastructure.camera.ShaderHelper
 import com.astra.avpush.infrastructure.camera.Watermark
 import com.astra.avpush.runtime.AstraLog
@@ -15,7 +15,7 @@ import java.nio.ByteOrder
 import java.nio.FloatBuffer
 
 
-class CameraRenderer(private val context: Context) : IRenderer {
+class CameraRenderer(private val context: Context) : GlRenderer {
 
     private var TAG = this.javaClass.simpleName
 

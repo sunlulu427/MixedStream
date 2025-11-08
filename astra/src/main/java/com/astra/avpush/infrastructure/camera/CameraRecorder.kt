@@ -2,11 +2,11 @@ package com.astra.avpush.infrastructure.camera
 
 import android.content.Context
 import android.view.Surface
-import com.astra.avpush.domain.callback.IGLThreadConfig
-import com.astra.avpush.domain.callback.IRenderer
 import com.astra.avpush.domain.config.VideoConfiguration
 import com.astra.avpush.infrastructure.camera.renderer.EncodeRenderer
 import com.astra.avpush.presentation.widget.GLSurfaceView
+import com.astra.avpush.presentation.widget.GlRenderer
+import com.astra.avpush.presentation.widget.GlThreadConfig
 import java.lang.ref.WeakReference
 import javax.microedition.khronos.egl.EGLContext
 
@@ -14,7 +14,7 @@ class CameraRecorder(
     context: Context,
     textureId: Int,
     private val eglContext: EGLContext?
-) : IGLThreadConfig {
+) : GlThreadConfig {
 
     private val renderer: EncodeRenderer = EncodeRenderer(context, textureId)
     private var rendererMode = GLSurfaceView.RENDERERMODE_CONTINUOUSLY
@@ -52,16 +52,16 @@ class CameraRecorder(
         glThread?.setResume()
     }
 
-    override fun getSurface(): Surface? = surface
-    override fun getEGLContext(): EGLContext? = eglContext
-    override fun getRenderer(): IRenderer = renderer
-    override fun getRendererMode(): Int = rendererMode
+    override fun surface(): Surface? = surface
+    override fun eglContext(): EGLContext? = eglContext
+    override fun renderer(): GlRenderer = renderer
+    override fun rendererMode(): Int = rendererMode
 
     fun setWatermark(watermark: Watermark) {
         renderer.setWatemark(watermark)
     }
 
     class EncodeRendererThread(
-        weakReference: WeakReference<IGLThreadConfig>
+        weakReference: WeakReference<GlThreadConfig>
     ) : GLThread(weakReference)
 }

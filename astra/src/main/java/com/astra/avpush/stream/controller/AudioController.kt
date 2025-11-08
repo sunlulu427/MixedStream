@@ -1,103 +1,58 @@
 package com.astra.avpush.stream.controller
 
-import com.astra.avpush.domain.callback.IController
 import com.astra.avpush.domain.config.AudioConfiguration
-import com.astra.avpush.infrastructure.audio.AudioProcessor
+import com.astra.avpush.infrastructure.audio.NativeAudioCapturer
 import com.astra.avpush.infrastructure.stream.sender.Sender
 import com.astra.avpush.runtime.AstraLog
 
 class AudioController(
-    private val audioConfiguration: AudioConfiguration,
+    private var audioConfiguration: AudioConfiguration,
     private val senderProvider: () -> Sender?
-) : IController,
-    AudioProcessor.OnRecordListener {
-
-    /**
-     * 音频采集用到的实体程序
-     */
-    private val mAudioProcessor: AudioProcessor = AudioProcessor()
+) {
+    private val nativeCapturer = NativeAudioCapturer()
 
     init {
-        mAudioProcessor.init(
-            audioConfiguration.audioSource,
-            audioConfiguration.sampleRate,
-            audioConfiguration.channelCount
-        )
-        mAudioProcessor.addRecordListener(this)
+        nativeCapturer.configure(audioConfiguration)
     }
 
-    /**
-     * 触发 开始
-     */
-    override fun start() {
-        AstraLog.d(javaClass.simpleName) { "audio processor start" }
-        mAudioProcessor.startRecording()
+    fun updateConfiguration(configuration: AudioConfiguration) {
+        AstraLog.d(javaClass.simpleName) {
+            "audio configuration updated: sampleRate=${configuration.sampleRate} channels=${configuration.channelCount}"
+        }
+        audioConfiguration = configuration
+        nativeCapturer.configure(configuration)
+        senderProvider()?.configureAudio(configuration)
     }
 
-    /**
-     * 触发 暂停
-     */
-    override fun pause() {
-        AstraLog.d(javaClass.simpleName) { "audio processor pause" }
-        mAudioProcessor.setPause(true)
-    }
-
-    /**
-     * 触发恢复
-     */
-    override fun resume() {
-        AstraLog.d(javaClass.simpleName) { "audio processor resume" }
-        mAudioProcessor.setPause(false)
-    }
-
-    /**
-     * 触发停止
-     */
-    override fun stop() {
-        AstraLog.d(javaClass.simpleName) { "audio processor stop" }
-        mAudioProcessor.stop()
-        mAudioProcessor.release()
-
-    }
-
-    /**
-     * 当采集 PCM 数据的时候返回
-     */
-    override fun onPcmData(byteArray: ByteArray) {
-        senderProvider()?.pushAudioPcm(byteArray, byteArray.size)
-    }
-
-    /**
-     * 当开始采集
-     */
-    override fun onStart(sampleRate: Int, channels: Int, sampleFormat: Int) {
-        AstraLog.d(javaClass.simpleName) { "audio recorder started sampleRate=$sampleRate channels=$channels format=$sampleFormat" }
+    fun start() {
+        AstraLog.d(javaClass.simpleName) { "audio capture start" }
+        nativeCapturer.configure(audioConfiguration)
+        senderProvider()?.configureAudio(audioConfiguration)
         senderProvider()?.startAudio()
+        nativeCapturer.start()
     }
 
-    /**
-     * 设置禁言
-     */
-    override fun setMute(isMute: Boolean) {
-        super.setMute(isMute)
-        AstraLog.d(javaClass.simpleName) { "audio mute toggled: $isMute" }
-        mAudioProcessor.setMute(isMute)
-    }
-
-    override fun onStop() {
-        super.onStop()
-        AstraLog.d(javaClass.simpleName) { "audio recorder stop callback" }
+    fun pause() {
+        AstraLog.d(javaClass.simpleName) { "audio capture pause" }
+        nativeCapturer.stop()
         senderProvider()?.stopAudio()
     }
 
-    /**
-     * 当采集出现错误
-     */
-    override fun onError(meg: String?) {
-        AstraLog.e(javaClass.simpleName, meg)
+    fun resume() {
+        AstraLog.d(javaClass.simpleName) { "audio capture resume" }
+        senderProvider()?.startAudio()
+        nativeCapturer.start()
     }
 
-    /**
-     * 当 Audio 编码数据的时候
-     */
+    fun stop() {
+        AstraLog.d(javaClass.simpleName) { "audio capture stop" }
+        nativeCapturer.stop()
+        nativeCapturer.release()
+        senderProvider()?.stopAudio()
+    }
+
+    fun setMute(isMute: Boolean) {
+        AstraLog.d(javaClass.simpleName) { "audio mute toggled: $isMute" }
+        nativeCapturer.setMute(isMute)
+    }
 }

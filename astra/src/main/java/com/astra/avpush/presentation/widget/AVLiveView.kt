@@ -2,7 +2,6 @@ package com.astra.avpush.presentation.widget
 
 import android.content.Context
 import android.util.AttributeSet
-import com.astra.avpush.domain.callback.ICameraOpenListener
 import com.astra.avpush.domain.config.AudioConfiguration
 import com.astra.avpush.domain.config.CameraConfiguration
 import com.astra.avpush.domain.config.VideoConfiguration
@@ -16,7 +15,7 @@ class AVLiveView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
-) : CameraView(context, attrs, defStyleAttr), ICameraOpenListener {
+) : CameraView(context, attrs, defStyleAttr) {
 
     private var mFps = 20
     private var mPreviewWidth = 720
@@ -63,8 +62,15 @@ class AVLiveView @JvmOverloads constructor(
         mVideoMaxRate = typeArray.getInteger(R.styleable.AVLiveView_videoMaxRate, mVideoMaxRate)
         typeArray.recycle()
 
-        //添加 Camera 打开的监听
-        addCameraOpenCallback(this)
+        setCameraOpenedCallback {
+            streamSession.prepare(context, getTextureId(), getEGLContext())
+        }
+        setCameraErrorCallback { message ->
+            cameraErrorListener?.invoke(message)
+        }
+        setCameraPreviewSizeCallback { width, height ->
+            previewSizeListener?.invoke(width, height)
+        }
     }
 
     /**
@@ -124,21 +130,6 @@ class AVLiveView @JvmOverloads constructor(
 
     fun setOnCameraErrorListener(listener: (String) -> Unit) {
         cameraErrorListener = listener
-    }
-
-    /**
-     * camera 打开可以初始化了
-     */
-    override fun onCameraOpen() {
-        streamSession.prepare(context, getTextureId(), getEGLContext())
-    }
-
-    override fun onCameraError(message: String) {
-        cameraErrorListener?.invoke(message)
-    }
-
-    override fun onCameraPreviewSizeSelected(width: Int, height: Int) {
-        previewSizeListener?.invoke(width, height)
     }
 
     /**

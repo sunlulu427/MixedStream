@@ -3,14 +3,14 @@ package com.astra.avpush.infrastructure.camera.renderer
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Color
-import com.astra.avpush.domain.callback.IRenderer
 import com.astra.avpush.infrastructure.camera.ShaderHelper
 import com.astra.avpush.infrastructure.camera.Watermark
 import com.astra.avpush.runtime.BitmapUtils
 import com.astra.avpush.runtime.AstraLog
 import com.astra.avpush.runtime.NativeRenderUtil
+import com.astra.avpush.presentation.widget.GlRenderer
 
-class EncodeRenderer(private val context: Context, private val textureId: Int) : IRenderer {
+class EncodeRenderer(private val context: Context, private val textureId: Int) : GlRenderer {
 
     companion object {
         private val DEFAULT_WATERMARK_COORDS = floatArrayOf(

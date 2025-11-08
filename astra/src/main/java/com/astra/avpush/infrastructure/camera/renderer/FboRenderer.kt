@@ -4,16 +4,16 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.opengl.GLES20
-import com.astra.avpush.domain.callback.IRenderer
 import com.astra.avpush.infrastructure.camera.ShaderHelper
 import com.astra.avpush.infrastructure.camera.Watermark
 import com.astra.avpush.runtime.BitmapUtils
+import com.astra.avpush.presentation.widget.GlRenderer
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
 import kotlin.math.max
 
-class FboRenderer(private val context: Context) : IRenderer {
+class FboRenderer(private val context: Context) : GlRenderer {
     companion object {
         private val DEFAULT_WATERMARK_COORDS = floatArrayOf(
             0.6f, -0.9f,

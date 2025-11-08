@@ -95,25 +95,4 @@ Java_com_astra_avpush_infrastructure_stream_sender_rtmp_RtmpStreamSession_native
     NativeStreamEngine::Instance().stopAudio();
 }
 
-JNIEXPORT void JNICALL
-Java_com_astra_avpush_infrastructure_stream_sender_rtmp_RtmpStreamSession_nativePushAudioPcm(
-        JNIEnv* env,
-        jobject,
-        jbyteArray data,
-        jint offset,
-        jint size) {
-    if (!data || size <= 0) {
-        return;
-    }
-    jbyte* elements = env->GetByteArrayElements(data, nullptr);
-    if (!elements) {
-        return;
-    }
-    const int safeOffset = std::clamp(offset, 0, size);
-    const auto* buffer = reinterpret_cast<uint8_t*>(elements) + safeOffset;
-    const std::size_t clamped = static_cast<std::size_t>(size - safeOffset);
-    NativeStreamEngine::Instance().pushAudioPcm(buffer, clamped);
-    env->ReleaseByteArrayElements(data, elements, JNI_ABORT);
-}
-
 }  // extern "C"

@@ -5,11 +5,10 @@ import android.graphics.SurfaceTexture
 import android.util.AttributeSet
 import android.view.Surface
 import android.view.WindowManager
-import com.astra.avpush.domain.callback.ICameraOpenListener
 import com.astra.avpush.domain.camera.CameraDevice
 import com.astra.avpush.domain.config.CameraConfiguration
 import com.astra.avpush.domain.config.RendererConfiguration
-import com.astra.avpush.infrastructure.camera.LegacyCameraDevice
+import com.astra.avpush.infrastructure.camera.NativeCameraDevice
 import com.astra.avpush.infrastructure.camera.Watermark
 import com.astra.avpush.infrastructure.camera.renderer.CameraRenderer
 import com.astra.avpush.runtime.AstraLog
@@ -23,22 +22,36 @@ open class CameraView @JvmOverloads constructor(
     /**
      * Camera 渲染器
      */
-    protected lateinit var renderer: CameraRenderer
+    protected lateinit var previewRenderer: CameraRenderer
 
     /**
      * 相机预览的纹理 ID
      */
-    protected var mTextureId = -1;
-    protected var mCameraTexture = -1;
-    protected var mCameraOpenListener: ICameraOpenListener? = null
+    protected var mTextureId = -1
+    protected var mCameraTexture = -1
+    private var onCameraOpened: (() -> Unit)? = null
+    private var onCameraErrorCallback: ((String) -> Unit)? = null
+    private var onPreviewSizeSelected: ((Int, Int) -> Unit)? = null
     private var glReady = false
     private var pendingWatermark: Watermark? = null
     private var fallbackTried = false
-    private var cameraDevice: CameraDevice = LegacyCameraDevice()
+    private var cameraDevice: CameraDevice = NativeCameraDevice()
     private var currentSurface: SurfaceTexture? = null
 
     fun attachCameraDevice(device: CameraDevice) {
         cameraDevice = device
+    }
+
+    fun setCameraOpenedCallback(listener: (() -> Unit)?) {
+        onCameraOpened = listener
+    }
+
+    fun setCameraErrorCallback(listener: ((String) -> Unit)?) {
+        onCameraErrorCallback = listener
+    }
+
+    fun setCameraPreviewSizeCallback(listener: ((Int, Int) -> Unit)?) {
+        onPreviewSizeSelected = listener
     }
 
     /**
@@ -55,11 +68,11 @@ open class CameraView @JvmOverloads constructor(
         this.mCameraConfiguration = cameraConfiguration
         cameraId = cameraConfiguration.facing
         fallbackTried = false
-        renderer = CameraRenderer(context)
+        previewRenderer = CameraRenderer(context)
         AstraLog.d(TAG, "startPreview: configure renderer and GL thread")
         configure(
             RendererConfiguration(
-                renderer = renderer,
+                renderer = previewRenderer,
                 rendererMode = RENDERERMODE_CONTINUOUSLY
             )
         )
@@ -70,7 +83,7 @@ open class CameraView @JvmOverloads constructor(
 
     private fun addRendererListener() {
         AstraLog.d(TAG, "addRendererListener")
-        renderer.setOnRendererListener(object : CameraRenderer.OnRendererListener {
+        previewRenderer.setOnRendererListener(object : CameraRenderer.OnRendererListener {
             override fun onCreate(surfaceTexture: SurfaceTexture, textureID: Int) {
                 AstraLog.d(TAG, "onRendererCreate(surfaceTexture) textureID=$textureID")
                 mTextureId = textureID
@@ -114,16 +127,16 @@ open class CameraView @JvmOverloads constructor(
         glReady = true
         pendingWatermark?.let {
             try {
-                renderer.setWatemark(it)
+                previewRenderer.setWatemark(it)
             } catch (t: Throwable) {
                 AstraLog.e(TAG, "apply pending watermark failed: ${t.message}")
             }
             pendingWatermark = null
         }
         cameraDevice.currentDescriptor?.let { descriptor ->
-            mCameraOpenListener?.onCameraPreviewSizeSelected(descriptor.previewWidth, descriptor.previewHeight)
+            onPreviewSizeSelected?.invoke(descriptor.previewWidth, descriptor.previewHeight)
         }
-        mCameraOpenListener?.onCameraOpen()
+        onCameraOpened?.invoke()
     }
 
     private fun handleCameraInitFailure(surfaceTexture: SurfaceTexture, error: Throwable) {
@@ -160,13 +173,13 @@ open class CameraView @JvmOverloads constructor(
                 )
                 cameraDevice.releaseCamera()
                 cameraDevice.releaseResources()
-                mCameraOpenListener?.onCameraError(
+                onCameraErrorCallback?.invoke(
                     "Camera unavailable: ${fallbackError.message ?: fallbackError.javaClass.simpleName}"
                 )
                 return
             }
         }
-        mCameraOpenListener?.onCameraError(
+        onCameraErrorCallback?.invoke(
             "Camera unavailable: ${error.message ?: error.javaClass.simpleName}"
         )
     }
@@ -191,7 +204,7 @@ open class CameraView @JvmOverloads constructor(
                 cameraDevice.bind(it, this)
                 cameraDevice.startPreview()
             }
-            renderer.switchCamera(object : CameraRenderer.OnSwitchCameraListener {
+            previewRenderer.switchCamera(object : CameraRenderer.OnSwitchCameraListener {
                 override fun onChange(): Boolean {
                     previewAngle(context)
                     return true
@@ -206,11 +219,11 @@ open class CameraView @JvmOverloads constructor(
      */
     open fun setWatermark(watermark: Watermark) {
         // 若 GL/renderer 尚未就绪，则保存待应用
-        if (!this::renderer.isInitialized || !glReady) {
+        if (!this::previewRenderer.isInitialized || !glReady) {
             pendingWatermark = watermark
             return
         }
-        renderer.setWatemark(watermark)
+        previewRenderer.setWatemark(watermark)
     }
 
     override fun onFrameAvailable(surfaceTexture: SurfaceTexture) {
@@ -226,40 +239,40 @@ open class CameraView @JvmOverloads constructor(
         val rotation =
             (context.applicationContext.getSystemService(Context.WINDOW_SERVICE) as WindowManager).defaultDisplay.rotation
         AstraLog.d(TAG, "旋转角度：$rotation")
-        renderer.resetMatrix()
+        previewRenderer.resetMatrix()
         when (rotation) {
             Surface.ROTATION_0 -> {
                 if (cameraId == CameraConfiguration.Facing.BACK) {
-                    renderer.setAngle(90, 0, 0, 1);
-                    renderer.setAngle(180, 1, 0, 0);
+                    previewRenderer.setAngle(90, 0, 0, 1);
+                    previewRenderer.setAngle(180, 1, 0, 0);
                 } else {
-                    renderer.setAngle(90, 0, 0, 1);
+                    previewRenderer.setAngle(90, 0, 0, 1);
                 }
             }
 
             Surface.ROTATION_90 -> {
                 if (cameraId == CameraConfiguration.Facing.BACK) {
-                    renderer.setAngle(180, 0, 0, 1);
-                    renderer.setAngle(180, 0, 1, 0);
+                    previewRenderer.setAngle(180, 0, 0, 1);
+                    previewRenderer.setAngle(180, 0, 1, 0);
                 } else {
-                    renderer.setAngle(180, 0, 0, 1);
+                    previewRenderer.setAngle(180, 0, 0, 1);
                 }
             }
 
             Surface.ROTATION_180 -> {
                 if (cameraId == CameraConfiguration.Facing.BACK) {
-                    renderer.setAngle(90, 0, 0, 1);
-                    renderer.setAngle(180, 0, 1, 0);
+                    previewRenderer.setAngle(90, 0, 0, 1);
+                    previewRenderer.setAngle(180, 0, 1, 0);
                 } else {
-                    renderer.setAngle(-90, 0, 0, 1);
+                    previewRenderer.setAngle(-90, 0, 0, 1);
                 }
             }
 
             Surface.ROTATION_270 -> {
                 if (cameraId == CameraConfiguration.Facing.BACK) {
-                    renderer.setAngle(180, 0, 1, 0);
+                    previewRenderer.setAngle(180, 0, 1, 0);
                 } else {
-                    renderer.setAngle(0, 0, 0, 1);
+                    previewRenderer.setAngle(0, 0, 0, 1);
                 }
             }
         }
@@ -269,10 +282,6 @@ open class CameraView @JvmOverloads constructor(
      * 拿到纹理 ID
      */
     fun getTextureId(): Int = mTextureId
-
-    fun addCameraOpenCallback(listener: ICameraOpenListener) {
-        mCameraOpenListener = listener
-    }
 
     companion object {
         private const val SAFE_PREVIEW_WIDTH = 720

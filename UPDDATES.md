@@ -16,6 +16,10 @@ cmake.dir=/Users/bytedance/Library/Android/sdk/cmake/3.22.1
 - add GitHub Actions workflow to run Gradle builds on every push/PR
 - add PlantUML rendering step in CI + `tools/render_docs.sh`
 
+- move camera (Camera2 NDK) and audio (AAudio) capture to native `capture/*` layer with JNI bridges
+- replace Java camera/audio callbacks with typed lambdas + `NativeCameraDevice`/`NativeAudioCapturer`
+- simplify GL renderer contracts (`GlRenderer`/`GlThreadConfig`) to keep the Kotlin layer leaner
+
 - update default preview resolution and push resolution
 - change camera facing to back (for emulator)
 - using canvas instead of TextView for watermark

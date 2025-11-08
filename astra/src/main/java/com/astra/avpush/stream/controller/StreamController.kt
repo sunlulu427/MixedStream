@@ -35,6 +35,8 @@ class StreamController : LiveStreamSession {
         sender?.configureAudio(audioConfiguration)
         if (audioController == null && appContext != null) {
             audioController = AudioController(audioConfiguration, senderProvider)
+        } else {
+            audioController?.updateConfiguration(audioConfiguration)
         }
     }
 

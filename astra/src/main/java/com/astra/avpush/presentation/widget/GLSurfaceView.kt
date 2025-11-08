@@ -5,8 +5,6 @@ import android.util.AttributeSet
 import android.view.Surface
 import android.view.SurfaceHolder
 import android.view.SurfaceView
-import com.astra.avpush.domain.callback.IGLThreadConfig
-import com.astra.avpush.domain.callback.IRenderer
 import com.astra.avpush.domain.config.RendererConfiguration
 import com.astra.avpush.infrastructure.camera.GLThread
 import com.astra.avpush.runtime.AstraLog
@@ -17,7 +15,7 @@ open class GLSurfaceView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
-) : SurfaceView(context, attrs, defStyleAttr), SurfaceHolder.Callback, IGLThreadConfig {
+) : SurfaceView(context, attrs, defStyleAttr), SurfaceHolder.Callback, GlThreadConfig {
     init {
         holder.addCallback(this)
     }
@@ -61,7 +59,7 @@ open class GLSurfaceView @JvmOverloads constructor(
     /**
      * 渲染器
      */
-    var mRenderer: IRenderer? = null
+    var mRenderer: GlRenderer? = null
 
     override fun surfaceCreated(holder: SurfaceHolder) {
         if (mSurface == null) {
@@ -109,11 +107,13 @@ open class GLSurfaceView @JvmOverloads constructor(
     /**
      * 拿到 EGL 上下文
      */
-    override fun getEGLContext(): EGLContext? {
+    override fun eglContext(): EGLContext? {
         if (mEGLContext == null)
             return mEglThread.getEGLContext()
         return mEGLContext
     }
+
+    fun getEGLContext(): EGLContext? = eglContext()
 
     /**
      * 外部请求渲染刷新
@@ -123,22 +123,22 @@ open class GLSurfaceView @JvmOverloads constructor(
     /**
      * 得到渲染器
      */
-    override fun getRenderer(): IRenderer? = mRenderer
+    override fun renderer(): GlRenderer? = mRenderer
 
     /**
      * 得到渲染模式
      */
-    override fun getRendererMode(): Int = mRendererMode
+    override fun rendererMode(): Int = mRendererMode
 
     /**
      * 得到渲染 Surface
      */
-    override fun getSurface(): Surface? = mSurface
+    override fun surface(): Surface? = mSurface
 
     /**
      * 自定义GLThread线程类，主要用于OpenGL的绘制操作
      */
-    class GLSurfaceThread(weakReference: WeakReference<IGLThreadConfig>) :
+    class GLSurfaceThread(weakReference: WeakReference<GlThreadConfig>) :
         GLThread(weakReference) {
         /**
          * 获取 EGL 上下文环境

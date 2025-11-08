@@ -14,6 +14,7 @@ set(CALLBACK_ROOT ${SRC_ROOT}/callback)
 set(STREAM_ROOT ${SRC_ROOT}/stream)
 set(RENDER_ROOT ${SRC_ROOT}/render)
 set(CODEC_ROOT ${SRC_ROOT}/codec)
+set(CAPTURE_ROOT ${SRC_ROOT}/capture)
 
 file(GLOB JNI_SOURCES CONFIGURE_DEPENDS ${JNI_ROOT}/*.cpp)
 file(GLOB PUSH_SOURCES CONFIGURE_DEPENDS ${PUSH_ROOT}/*.cpp)
@@ -22,6 +23,7 @@ file(GLOB CALLBACK_SOURCES CONFIGURE_DEPENDS ${CALLBACK_ROOT}/*.cpp)
 file(GLOB STREAM_SOURCES CONFIGURE_DEPENDS ${STREAM_ROOT}/*.cpp)
 file(GLOB RENDER_SOURCES CONFIGURE_DEPENDS ${RENDER_ROOT}/*.cpp)
 file(GLOB CODEC_SOURCES CONFIGURE_DEPENDS ${CODEC_ROOT}/*.cpp)
+file(GLOB CAPTURE_SOURCES CONFIGURE_DEPENDS ${CAPTURE_ROOT}/*.cpp)
 
 add_library(
         astra
@@ -33,6 +35,7 @@ add_library(
         ${STREAM_SOURCES}
         ${RENDER_SOURCES}
         ${CODEC_SOURCES}
+        ${CAPTURE_SOURCES}
 )
 
 target_include_directories(
@@ -46,6 +49,7 @@ target_include_directories(
         ${STREAM_ROOT}
         ${RENDER_ROOT}
         ${CODEC_ROOT}
+        ${CAPTURE_ROOT}
 )
 
 add_library(rtmp STATIC IMPORTED)
@@ -60,6 +64,8 @@ find_library(GLESv2_lib GLESv2)
 find_library(jnigraphics_lib jnigraphics)
 find_library(mediandk_lib mediandk)
 find_library(android_lib android)
+find_library(camera2ndk_lib camera2ndk)
+find_library(aaudio_lib aaudio)
 
 target_link_libraries(
         astra
@@ -70,4 +76,6 @@ target_link_libraries(
         ${jnigraphics_lib}
         ${mediandk_lib}
         ${android_lib}
+        ${camera2ndk_lib}
+        ${aaudio_lib}
 )

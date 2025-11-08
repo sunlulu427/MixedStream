@@ -24,5 +24,4 @@ interface Sender {
 
     fun startAudio()
     fun stopAudio()
-    fun pushAudioPcm(data: ByteArray, length: Int)
 }

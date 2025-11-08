@@ -15,13 +15,13 @@ class VideoController(
     eglContext: EGLContext?,
     private var videoConfiguration: VideoConfiguration,
     private val senderProvider: () -> Sender?
-) : VideoSourceController {
+) {
 
     private val recorder = CameraRecorder(context, textureId, eglContext).also {
         it.prepare(videoConfiguration)
     }
 
-    override fun start() {
+    fun start() {
         val sender = senderProvider() ?: run {
             AstraLog.w(javaClass.simpleName, "start skipped: sender not available")
             return
@@ -36,7 +36,7 @@ class VideoController(
         sender.startVideo()
     }
 
-    override fun stop() {
+    fun stop() {
         AstraLog.d(javaClass.simpleName) { "video recorder stop" }
         recorder.stop()
         senderProvider()?.run {
@@ -45,22 +45,22 @@ class VideoController(
         }
     }
 
-    override fun pause() {
+    fun pause() {
         AstraLog.d(javaClass.simpleName) { "video recorder pause" }
         recorder.pause()
     }
 
-    override fun resume() {
+    fun resume() {
         AstraLog.d(javaClass.simpleName) { "video recorder resume" }
         recorder.resume()
     }
 
-    override fun setVideoBps(bps: Int) {
+    fun setVideoBps(bps: Int) {
         AstraLog.d(javaClass.simpleName) { "video bitrate request: $bps" }
         senderProvider()?.updateVideoBps(bps)
     }
 
-    override fun setWatermark(watermark: Watermark) {
+    fun setWatermark(watermark: Watermark) {
         AstraLog.d(javaClass.simpleName) { "watermark update" }
         recorder.setWatermark(watermark)
     }
