@@ -72,8 +72,9 @@ class RtmpTransport(
         } catch (e: Exception) {
             _state.value = TransportState.ERROR(
                 TransportError.ConnectionFailed(
-                    message = "RTMP connection failed: ${e.message}",
-                    transport = protocol
+                    transport = protocol,
+                    detail = "RTMP connection failed: ${e.message}",
+                    error = e
                 )
             )
 
@@ -218,9 +219,9 @@ class RtmpTransport(
 
         _state.value = TransportState.ERROR(
             TransportError.NetworkError(
-                message = "Failed to send data: ${error.message}",
+                transport = protocol,
                 errorCode = -1,
-                transport = protocol
+                detail = "Failed to send data: ${error.message}"
             )
         )
 
@@ -248,8 +249,9 @@ class RtmpTransport(
             if (retryCount >= config.retryPolicy.maxRetries) {
                 _state.value = TransportState.ERROR(
                     TransportError.ConnectionFailed(
-                        message = "Max retry attempts exceeded: ${e.message}",
-                        transport = protocol
+                        transport = protocol,
+                        detail = "Max retry attempts exceeded: ${e.message}",
+                        error = e
                     )
                 )
                 isReconnecting = false

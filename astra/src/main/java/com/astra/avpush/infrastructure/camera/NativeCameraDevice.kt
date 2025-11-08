@@ -6,6 +6,7 @@ import com.astra.avpush.domain.camera.CameraDescriptor
 import com.astra.avpush.domain.camera.CameraDevice
 import com.astra.avpush.domain.config.CameraConfiguration
 import com.astra.avpush.runtime.AstraLog
+import com.astra.avpush.unified.MediaError
 
 class NativeCameraDevice : CameraDevice {
 
@@ -36,9 +37,10 @@ class NativeCameraDevice : CameraDevice {
 
     override fun open() {
         if (!nativeOpenCamera()) {
-            throw CameraNotSupportException()
+            throw MediaError.CameraUnavailable(detail = "Camera open failed")
         }
-        cachedDescriptor = buildDescriptor(nativeCurrentDescriptor()) ?: throw CameraNotSupportException()
+        cachedDescriptor = buildDescriptor(nativeCurrentDescriptor())
+            ?: throw MediaError.CameraUnavailable(detail = "Camera descriptor unavailable")
     }
 
     override fun bind(surfaceTexture: SurfaceTexture, listener: SurfaceTexture.OnFrameAvailableListener?) {
@@ -48,7 +50,7 @@ class NativeCameraDevice : CameraDevice {
         previewSurface?.release()
         previewSurface = Surface(surfaceTexture)
         if (!nativeSetSurface(previewSurface)) {
-            throw CameraHardwareException(RuntimeException("Attach preview surface failed"))
+            throw MediaError.CameraHardwareFailure(detail = "Attach preview surface failed")
         }
     }
 
@@ -58,7 +60,7 @@ class NativeCameraDevice : CameraDevice {
 
     override fun startPreview() {
         if (!nativeStartPreview()) {
-            throw CameraHardwareException(RuntimeException("nativeStartPreview failed"))
+            throw MediaError.CameraHardwareFailure(detail = "Start preview failed")
         }
     }
 

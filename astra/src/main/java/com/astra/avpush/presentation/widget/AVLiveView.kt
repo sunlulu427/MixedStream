@@ -10,6 +10,13 @@ import com.astra.avpush.infrastructure.stream.sender.Sender
 import com.astra.avpush.stream.controller.LiveStreamSession
 import com.astra.avpush.stream.controller.StreamController
 import com.astrastream.avpush.R
+import com.astra.avpush.unified.StreamError
+
+data class LiveSessionConfig(
+    val audio: AudioConfiguration,
+    val video: VideoConfiguration,
+    val camera: CameraConfiguration
+)
 
 class AVLiveView @JvmOverloads constructor(
     context: Context,
@@ -17,110 +24,51 @@ class AVLiveView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : CameraView(context, attrs, defStyleAttr) {
 
-    private var mFps = 20
-    private var mPreviewWidth = 720
-    private var mPreviewHeight = 1280
-    private var mBack = true
-    private var mSampleRate = 44100
-    private var mVideoMinRate = 400
-    private var mVideoMaxRate = 1800
-    private var currentWatermark: Watermark? = null
-    private var currentSender: Sender? = null
-    private var statsListener: LiveStreamSession.StatsListener? = null
+    private var sessionConfig: LiveSessionConfig = buildInitialConfig(context, attrs)
     private var previewSizeListener: ((Int, Int) -> Unit)? = null
-    private var cameraErrorListener: ((String) -> Unit)? = null
-
-    private var mVideoConfiguration = VideoConfiguration(
-        width = mPreviewWidth,
-        height = mPreviewHeight,
-        minBps = mVideoMinRate,
-        maxBps = mVideoMaxRate,
-        fps = mFps,
-        mediaCodec = true
-    )
-    private var mAudioConfiguration = AudioConfiguration(
-        sampleRate = mSampleRate,
-        aec = true,
-        mediaCodec = true
-    )
-    private var mCameraConfiguration = CameraConfiguration(
-        width = mPreviewWidth,
-        height = mPreviewHeight,
-        fps = mFps,
-        facing = if (mBack) CameraConfiguration.Facing.BACK else CameraConfiguration.Facing.FRONT
-    )
+    private var cameraErrorListener: ((StreamError) -> Unit)? = null
     private var streamSession: LiveStreamSession = StreamController()
 
     init {
-        val typeArray = context.obtainStyledAttributes(attrs, R.styleable.AVLiveView)
-        mFps = typeArray.getInteger(R.styleable.AVLiveView_fps, mFps)
-        mPreviewHeight = typeArray.getInteger(R.styleable.AVLiveView_preview_height, mPreviewHeight)
-        mPreviewWidth = typeArray.getInteger(R.styleable.AVLiveView_preview_width, mPreviewWidth)
-        mSampleRate = typeArray.getInteger(R.styleable.AVLiveView_sampleRate, mSampleRate)
-        mBack = typeArray.getBoolean(R.styleable.AVLiveView_back, mBack)
-        mVideoMinRate = typeArray.getInteger(R.styleable.AVLiveView_videoMinRate, mVideoMinRate)
-        mVideoMaxRate = typeArray.getInteger(R.styleable.AVLiveView_videoMaxRate, mVideoMaxRate)
-        typeArray.recycle()
-
-        setCameraOpenedCallback {
-            streamSession.prepare(context, getTextureId(), getEGLContext())
-        }
-        setCameraErrorCallback { message ->
-            cameraErrorListener?.invoke(message)
-        }
-        setCameraPreviewSizeCallback { width, height ->
-            previewSizeListener?.invoke(width, height)
-        }
+        attachCameraCallbacks()
     }
 
-    /**
-     * 设置音频编码和采集的参数
-     */
+    fun configureSession(config: LiveSessionConfig) {
+        sessionConfig = config
+        streamSession.setAudioConfigure(config.audio)
+        streamSession.setVideoConfigure(config.video)
+    }
+
     fun setAudioConfigure(audioConfiguration: AudioConfiguration) {
-        this.mAudioConfiguration = audioConfiguration
+        sessionConfig = sessionConfig.copy(audio = audioConfiguration)
+        streamSession.setAudioConfigure(audioConfiguration)
     }
 
-    /**
-     * 设置视频编码参数
-     */
     fun setVideoConfigure(videoConfiguration: VideoConfiguration) {
-        this.mVideoConfiguration = videoConfiguration
+        sessionConfig = sessionConfig.copy(video = videoConfiguration)
+        streamSession.setVideoConfigure(videoConfiguration)
     }
 
-    /**
-     * 设置预览视频的参数
-     */
     fun setCameraConfigure(cameraConfiguration: CameraConfiguration) {
-        this.mCameraConfiguration = cameraConfiguration
+        sessionConfig = sessionConfig.copy(camera = cameraConfiguration)
     }
 
-    /**
-     * 开始预览
-     */
     fun startPreview() {
-        streamSession.setAudioConfigure(mAudioConfiguration)
-        streamSession.setVideoConfigure(mVideoConfiguration)
-        //开始预览
-        startPreview(mCameraConfiguration)
+        streamSession.setAudioConfigure(sessionConfig.audio)
+        streamSession.setVideoConfigure(sessionConfig.video)
+        startPreview(sessionConfig.camera)
     }
-
 
     override fun setWatermark(watermark: Watermark) {
         super.setWatermark(watermark)
-        currentWatermark = watermark
         streamSession.setWatermark(watermark)
     }
 
-    /**
-     * 设置发送器
-     */
     fun setSender(sender: Sender) {
-        currentSender = sender
         streamSession.setSender(sender)
     }
 
     fun setStatsListener(listener: LiveStreamSession.StatsListener) {
-        statsListener = listener
         streamSession.setStatsListener(listener)
     }
 
@@ -128,49 +76,89 @@ class AVLiveView @JvmOverloads constructor(
         previewSizeListener = listener
     }
 
-    fun setOnCameraErrorListener(listener: (String) -> Unit) {
+    fun setOnCameraErrorListener(listener: (StreamError) -> Unit) {
         cameraErrorListener = listener
     }
 
-    /**
-     * 开始
-     */
     fun startLive() {
         streamSession.start()
     }
 
-    /**
-     * 暂停
-     */
     fun pause() {
         streamSession.pause()
     }
 
-    /**
-     * 恢复
-     */
     fun resume() {
         streamSession.resume()
     }
 
-    /**
-     * 停止
-     */
     fun stopLive() {
         streamSession.stop()
     }
 
-    /**
-     * 禁言
-     */
     fun setMute(isMute: Boolean) {
         streamSession.setMute(isMute)
     }
 
-    /**
-     * 动态设置视频编码码率
-     */
     fun setVideoBps(bps: Int) {
         streamSession.setVideoBps(bps)
+    }
+
+    private fun buildInitialConfig(context: Context, attrs: AttributeSet?): LiveSessionConfig {
+        var fps = 20
+        var previewHeight = 1280
+        var previewWidth = 720
+        var sampleRate = 44100
+        var backCamera = true
+        var minRate = 400
+        var maxRate = 1800
+
+        if (attrs != null) {
+            val typedArray = context.obtainStyledAttributes(attrs, R.styleable.AVLiveView)
+            fps = typedArray.getInteger(R.styleable.AVLiveView_fps, fps)
+            previewHeight = typedArray.getInteger(R.styleable.AVLiveView_preview_height, previewHeight)
+            previewWidth = typedArray.getInteger(R.styleable.AVLiveView_preview_width, previewWidth)
+            sampleRate = typedArray.getInteger(R.styleable.AVLiveView_sampleRate, sampleRate)
+            backCamera = typedArray.getBoolean(R.styleable.AVLiveView_back, backCamera)
+            minRate = typedArray.getInteger(R.styleable.AVLiveView_videoMinRate, minRate)
+            maxRate = typedArray.getInteger(R.styleable.AVLiveView_videoMaxRate, maxRate)
+            typedArray.recycle()
+        }
+
+        val facing = if (backCamera) CameraConfiguration.Facing.BACK else CameraConfiguration.Facing.FRONT
+
+        val audioConfig = AudioConfiguration(sampleRate = sampleRate, aec = true, mediaCodec = true)
+        val videoConfig = VideoConfiguration(
+            width = previewWidth,
+            height = previewHeight,
+            minBps = minRate,
+            maxBps = maxRate,
+            fps = fps,
+            mediaCodec = true
+        )
+        val cameraConfig = CameraConfiguration(
+            width = previewWidth,
+            height = previewHeight,
+            fps = fps,
+            facing = facing
+        )
+
+        return LiveSessionConfig(audio = audioConfig, video = videoConfig, camera = cameraConfig)
+    }
+
+    private fun attachCameraCallbacks() {
+        setCameraCallbacks(
+            CameraCallbacks(
+                onOpened = {
+                    streamSession.prepare(context, getTextureId(), getEGLContext())
+                },
+                onPreviewSize = { width, height ->
+                    previewSizeListener?.invoke(width, height)
+                },
+                onError = { error ->
+                    cameraErrorListener?.invoke(error)
+                }
+            )
+        )
     }
 }

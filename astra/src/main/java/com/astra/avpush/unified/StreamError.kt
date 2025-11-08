@@ -2,238 +2,330 @@ package com.astra.avpush.unified
 
 import java.time.Instant
 
-/**
- * 推流错误基类
- */
-sealed class StreamError {
-    abstract val code: String
-    abstract val message: String
-    abstract val recoverable: Boolean
-    abstract val timestamp: Instant
+sealed class StreamError protected constructor(
+    val code: String,
+    val recoverable: Boolean,
+    val timestamp: Instant = Instant.now(),
+    message: String,
+    cause: Throwable? = null
+) : RuntimeException(message, cause) {
 
     companion object {
-        fun from(throwable: Throwable): StreamError {
-            return when (throwable) {
-                is SecurityException -> SystemError.PermissionDenied(
-                    message = throwable.message ?: "Permission denied"
-                )
-                is IllegalArgumentException -> ConfigurationError.InvalidParameter(
-                    message = throwable.message ?: "Invalid parameter",
-                    parameter = "unknown"
-                )
-                is IllegalStateException -> SystemError.InvalidState(
-                    message = throwable.message ?: "Invalid state"
-                )
-                else -> SystemError.UnknownError(
-                    message = throwable.message ?: "Unknown error",
-                    cause = throwable
-                )
-            }
+        fun from(throwable: Throwable): StreamError = when (throwable) {
+            is StreamError -> throwable
+            is SecurityException -> MediaError.CameraPermissionDenied(
+                detail = throwable.message ?: "Permission denied"
+            )
+            is IllegalArgumentException -> ConfigurationError.InvalidParameter(
+                parameter = "unknown",
+                detail = throwable.message ?: "Invalid parameter"
+            )
+            is IllegalStateException -> SystemError.InvalidState(
+                detail = throwable.message ?: "Invalid state"
+            )
+            else -> SystemError.UnknownError(
+                detail = throwable.message ?: "Unknown error",
+                underlying = throwable
+            )
         }
     }
 }
 
-/**
- * 传输相关错误
- */
-sealed class TransportError : StreamError() {
+sealed class TransportError protected constructor(
+    code: String,
+    recoverable: Boolean,
+    timestamp: Instant = Instant.now(),
+    message: String,
+    cause: Throwable? = null
+) : StreamError(code, recoverable, timestamp, message, cause) {
+
     data class ConnectionFailed(
-        override val code: String = "TRANSPORT_CONNECTION_FAILED",
-        override val message: String,
         val transport: TransportProtocol,
-        override val timestamp: Instant = Instant.now()
-    ) : TransportError() {
-        override val recoverable: Boolean = true
-    }
+        val detail: String = "Transport connection failed",
+        val error: Throwable? = null,
+        val at: Instant = Instant.now()
+    ) : TransportError(
+        code = "TRANSPORT_CONNECTION_FAILED",
+        recoverable = true,
+        timestamp = at,
+        message = detail,
+        cause = error
+    )
 
     data class AuthenticationFailed(
-        override val code: String = "TRANSPORT_AUTH_FAILED",
-        override val message: String,
         val transport: TransportProtocol,
-        override val timestamp: Instant = Instant.now()
-    ) : TransportError() {
-        override val recoverable: Boolean = false
-    }
+        val detail: String = "Authentication failed",
+        val at: Instant = Instant.now()
+    ) : TransportError(
+        code = "TRANSPORT_AUTH_FAILED",
+        recoverable = false,
+        timestamp = at,
+        message = detail
+    )
 
     data class NetworkError(
-        override val code: String = "NETWORK_ERROR",
-        override val message: String,
-        val errorCode: Int,
         val transport: TransportProtocol,
-        override val timestamp: Instant = Instant.now()
-    ) : TransportError() {
-        override val recoverable: Boolean = true
-    }
+        val errorCode: Int,
+        val detail: String = "Network error",
+        val at: Instant = Instant.now()
+    ) : TransportError(
+        code = "NETWORK_ERROR",
+        recoverable = true,
+        timestamp = at,
+        message = "$detail (code=$errorCode)"
+    )
 
     data class TimeoutError(
-        override val code: String = "TRANSPORT_TIMEOUT",
-        override val message: String,
         val transport: TransportProtocol,
-        override val timestamp: Instant = Instant.now()
-    ) : TransportError() {
-        override val recoverable: Boolean = true
-    }
+        val detail: String = "Transport timeout",
+        val at: Instant = Instant.now()
+    ) : TransportError(
+        code = "TRANSPORT_TIMEOUT",
+        recoverable = true,
+        timestamp = at,
+        message = detail
+    )
 
     data class ProtocolError(
-        override val code: String = "PROTOCOL_ERROR",
-        override val message: String,
         val transport: TransportProtocol,
-        override val timestamp: Instant = Instant.now()
-    ) : TransportError() {
-        override val recoverable: Boolean = false
-    }
+        val detail: String = "Protocol error",
+        val error: Throwable? = null,
+        val at: Instant = Instant.now()
+    ) : TransportError(
+        code = "PROTOCOL_ERROR",
+        recoverable = false,
+        timestamp = at,
+        message = detail,
+        cause = error
+    )
 }
 
-/**
- * 编码相关错误
- */
-sealed class EncodingError : StreamError() {
+sealed class EncodingError protected constructor(
+    code: String,
+    recoverable: Boolean,
+    timestamp: Instant = Instant.now(),
+    message: String,
+    cause: Throwable? = null
+) : StreamError(code, recoverable, timestamp, message, cause) {
+
     data class HardwareEncoderFailed(
-        override val code: String = "HARDWARE_ENCODER_FAILED",
-        override val message: String,
-        override val timestamp: Instant = Instant.now()
-    ) : EncodingError() {
-        override val recoverable: Boolean = true // 可切换到软编码
-    }
+        val detail: String = "Hardware encoder failure",
+        val error: Throwable? = null,
+        val at: Instant = Instant.now()
+    ) : EncodingError(
+        code = "HARDWARE_ENCODER_FAILED",
+        recoverable = true,
+        timestamp = at,
+        message = detail,
+        cause = error
+    )
 
     data class SoftwareEncoderFailed(
-        override val code: String = "SOFTWARE_ENCODER_FAILED",
-        override val message: String,
-        override val timestamp: Instant = Instant.now()
-    ) : EncodingError() {
-        override val recoverable: Boolean = false
-    }
+        val detail: String = "Software encoder failure",
+        val at: Instant = Instant.now()
+    ) : EncodingError(
+        code = "SOFTWARE_ENCODER_FAILED",
+        recoverable = false,
+        timestamp = at,
+        message = detail
+    )
 
-    data class ConfigurationError(
-        override val code: String = "ENCODING_CONFIG_ERROR",
-        override val message: String,
+    data class SettingsInvalid(
         val parameter: String,
-        override val timestamp: Instant = Instant.now()
-    ) : EncodingError() {
-        override val recoverable: Boolean = false
-    }
+        val detail: String = "Invalid encoder parameter",
+        val at: Instant = Instant.now()
+    ) : EncodingError(
+        code = "ENCODING_CONFIG_ERROR",
+        recoverable = false,
+        timestamp = at,
+        message = "$detail: $parameter"
+    )
 
     data class BufferOverflow(
-        override val code: String = "ENCODING_BUFFER_OVERFLOW",
-        override val message: String,
-        override val timestamp: Instant = Instant.now()
-    ) : EncodingError() {
-        override val recoverable: Boolean = true
-    }
+        val detail: String = "Encoding buffer overflow",
+        val at: Instant = Instant.now()
+    ) : EncodingError(
+        code = "ENCODING_BUFFER_OVERFLOW",
+        recoverable = true,
+        timestamp = at,
+        message = detail
+    )
 
     data class FormatNotSupported(
-        override val code: String = "FORMAT_NOT_SUPPORTED",
-        override val message: String,
         val format: String,
-        override val timestamp: Instant = Instant.now()
-    ) : EncodingError() {
-        override val recoverable: Boolean = false
-    }
+        val detail: String = "Format not supported",
+        val at: Instant = Instant.now()
+    ) : EncodingError(
+        code = "FORMAT_NOT_SUPPORTED",
+        recoverable = false,
+        timestamp = at,
+        message = "$detail: $format"
+    )
 }
 
-/**
- * 配置相关错误
- */
-sealed class ConfigurationError : StreamError() {
+sealed class ConfigurationError protected constructor(
+    code: String,
+    recoverable: Boolean,
+    timestamp: Instant = Instant.now(),
+    message: String
+) : StreamError(code, recoverable, timestamp, message) {
+
     data class InvalidParameter(
-        override val code: String = "INVALID_PARAMETER",
-        override val message: String,
         val parameter: String,
-        override val timestamp: Instant = Instant.now()
-    ) : ConfigurationError() {
-        override val recoverable: Boolean = false
-    }
+        val detail: String = "Invalid parameter",
+        val at: Instant = Instant.now()
+    ) : ConfigurationError(
+        code = "INVALID_PARAMETER",
+        recoverable = false,
+        timestamp = at,
+        message = "$detail: $parameter"
+    )
 
     data class UnsupportedConfiguration(
-        override val code: String = "UNSUPPORTED_CONFIGURATION",
-        override val message: String,
-        override val timestamp: Instant = Instant.now()
-    ) : ConfigurationError() {
-        override val recoverable: Boolean = false
-    }
+        val detail: String = "Unsupported configuration",
+        val at: Instant = Instant.now()
+    ) : ConfigurationError(
+        code = "UNSUPPORTED_CONFIGURATION",
+        recoverable = false,
+        timestamp = at,
+        message = detail
+    )
 
     data class ConflictingSettings(
-        override val code: String = "CONFLICTING_SETTINGS",
-        override val message: String,
         val conflictingParameters: List<String>,
-        override val timestamp: Instant = Instant.now()
-    ) : ConfigurationError() {
-        override val recoverable: Boolean = false
-    }
+        val detail: String = "Conflicting settings",
+        val at: Instant = Instant.now()
+    ) : ConfigurationError(
+        code = "CONFLICTING_SETTINGS",
+        recoverable = false,
+        timestamp = at,
+        message = "$detail: ${'$'}conflictingParameters"
+    )
 }
 
-/**
- * 系统相关错误
- */
-sealed class SystemError : StreamError() {
+sealed class SystemError protected constructor(
+    code: String,
+    recoverable: Boolean,
+    timestamp: Instant = Instant.now(),
+    message: String,
+    cause: Throwable? = null
+) : StreamError(code, recoverable, timestamp, message, cause) {
+
     data class PermissionDenied(
-        override val code: String = "PERMISSION_DENIED",
-        override val message: String,
-        override val timestamp: Instant = Instant.now()
-    ) : SystemError() {
-        override val recoverable: Boolean = false
-    }
+        val detail: String = "Permission denied",
+        val at: Instant = Instant.now()
+    ) : SystemError(
+        code = "PERMISSION_DENIED",
+        recoverable = false,
+        timestamp = at,
+        message = detail
+    )
 
     data class ResourceUnavailable(
-        override val code: String = "RESOURCE_UNAVAILABLE",
-        override val message: String,
         val resource: String,
-        override val timestamp: Instant = Instant.now()
-    ) : SystemError() {
-        override val recoverable: Boolean = true
-    }
+        val detail: String = "Resource unavailable",
+        val at: Instant = Instant.now()
+    ) : SystemError(
+        code = "RESOURCE_UNAVAILABLE",
+        recoverable = true,
+        timestamp = at,
+        message = "$detail: $resource"
+    )
 
     data class OutOfMemory(
-        override val code: String = "OUT_OF_MEMORY",
-        override val message: String,
-        override val timestamp: Instant = Instant.now()
-    ) : SystemError() {
-        override val recoverable: Boolean = true
-    }
+        val detail: String = "Out of memory",
+        val at: Instant = Instant.now()
+    ) : SystemError(
+        code = "OUT_OF_MEMORY",
+        recoverable = true,
+        timestamp = at,
+        message = detail
+    )
 
     data class InvalidState(
-        override val code: String = "INVALID_STATE",
-        override val message: String,
-        override val timestamp: Instant = Instant.now()
-    ) : SystemError() {
-        override val recoverable: Boolean = false
-    }
+        val detail: String = "Invalid state",
+        val at: Instant = Instant.now()
+    ) : SystemError(
+        code = "INVALID_STATE",
+        recoverable = false,
+        timestamp = at,
+        message = detail
+    )
 
     data class UnknownError(
-        override val code: String = "UNKNOWN_ERROR",
-        override val message: String,
-        val cause: Throwable? = null,
-        override val timestamp: Instant = Instant.now()
-    ) : SystemError() {
-        override val recoverable: Boolean = false
-    }
+        val detail: String = "Unknown error",
+        val at: Instant = Instant.now(),
+        val underlying: Throwable? = null
+    ) : SystemError(
+        code = "UNKNOWN_ERROR",
+        recoverable = false,
+        timestamp = at,
+        message = detail,
+        cause = underlying
+    )
 }
 
-/**
- * 媒体相关错误
- */
-sealed class MediaError : StreamError() {
-    data class CameraError(
-        override val code: String = "CAMERA_ERROR",
-        override val message: String,
-        override val timestamp: Instant = Instant.now()
-    ) : MediaError() {
-        override val recoverable: Boolean = true
-    }
+sealed class MediaError protected constructor(
+    code: String,
+    recoverable: Boolean,
+    timestamp: Instant = Instant.now(),
+    message: String,
+    cause: Throwable? = null
+) : StreamError(code, recoverable, timestamp, message, cause) {
+
+    data class CameraUnavailable(
+        val detail: String = "Camera unavailable",
+        val at: Instant = Instant.now(),
+        val underlying: Throwable? = null
+    ) : MediaError(
+        code = "CAMERA_UNAVAILABLE",
+        recoverable = false,
+        timestamp = at,
+        message = detail,
+        cause = underlying
+    )
+
+    data class CameraHardwareFailure(
+        val detail: String = "Camera hardware failure",
+        val at: Instant = Instant.now(),
+        val underlying: Throwable? = null
+    ) : MediaError(
+        code = "CAMERA_HARDWARE_FAILURE",
+        recoverable = true,
+        timestamp = at,
+        message = detail,
+        cause = underlying
+    )
+
+    data class CameraPermissionDenied(
+        val detail: String = "Camera permission denied",
+        val at: Instant = Instant.now()
+    ) : MediaError(
+        code = "CAMERA_PERMISSION_DENIED",
+        recoverable = false,
+        timestamp = at,
+        message = detail
+    )
 
     data class AudioCaptureError(
-        override val code: String = "AUDIO_CAPTURE_ERROR",
-        override val message: String,
-        override val timestamp: Instant = Instant.now()
-    ) : MediaError() {
-        override val recoverable: Boolean = true
-    }
+        val detail: String = "Audio capture error",
+        val at: Instant = Instant.now(),
+        val underlying: Throwable? = null
+    ) : MediaError(
+        code = "AUDIO_CAPTURE_ERROR",
+        recoverable = true,
+        timestamp = at,
+        message = detail,
+        cause = underlying
+    )
 
     data class SurfaceError(
-        override val code: String = "SURFACE_ERROR",
-        override val message: String,
-        override val timestamp: Instant = Instant.now()
-    ) : MediaError() {
-        override val recoverable: Boolean = true
-    }
+        val detail: String = "Surface error",
+        val at: Instant = Instant.now()
+    ) : MediaError(
+        code = "SURFACE_ERROR",
+        recoverable = true,
+        timestamp = at,
+        message = detail
+    )
 }

@@ -13,7 +13,13 @@ import com.astra.avpush.infrastructure.camera.NativeCameraDevice
 import com.astra.avpush.infrastructure.camera.Watermark
 import com.astra.avpush.infrastructure.camera.renderer.CameraRenderer
 import com.astra.avpush.runtime.AstraLog
+import com.astra.avpush.unified.StreamError
 
+data class CameraCallbacks(
+    val onOpened: (() -> Unit)? = null,
+    val onPreviewSize: ((Int, Int) -> Unit)? = null,
+    val onError: ((StreamError) -> Unit)? = null
+)
 
 open class CameraView @JvmOverloads constructor(
     context: Context,
@@ -30,9 +36,7 @@ open class CameraView @JvmOverloads constructor(
      */
     protected var mTextureId = -1
     protected var mCameraTexture = -1
-    private var onCameraOpened: (() -> Unit)? = null
-    private var onCameraErrorCallback: ((String) -> Unit)? = null
-    private var onPreviewSizeSelected: ((Int, Int) -> Unit)? = null
+    private var cameraCallbacks: CameraCallbacks = CameraCallbacks()
     private var glReady = false
     private var pendingWatermark: Watermark? = null
     private var fallbackTried = false
@@ -43,16 +47,20 @@ open class CameraView @JvmOverloads constructor(
         cameraDevice = device
     }
 
-    fun setCameraOpenedCallback(listener: (() -> Unit)?) {
-        onCameraOpened = listener
+    fun setCameraCallbacks(callbacks: CameraCallbacks) {
+        cameraCallbacks = callbacks
     }
 
-    fun setCameraErrorCallback(listener: ((String) -> Unit)?) {
-        onCameraErrorCallback = listener
+    fun setCameraOpenedCallback(listener: (() -> Unit)?) {
+        cameraCallbacks = cameraCallbacks.copy(onOpened = listener)
+    }
+
+    fun setCameraErrorCallback(listener: ((StreamError) -> Unit)?) {
+        cameraCallbacks = cameraCallbacks.copy(onError = listener)
     }
 
     fun setCameraPreviewSizeCallback(listener: ((Int, Int) -> Unit)?) {
-        onPreviewSizeSelected = listener
+        cameraCallbacks = cameraCallbacks.copy(onPreviewSize = listener)
     }
 
     /**
@@ -112,8 +120,10 @@ open class CameraView @JvmOverloads constructor(
     private fun tryOpenCamera(surfaceTexture: SurfaceTexture) {
         try {
             openCameraWith(surfaceTexture)
-        } catch (error: Throwable) {
+        } catch (error: StreamError) {
             handleCameraInitFailure(surfaceTexture, error)
+        } catch (error: Throwable) {
+            handleCameraInitFailure(surfaceTexture, StreamError.from(error))
         }
     }
 
@@ -142,15 +152,15 @@ open class CameraView @JvmOverloads constructor(
             pendingWatermark = null
         }
         cameraDevice.currentDescriptor?.let { descriptor ->
-            onPreviewSizeSelected?.invoke(descriptor.previewWidth, descriptor.previewHeight)
+            cameraCallbacks.onPreviewSize?.invoke(descriptor.previewWidth, descriptor.previewHeight)
         }
-        onCameraOpened?.invoke()
+        cameraCallbacks.onOpened?.invoke()
     }
 
-    private fun handleCameraInitFailure(surfaceTexture: SurfaceTexture, error: Throwable) {
+    private fun handleCameraInitFailure(surfaceTexture: SurfaceTexture, error: StreamError) {
         AstraLog.e(
             TAG,
-            "open camera failed (${mCameraConfiguration.width}x${mCameraConfiguration.height}): ${error.javaClass.simpleName} ${error.message}"
+            "open camera failed (${mCameraConfiguration.width}x${mCameraConfiguration.height}): ${error.code} ${error.message}"
         )
         cameraDevice.releaseCamera()
         cameraDevice.releaseResources()
@@ -174,22 +184,28 @@ open class CameraView @JvmOverloads constructor(
                 openCameraWith(surfaceTexture)
                 AstraLog.i(TAG, "camera fallback succeeded with ${fallback.width}x${fallback.height}")
                 return
-            } catch (fallbackError: Throwable) {
+            } catch (fallbackError: StreamError) {
                 AstraLog.e(
                     TAG,
-                    "fallback camera open failed: ${fallbackError.javaClass.simpleName} ${fallbackError.message}"
+                    "fallback camera open failed: ${fallbackError.code} ${fallbackError.message}"
                 )
                 cameraDevice.releaseCamera()
                 cameraDevice.releaseResources()
-                onCameraErrorCallback?.invoke(
-                    "Camera unavailable: ${fallbackError.message ?: fallbackError.javaClass.simpleName}"
+                cameraCallbacks.onError?.invoke(fallbackError)
+                return
+            } catch (fallbackError: Throwable) {
+                val mapped = StreamError.from(fallbackError)
+                AstraLog.e(
+                    TAG,
+                    "fallback camera open failed: ${mapped.code} ${mapped.message}"
                 )
+                cameraDevice.releaseCamera()
+                cameraDevice.releaseResources()
+                cameraCallbacks.onError?.invoke(mapped)
                 return
             }
         }
-        onCameraErrorCallback?.invoke(
-            "Camera unavailable: ${error.message ?: error.javaClass.simpleName}"
-        )
+        cameraCallbacks.onError?.invoke(error)
     }
 
     /**

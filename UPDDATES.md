@@ -22,6 +22,7 @@ cmake.dir=/Users/bytedance/Library/Android/sdk/cmake/3.22.1
 - move preview rendering + watermark composition into native GL (`render/CameraRendererNative`) and drop the Kotlin FBO stack
 - collapse the encoder renderer + shader utilities into C++, removing `ShaderHelper`/`NativeShaders`/`FboRenderer` code paths from Kotlin
 - move watermark layout + scheduling to native renderers (preview + encoder), deleting `NativeRenderUtil`/`render_util_bridge` and slimming Kotlin glue
+- merge legacy camera exceptions into `StreamError`, and streamline `AVLiveView`/`CameraView` around typed callbacks + shared session config while dropping unused threading wrappers
 
 - update default preview resolution and push resolution
 - change camera facing to back (for emulator)
