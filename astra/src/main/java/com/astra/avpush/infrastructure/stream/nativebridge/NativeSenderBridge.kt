@@ -37,6 +37,20 @@ internal object NativeSenderBridge {
         bytesPerSample: Int
     )
 
+    external fun nativeConfigureSession(
+        handle: Long,
+        sampleRate: Int,
+        channels: Int,
+        bytesPerSample: Int,
+        audioBitrateKbps: Int,
+        videoWidth: Int,
+        videoHeight: Int,
+        videoFps: Int,
+        videoBitrateKbps: Int,
+        iframeInterval: Int,
+        codecOrdinal: Int
+    )
+
     external fun nativePrepareVideoSurface(
         handle: Long,
         width: Int,
@@ -55,4 +69,10 @@ internal object NativeSenderBridge {
 
     external fun nativeStartAudio(handle: Long)
     external fun nativeStopAudio(handle: Long)
+
+    external fun nativeStartSession(handle: Long)
+    external fun nativePauseSession(handle: Long)
+    external fun nativeResumeSession(handle: Long)
+    external fun nativeStopSession(handle: Long)
+    external fun nativeSetMute(handle: Long, muted: Boolean)
 }

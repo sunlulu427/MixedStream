@@ -16,7 +16,6 @@ import com.astra.avpush.infrastructure.stream.nativebridge.NativeSender
 import com.astra.avpush.infrastructure.stream.nativebridge.NativeSenderFactory
 import com.astra.avpush.presentation.widget.AVLiveView
 import com.astra.avpush.runtime.AstraLog
-import com.astra.avpush.stream.controller.LiveStreamSession
 import com.astra.avpush.unified.ProtocolDetector
 import com.astra.avpush.unified.StreamError
 import com.astra.avpush.unified.TransportProtocol
@@ -30,7 +29,7 @@ class LiveSessionCoordinator(
     private val state: MutableState<LiveUiState>,
     private val audioConfiguration: AudioConfiguration,
     private val preferencesStore: LivePreferencesStore
-) : LiveStreamSession.StatsListener {
+) {
 
     private val tag = "LiveSessionCoordinator"
 
@@ -48,7 +47,7 @@ class LiveSessionCoordinator(
     private var activeProtocol: TransportProtocol? = null
     private var sender: NativeSender? = null
 
-    override fun onVideoStats(bitrateKbps: Int, fps: Int) {
+    fun onVideoStats(bitrateKbps: Int, fps: Int) {
         state.value = state.value.copy(currentBitrate = bitrateKbps, currentFps = fps)
     }
 
@@ -63,7 +62,7 @@ class LiveSessionCoordinator(
         }
         sender?.let(view::setSender)
         view.setAudioConfigure(audioConfiguration)
-        view.setStatsListener(this)
+        view.setStatsListener { bitrate, fps -> onVideoStats(bitrate, fps) }
         view.setOnPreviewSizeListener { width, height -> onCameraPreviewSize(width, height) }
         view.setOnCameraErrorListener { error -> onCameraError(error) }
         applyStreamConfiguration(view)

@@ -5,10 +5,10 @@ import android.util.AttributeSet
 import com.astra.avpush.domain.config.AudioConfiguration
 import com.astra.avpush.domain.config.CameraConfiguration
 import com.astra.avpush.domain.config.VideoConfiguration
+import com.astra.avpush.infrastructure.camera.CameraRecorder
 import com.astra.avpush.infrastructure.camera.Watermark
 import com.astra.avpush.infrastructure.stream.nativebridge.NativeSender
-import com.astra.avpush.stream.controller.LiveStreamSession
-import com.astra.avpush.stream.controller.StreamController
+import com.astra.avpush.runtime.AstraLog
 import com.astrastream.avpush.R
 import com.astra.avpush.unified.StreamError
 
@@ -24,10 +24,15 @@ class AVLiveView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : CameraView(context, attrs, defStyleAttr) {
 
+    private val logTag = "${javaClass.simpleName}-AV"
     private var sessionConfig: LiveSessionConfig = buildInitialConfig(context, attrs)
     private var previewSizeListener: ((Int, Int) -> Unit)? = null
     private var cameraErrorListener: ((StreamError) -> Unit)? = null
-    private var streamSession: LiveStreamSession = StreamController()
+    private var statsListener: ((Int, Int) -> Unit)? = null
+    private var activeSender: NativeSender? = null
+    private var encoderRecorder: CameraRecorder? = null
+    private var encoderWatermark: Watermark? = null
+    private var streaming = false
 
     init {
         attachCameraCallbacks()
@@ -35,18 +40,19 @@ class AVLiveView @JvmOverloads constructor(
 
     fun configureSession(config: LiveSessionConfig) {
         sessionConfig = config
-        streamSession.setAudioConfigure(config.audio)
-        streamSession.setVideoConfigure(config.video)
+        encoderRecorder?.prepare(config.video)
+        configureNativeSession()
     }
 
     fun setAudioConfigure(audioConfiguration: AudioConfiguration) {
         sessionConfig = sessionConfig.copy(audio = audioConfiguration)
-        streamSession.setAudioConfigure(audioConfiguration)
+        configureNativeSession()
     }
 
     fun setVideoConfigure(videoConfiguration: VideoConfiguration) {
         sessionConfig = sessionConfig.copy(video = videoConfiguration)
-        streamSession.setVideoConfigure(videoConfiguration)
+        encoderRecorder?.prepare(videoConfiguration)
+        configureNativeSession()
     }
 
     fun setCameraConfigure(cameraConfiguration: CameraConfiguration) {
@@ -54,22 +60,29 @@ class AVLiveView @JvmOverloads constructor(
     }
 
     fun startPreview() {
-        streamSession.setAudioConfigure(sessionConfig.audio)
-        streamSession.setVideoConfigure(sessionConfig.video)
         startPreview(sessionConfig.camera)
     }
 
     override fun setWatermark(watermark: Watermark) {
         super.setWatermark(watermark)
-        streamSession.setWatermark(watermark)
+        encoderWatermark = watermark
+        encoderRecorder?.setWatermark(watermark)
     }
 
     fun setSender(sender: NativeSender) {
-        streamSession.setSender(sender)
+        if (activeSender === sender) return
+        activeSender = sender
+        sender.setOnStatsListener { bitrate, fps ->
+            statsListener?.invoke(bitrate, fps)
+        }
+        configureNativeSession()
     }
 
-    fun setStatsListener(listener: LiveStreamSession.StatsListener) {
-        streamSession.setStatsListener(listener)
+    fun setStatsListener(listener: ((Int, Int) -> Unit)?) {
+        statsListener = listener
+        activeSender?.setOnStatsListener { bitrate, fps ->
+            statsListener?.invoke(bitrate, fps)
+        }
     }
 
     fun setOnPreviewSizeListener(listener: (Int, Int) -> Unit) {
@@ -81,27 +94,113 @@ class AVLiveView @JvmOverloads constructor(
     }
 
     fun startLive() {
-        streamSession.start()
+        if (streaming) {
+            AstraLog.w(logTag, "startLive ignored: already streaming")
+            return
+        }
+        val sender = activeSender ?: run {
+            AstraLog.w(logTag, "startLive ignored: sender not set")
+            return
+        }
+        val recorder = ensureRecorder() ?: run {
+            AstraLog.w(logTag, "startLive ignored: recorder unavailable")
+            return
+        }
+        configureNativeSession()
+        val surface = sender.prepareVideoSurface(sessionConfig.video) ?: run {
+            AstraLog.e(logTag, "Failed to obtain encoder surface from sender")
+            return
+        }
+        recorder.prepare(sessionConfig.video)
+        encoderWatermark?.let(recorder::setWatermark)
+        runCatching {
+            recorder.start(surface)
+        }.onFailure { error ->
+            AstraLog.e(logTag, error, "Failed to start encoder recorder")
+            sender.releaseVideoSurface()
+            return
+        }
+        sender.startSession()
+        streaming = true
+        statsListener?.invoke(0, sessionConfig.video.fps)
     }
 
     fun pause() {
-        streamSession.pause()
+        if (!streaming) return
+        encoderRecorder?.pause()
+        activeSender?.pauseSession()
     }
 
     fun resume() {
-        streamSession.resume()
+        if (!streaming) return
+        encoderRecorder?.resume()
+        activeSender?.resumeSession()
     }
 
     fun stopLive() {
-        streamSession.stop()
+        if (!streaming) {
+            activeSender?.stopSession()
+            return
+        }
+        streaming = false
+        encoderRecorder?.stop()
+        encoderRecorder = null
+        activeSender?.stopSession()
+        activeSender?.releaseVideoSurface()
+        statsListener?.invoke(0, 0)
     }
 
     fun setMute(isMute: Boolean) {
-        streamSession.setMute(isMute)
+        activeSender?.setMute(isMute)
     }
 
     fun setVideoBps(bps: Int) {
-        streamSession.setVideoBps(bps)
+        sessionConfig = sessionConfig.copy(
+            video = sessionConfig.video.withNewMaxBps(bps)
+        )
+        activeSender?.updateVideoBps(bps)
+    }
+
+    private fun configureNativeSession() {
+        val sender = activeSender ?: return
+        sender.configureSession(sessionConfig.audio, sessionConfig.video)
+    }
+
+    private fun ensureRecorder(): CameraRecorder? {
+        val textureId = getTextureId()
+        if (textureId <= 0) {
+            AstraLog.w(logTag, "Encoder recorder not ready: invalid texture $textureId")
+            return null
+        }
+        if (encoderRecorder == null) {
+            encoderRecorder = CameraRecorder(textureId, getEGLContext()).apply {
+                prepare(sessionConfig.video)
+                encoderWatermark?.let(this::setWatermark)
+            }
+        }
+        return encoderRecorder
+    }
+
+    override fun releaseCamera() {
+        stopLive()
+        super.releaseCamera()
+    }
+
+    private fun VideoConfiguration.withNewMaxBps(maxBps: Int): VideoConfiguration {
+        return VideoConfiguration(
+            width = width,
+            height = height,
+            fps = fps,
+            maxBps = maxBps,
+            minBps = minBps,
+            ifi = ifi,
+            mediaCodec = mediaCodec,
+            codeType = codeType,
+            codec = codec,
+            mime = mime,
+            spspps = spspps,
+            surface = surface
+        )
     }
 
     private fun buildInitialConfig(context: Context, attrs: AttributeSet?): LiveSessionConfig {
@@ -150,7 +249,9 @@ class AVLiveView @JvmOverloads constructor(
         setCameraCallbacks(
             CameraCallbacks(
                 onOpened = {
-                    streamSession.prepare(context, getTextureId(), getEGLContext())
+                    encoderRecorder?.stop()
+                    encoderRecorder = null
+                    configureNativeSession()
                 },
                 onPreviewSize = { width, height ->
                     previewSizeListener?.invoke(width, height)

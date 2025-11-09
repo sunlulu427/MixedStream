@@ -21,7 +21,7 @@ This is a Kotlin + C++ streaming toolkit for Android live streaming with RTMP. T
 ### Key Components
 - **Video Pipeline**: Camera capture → OpenGL rendering (with watermarks) → MediaCodec encoding → FLV packaging → RTMP transmission
 - **Audio Pipeline**: Audio capture → preprocessing (AEC/AGC) → MediaCodec encoding → FLV packaging
-- **Stream Control**: `StreamController` multiplexes AV streams for RTMP delivery
+- **Stream Control**: Native session coordinator (C++ `native_session_bridge`) multiplexes AV streams for RTMP delivery
 - **Native Layer**: JNI bridge to librtmp for RTMP protocol implementation
 
 ### Data Flow
@@ -188,6 +188,6 @@ Replace `YOUR_STREAM_SERVER` and `YOUR_STREAM_KEY` with actual values when testi
   - GLSurface & rendering thread: Custom `GLSurfaceView` + `GLThread`; EGL initialization on rendering thread, no GL calls on UI thread
   - Watermark setting: Supports deferred application: `CameraView.setWatermark()` only caches when renderer/GL not ready, auto-applies after GL onCreate callback to avoid `lateinit renderer` crashes
   - Camera management: `CameraHolder` unified open/start/stop/release; exception capture and degradation
-  - Encoding/decoding: Video: `VideoMediaCodec`, `VideoEncoder`; audio similar. Output SPS/PPS transparently passed to packager by `StreamController`
+  - Encoding/decoding: Video: `VideoMediaCodec`, `VideoEncoder`; audio similar. Output SPS/PPS is now fed directly into the FLV/RTMP pipeline by the native session controller
   - Sending (RTMP): `NativeSenderBridge` routes all commands to JNI; lazy handle creation avoids unsupported ABI crashes
 - JNI/NDK: CMake: `library/src/main/cpp/CMakeLists.txt`. Target library: `astra` (SHARED); links `librtmp.a` and `log`. STL: `c++_shared`. Supported ABI: `arm64-v8a`

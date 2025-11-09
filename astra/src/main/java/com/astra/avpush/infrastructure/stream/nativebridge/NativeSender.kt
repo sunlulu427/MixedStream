@@ -39,30 +39,24 @@ class NativeSender internal constructor(
         NativeSenderRegistry.onClosed(handle)
     }
 
-    fun configureVideo(config: VideoConfiguration) {
-        NativeSenderBridge.nativeConfigureVideo(
-            handle,
-            config.width,
-            config.height,
-            config.fps,
-            config.maxBps,
-            config.ifi,
-            config.codec.ordinal
-        )
-    }
-
-    fun configureAudio(config: AudioConfiguration) {
-        val bytesPerSample = when (config.encoding) {
+    fun configureSession(audio: AudioConfiguration, video: VideoConfiguration) {
+        val bytesPerSample = when (audio.encoding) {
             AudioFormat.ENCODING_PCM_8BIT -> 1
             AudioFormat.ENCODING_PCM_FLOAT -> 4
             else -> 2
         }
-        NativeSenderBridge.nativeConfigureAudioEncoder(
+        NativeSenderBridge.nativeConfigureSession(
             handle,
-            config.sampleRate,
-            config.channelCount,
-            config.maxBps,
-            bytesPerSample
+            audio.sampleRate,
+            audio.channelCount,
+            bytesPerSample,
+            audio.maxBps,
+            video.width,
+            video.height,
+            video.fps,
+            video.maxBps,
+            video.ifi,
+            video.codec.ordinal
         )
     }
 
@@ -82,24 +76,28 @@ class NativeSender internal constructor(
         NativeSenderBridge.nativeReleaseVideoSurface(handle)
     }
 
-    fun startVideo() {
-        NativeSenderBridge.nativeStartVideo(handle)
-    }
-
-    fun stopVideo() {
-        NativeSenderBridge.nativeStopVideo(handle)
-    }
-
     fun updateVideoBps(bps: Int) {
         NativeSenderBridge.nativeUpdateVideoBitrate(handle, bps)
     }
 
-    fun startAudio() {
-        NativeSenderBridge.nativeStartAudio(handle)
+    fun startSession() {
+        NativeSenderBridge.nativeStartSession(handle)
     }
 
-    fun stopAudio() {
-        NativeSenderBridge.nativeStopAudio(handle)
+    fun pauseSession() {
+        NativeSenderBridge.nativePauseSession(handle)
+    }
+
+    fun resumeSession() {
+        NativeSenderBridge.nativeResumeSession(handle)
+    }
+
+    fun stopSession() {
+        NativeSenderBridge.nativeStopSession(handle)
+    }
+
+    fun setMute(muted: Boolean) {
+        NativeSenderBridge.nativeSetMute(handle, muted)
     }
 
     fun dispose() {

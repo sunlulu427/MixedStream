@@ -23,7 +23,7 @@
 
 ## Configuration Tips
 - Use `VideoConfiguration`/`AudioConfiguration`/`CameraConfiguration` to define resolution, frame rate, bitrate, and encoder preferences.
-- `AVLiveView` hosts the full user interaction surface while `StreamController` orchestrates audio, video, and transport.
+- `AVLiveView` hosts the full user interaction surface while the native session controller (see `native_session_bridge.cpp`) orchestrates audio, video, and transport directly in C++.
 
 ## Logging
 - Keep `LogHelper` statements at key checkpoints: camera/EGL/shader/FBO lifecycle, I-frame cadence, bitrate adjustments, queue depth, network retries/errors.
