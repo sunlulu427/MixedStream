@@ -18,6 +18,7 @@ import com.astra.avpush.presentation.widget.AVLiveView
 import com.astra.avpush.runtime.AstraLog
 import com.astra.avpush.stream.controller.LiveStreamSession
 import com.astra.avpush.unified.ProtocolDetector
+import com.astra.avpush.unified.StreamError
 import com.astra.avpush.unified.TransportProtocol
 import com.astra.streamer.data.LivePreferencesStore
 import kotlin.math.max
@@ -64,7 +65,7 @@ class LiveSessionCoordinator(
         view.setAudioConfigure(audioConfiguration)
         view.setStatsListener(this)
         view.setOnPreviewSizeListener { width, height -> onCameraPreviewSize(width, height) }
-        view.setOnCameraErrorListener { message -> onCameraError(message) }
+        view.setOnCameraErrorListener { error -> onCameraError(error) }
         applyStreamConfiguration(view)
         when {
             previewRequested -> startPreview()
@@ -334,8 +335,9 @@ class LiveSessionCoordinator(
         }
     }
 
-    private fun onCameraError(message: String) {
-        AstraLog.e(tag, "camera pipeline error: $message")
+    private fun onCameraError(error: StreamError) {
+        val message = error.message ?: error.code
+        AstraLog.e(tag, "camera pipeline error [${error.code}]: $message")
         Toast.makeText(context, message, Toast.LENGTH_LONG).show()
         state.value = state.value.copy(
             captureResolution = safeCaptureOption,
