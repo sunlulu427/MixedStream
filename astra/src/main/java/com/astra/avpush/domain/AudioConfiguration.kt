@@ -1,4 +1,4 @@
-package com.astra.avpush.domain.config
+package com.astra.avpush.domain
 
 import android.media.AudioFormat
 import android.media.MediaCodecInfo

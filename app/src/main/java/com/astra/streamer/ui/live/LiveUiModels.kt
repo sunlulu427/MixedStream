@@ -1,6 +1,6 @@
 package com.astra.streamer.ui.live
 
-import com.astra.avpush.domain.config.VideoConfiguration
+import com.astra.avpush.domain.VideoConfiguration
 
 data class ResolutionOption(val width: Int, val height: Int, val label: String)
 

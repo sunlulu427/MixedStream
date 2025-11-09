@@ -2,9 +2,9 @@ package com.astra.avpush.presentation.widget
 
 import android.content.Context
 import android.util.AttributeSet
-import com.astra.avpush.domain.config.AudioConfiguration
-import com.astra.avpush.domain.config.CameraConfiguration
-import com.astra.avpush.domain.config.VideoConfiguration
+import com.astra.avpush.domain.AudioConfiguration
+import com.astra.avpush.domain.CameraConfiguration
+import com.astra.avpush.domain.VideoConfiguration
 import com.astra.avpush.infrastructure.camera.CameraRecorder
 import com.astra.avpush.infrastructure.camera.Watermark
 import com.astra.avpush.infrastructure.stream.nativebridge.NativeSender

@@ -6,9 +6,9 @@ import android.util.AttributeSet
 import android.view.Surface
 import android.view.SurfaceHolder
 import android.view.WindowManager
-import com.astra.avpush.domain.camera.CameraDevice
-import com.astra.avpush.domain.config.CameraConfiguration
-import com.astra.avpush.domain.config.RendererConfiguration
+import com.astra.avpush.domain.CameraDevice
+import com.astra.avpush.domain.CameraConfiguration
+import com.astra.avpush.domain.RendererConfiguration
 import com.astra.avpush.infrastructure.camera.NativeCameraDevice
 import com.astra.avpush.infrastructure.camera.Watermark
 import com.astra.avpush.infrastructure.camera.renderer.CameraRenderer

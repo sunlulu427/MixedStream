@@ -1,4 +1,4 @@
-package com.astra.avpush.domain.callback
+package com.astra.avpush.domain
 
 interface OnConnectListener {
     /**

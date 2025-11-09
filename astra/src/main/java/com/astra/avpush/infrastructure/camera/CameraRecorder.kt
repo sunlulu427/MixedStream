@@ -1,7 +1,7 @@
 package com.astra.avpush.infrastructure.camera
 
 import android.view.Surface
-import com.astra.avpush.domain.config.VideoConfiguration
+import com.astra.avpush.domain.VideoConfiguration
 import com.astra.avpush.infrastructure.camera.renderer.EncodeRenderer
 import com.astra.avpush.presentation.widget.GLSurfaceView
 import com.astra.avpush.presentation.widget.GlRenderer

@@ -5,7 +5,7 @@ import android.util.AttributeSet
 import android.view.Surface
 import android.view.SurfaceHolder
 import android.view.SurfaceView
-import com.astra.avpush.domain.config.RendererConfiguration
+import com.astra.avpush.domain.RendererConfiguration
 import com.astra.avpush.infrastructure.camera.GLThread
 import com.astra.avpush.runtime.AstraLog
 import java.lang.ref.WeakReference

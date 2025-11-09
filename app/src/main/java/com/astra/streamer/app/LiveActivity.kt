@@ -18,8 +18,8 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
-import com.astra.avpush.domain.callback.OnConnectListener
-import com.astra.avpush.domain.config.AudioConfiguration
+import com.astra.avpush.domain.OnConnectListener
+import com.astra.avpush.domain.AudioConfiguration
 import com.astra.avpush.runtime.AstraLog
 import com.astra.streamer.core.util.SPUtils
 import com.astra.streamer.data.LivePreferencesStore

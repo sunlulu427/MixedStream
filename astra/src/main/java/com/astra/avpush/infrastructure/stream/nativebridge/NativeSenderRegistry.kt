@@ -1,6 +1,6 @@
 package com.astra.avpush.infrastructure.stream.nativebridge
 
-import com.astra.avpush.domain.callback.OnConnectListener
+import com.astra.avpush.domain.OnConnectListener
 import com.astra.avpush.runtime.AstraLog
 import com.astra.avpush.runtime.RtmpErrorCode
 import java.util.concurrent.ConcurrentHashMap

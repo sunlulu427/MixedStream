@@ -1,4 +1,4 @@
-package com.astra.avpush.domain.camera
+package com.astra.avpush.domain
 
 data class CameraDescriptor(
     val id: Int,

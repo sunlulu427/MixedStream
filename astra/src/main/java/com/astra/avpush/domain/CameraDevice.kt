@@ -1,7 +1,6 @@
-package com.astra.avpush.domain.camera
+package com.astra.avpush.domain
 
 import android.graphics.SurfaceTexture
-import com.astra.avpush.domain.config.CameraConfiguration
 
 interface CameraDevice {
     val currentDescriptor: CameraDescriptor?

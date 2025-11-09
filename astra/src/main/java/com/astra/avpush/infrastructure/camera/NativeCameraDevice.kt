@@ -2,9 +2,9 @@ package com.astra.avpush.infrastructure.camera
 
 import android.graphics.SurfaceTexture
 import android.view.Surface
-import com.astra.avpush.domain.camera.CameraDescriptor
-import com.astra.avpush.domain.camera.CameraDevice
-import com.astra.avpush.domain.config.CameraConfiguration
+import com.astra.avpush.domain.CameraDescriptor
+import com.astra.avpush.domain.CameraDevice
+import com.astra.avpush.domain.CameraConfiguration
 import com.astra.avpush.runtime.AstraLog
 import com.astra.avpush.unified.MediaError
 

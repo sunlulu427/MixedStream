@@ -7,10 +7,10 @@ import android.graphics.Color
 import android.widget.Toast
 import androidx.compose.runtime.MutableState
 import androidx.core.content.ContextCompat
-import com.astra.avpush.domain.callback.OnConnectListener
-import com.astra.avpush.domain.config.AudioConfiguration
-import com.astra.avpush.domain.config.CameraConfiguration
-import com.astra.avpush.domain.config.VideoConfiguration
+import com.astra.avpush.domain.OnConnectListener
+import com.astra.avpush.domain.AudioConfiguration
+import com.astra.avpush.domain.CameraConfiguration
+import com.astra.avpush.domain.VideoConfiguration
 import com.astra.avpush.infrastructure.camera.Watermark
 import com.astra.avpush.infrastructure.stream.nativebridge.NativeSender
 import com.astra.avpush.infrastructure.stream.nativebridge.NativeSenderFactory

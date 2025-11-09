@@ -1,4 +1,4 @@
-package com.astra.avpush.domain.config
+package com.astra.avpush.domain
 
 class CameraConfiguration(
     val width: Int = 720,

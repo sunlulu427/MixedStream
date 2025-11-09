@@ -2,9 +2,9 @@ package com.astra.avpush.infrastructure.stream.nativebridge
 
 import android.media.AudioFormat
 import android.view.Surface
-import com.astra.avpush.domain.callback.OnConnectListener
-import com.astra.avpush.domain.config.AudioConfiguration
-import com.astra.avpush.domain.config.VideoConfiguration
+import com.astra.avpush.domain.OnConnectListener
+import com.astra.avpush.domain.AudioConfiguration
+import com.astra.avpush.domain.VideoConfiguration
 import com.astra.avpush.runtime.AstraLog
 import com.astra.avpush.unified.TransportProtocol
 
