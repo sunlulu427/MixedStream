@@ -16,6 +16,7 @@ A Kotlin + C++ streaming toolkit for Android live streaming with RTMP. Features 
 - **UI Layer**: `app/` demo and `widget/AVLiveView`
 - **Use-Case Layer**: `controller/*` orchestrating capture/encode/package/send
 - **Infrastructure**: `camera/*`, native `capture/*`, `codec/*`, `stream/*`, RTMP bridge via `librtmp`
+- **Native Bridge**: `NativeSenderBridge` + `NativeStreamEngine` expose a single JNI boundary so business code never touches protocol details
 
 ## Getting Started
 

@@ -63,7 +63,7 @@ val session = createStreamSession {
 
 **第3周: RTMP适配器实现**
 - [ ] 创建RtmpTransport实现
-- [ ] 集成现有RtmpStreamSession
+- [ ] 集成 NativeSenderBridge 句柄
 - [ ] 实现RTMP状态管理
 - [ ] 添加RTMP错误处理
 - [ ] 编写RTMP传输测试
@@ -74,6 +74,21 @@ class RtmpTransport(config: RtmpConfig) : StreamTransport {
     override suspend fun connect() { /* 实现 */ }
     override suspend fun send(data: StreamData) { /* 实现 */ }
 }
+```
+
+**第4周: Native Sender Bridge 下沉**
+- [ ] 定义 `NativeSenderBridge` JNI 接口（create/connect/close/encoder）
+- [ ] 使用 `NativeSenderFactory` 替代所有 Kotlin `Sender` 接口
+- [ ] 建立 `NativeSenderRegistry`，集中处理回调与错误码映射
+- [ ] 验证 `LiveSessionCoordinator` 业务流程只依赖轻量句柄
+- [ ] 补充 C++/Kotlin 双向回归测试
+
+```kotlin
+// 里程碑1.4: 业务只依赖 NativeSender
+val sender = NativeSenderFactory.createForProtocol(TransportProtocol.RTMP)
+sender.setOnConnectListener(listener)
+sender.connect(pushUrl)
+streamController.setSender(sender)
 ```
 
 #### 交付物
@@ -415,6 +430,22 @@ jobs:
 - 性能优化到位
 - 文档完善
 - 生产环境就绪
+
+### 阶段5: Native Render Consolidation（1-2周）
+
+#### 目标
+将剩余的 Camera/Encode 渲染控制逻辑完全迁移至 C++，使 UI 层只暴露 `Surface` 与配置。
+
+#### 主要任务
+- [ ] 在 `CameraRendererNative` 中实现 watermark/pending 队列与尺寸计算，移除 Kotlin 的 `pendingWatermark` 逻辑
+- [ ] 统一 GL 线程初始化、Surface 生命周期到 native（通过 RenderBridge 暴露）
+- [ ] 为 Kotlin 暴露轻量 `NativeRenderHandle`，确保业务层无 OpenGL 细节
+- [ ] 增加渲染级别的性能与内存回归测试
+
+#### 交付物
+- RenderBridge 扩展实现
+- Kotlin 层精简后的 `CameraRenderer` / `EncodeRenderer`
+- 详细的业务升级指南
 
 ### 发布检查清单
 

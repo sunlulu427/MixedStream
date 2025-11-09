@@ -12,8 +12,8 @@ import com.astra.avpush.domain.config.AudioConfiguration
 import com.astra.avpush.domain.config.CameraConfiguration
 import com.astra.avpush.domain.config.VideoConfiguration
 import com.astra.avpush.infrastructure.camera.Watermark
-import com.astra.avpush.infrastructure.stream.sender.Sender
-import com.astra.avpush.infrastructure.stream.sender.SenderFactory
+import com.astra.avpush.infrastructure.stream.nativebridge.NativeSender
+import com.astra.avpush.infrastructure.stream.nativebridge.NativeSenderFactory
 import com.astra.avpush.presentation.widget.AVLiveView
 import com.astra.avpush.runtime.AstraLog
 import com.astra.avpush.stream.controller.LiveStreamSession
@@ -46,7 +46,7 @@ class LiveSessionCoordinator(
     private var resumeStreamingWhenReady = false
     private var connectListener: OnConnectListener? = null
     private var activeProtocol: TransportProtocol? = null
-    private var sender: Sender? = null
+    private var sender: NativeSender? = null
 
     override fun onVideoStats(bitrateKbps: Int, fps: Int) {
         state.value = state.value.copy(currentBitrate = bitrateKbps, currentFps = fps)
@@ -107,8 +107,7 @@ class LiveSessionCoordinator(
         val preparedSender = ensureSender(sanitizedUrl, onError) ?: return
 
         try {
-            preparedSender.setDataSource(sanitizedUrl)
-            preparedSender.connect()
+            preparedSender.connect(sanitizedUrl)
         } catch (error: UnsatisfiedLinkError) {
             AstraLog.e(tag, error, "Sender not supported on this ABI")
             onError("Streaming is not supported on this device ABI. Please use an ARM device")
@@ -126,6 +125,7 @@ class LiveSessionCoordinator(
             liveView?.stopLive()
         }
         sender?.close()
+        sender?.dispose()
         sender = null
         activeProtocol = null
     }
@@ -139,7 +139,7 @@ class LiveSessionCoordinator(
     private fun ensureSender(
         streamUrl: String,
         onError: (String) -> Unit
-    ): Sender? {
+    ): NativeSender? {
         val protocol = runCatching { ProtocolDetector.detectProtocol(streamUrl) }
             .getOrElse { error ->
                 AstraLog.e(tag, "Failed to detect protocol for $streamUrl: ${error.message}")
@@ -149,7 +149,7 @@ class LiveSessionCoordinator(
 
         releaseSender()
 
-        val newSender = runCatching { SenderFactory.createForProtocol(protocol) }
+        val newSender = runCatching { NativeSenderFactory.createForProtocol(protocol) }
             .onFailure { error ->
                 AstraLog.e(tag, error, "Failed to create sender for protocol=${protocol.displayName}")
                 when (error) {
@@ -174,7 +174,10 @@ class LiveSessionCoordinator(
     }
 
     private fun releaseSender() {
-        runCatching { sender?.close() }
+        runCatching {
+            sender?.close()
+            sender?.dispose()
+        }
         sender = null
         activeProtocol = null
     }

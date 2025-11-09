@@ -24,9 +24,10 @@ astra::VideoCodecId ResolveCodec(int codecOrdinal) {
 extern "C" {
 
 JNIEXPORT jobject JNICALL
-Java_com_astra_avpush_infrastructure_stream_sender_rtmp_RtmpStreamSession_nativePrepareVideoSurface(
+Java_com_astra_avpush_infrastructure_stream_nativebridge_NativeSenderBridge_nativePrepareVideoSurface(
         JNIEnv* env,
-        jobject,
+        jclass,
+        jlong /*handle*/,
         jint width,
         jint height,
         jint fps,
@@ -50,32 +51,33 @@ Java_com_astra_avpush_infrastructure_stream_sender_rtmp_RtmpStreamSession_native
 }
 
 JNIEXPORT void JNICALL
-Java_com_astra_avpush_infrastructure_stream_sender_rtmp_RtmpStreamSession_nativeReleaseVideoSurface(
-        JNIEnv*, jobject) {
+Java_com_astra_avpush_infrastructure_stream_nativebridge_NativeSenderBridge_nativeReleaseVideoSurface(
+        JNIEnv*, jclass, jlong /*handle*/) {
     NativeStreamEngine::Instance().releaseVideoSurface();
 }
 
 JNIEXPORT void JNICALL
-Java_com_astra_avpush_infrastructure_stream_sender_rtmp_RtmpStreamSession_nativeStartVideoEncoder(
-        JNIEnv*, jobject) {
+Java_com_astra_avpush_infrastructure_stream_nativebridge_NativeSenderBridge_nativeStartVideo(
+        JNIEnv*, jclass, jlong /*handle*/) {
     NativeStreamEngine::Instance().startVideo();
 }
 
 JNIEXPORT void JNICALL
-Java_com_astra_avpush_infrastructure_stream_sender_rtmp_RtmpStreamSession_nativeStopVideoEncoder(
-        JNIEnv*, jobject) {
+Java_com_astra_avpush_infrastructure_stream_nativebridge_NativeSenderBridge_nativeStopVideo(
+        JNIEnv*, jclass, jlong /*handle*/) {
     NativeStreamEngine::Instance().stopVideo();
 }
 
 JNIEXPORT void JNICALL
-Java_com_astra_avpush_infrastructure_stream_sender_rtmp_RtmpStreamSession_nativeUpdateVideoBitrate(
-        JNIEnv*, jobject, jint bitrateKbps) {
+Java_com_astra_avpush_infrastructure_stream_nativebridge_NativeSenderBridge_nativeUpdateVideoBitrate(
+        JNIEnv*, jclass, jlong /*handle*/, jint bitrateKbps) {
     NativeStreamEngine::Instance().updateVideoBitrate(std::max(bitrateKbps, 100));
 }
 
 JNIEXPORT void JNICALL
-Java_com_astra_avpush_infrastructure_stream_sender_rtmp_RtmpStreamSession_nativeConfigureAudioEncoder(
-        JNIEnv*, jobject, jint sampleRate, jint channels, jint bitrateKbps, jint bytesPerSample) {
+Java_com_astra_avpush_infrastructure_stream_nativebridge_NativeSenderBridge_nativeConfigureAudioEncoder(
+        JNIEnv*, jclass, jlong /*handle*/, jint sampleRate, jint channels, jint bitrateKbps,
+        jint bytesPerSample) {
     NativeStreamEngine::Instance().configureAudioEncoder(
             std::max(sampleRate, 8000),
             std::max(channels, 1),
@@ -84,14 +86,14 @@ Java_com_astra_avpush_infrastructure_stream_sender_rtmp_RtmpStreamSession_native
 }
 
 JNIEXPORT void JNICALL
-Java_com_astra_avpush_infrastructure_stream_sender_rtmp_RtmpStreamSession_nativeStartAudioEncoder(
-        JNIEnv*, jobject) {
+Java_com_astra_avpush_infrastructure_stream_nativebridge_NativeSenderBridge_nativeStartAudio(
+        JNIEnv*, jclass, jlong /*handle*/) {
     NativeStreamEngine::Instance().startAudio();
 }
 
 JNIEXPORT void JNICALL
-Java_com_astra_avpush_infrastructure_stream_sender_rtmp_RtmpStreamSession_nativeStopAudioEncoder(
-        JNIEnv*, jobject) {
+Java_com_astra_avpush_infrastructure_stream_nativebridge_NativeSenderBridge_nativeStopAudio(
+        JNIEnv*, jclass, jlong /*handle*/) {
     NativeStreamEngine::Instance().stopAudio();
 }
 

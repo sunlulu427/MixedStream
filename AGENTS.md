@@ -59,7 +59,7 @@ sender.close()
 ```
 
 ## Startup Stability & Common Issues
-- **RtmpStreamSession**: Lazy initialization to avoid crashes on unsupported ABIs (x86 emulators)
+- **NativeSenderBridge**: Sender handles are created lazily to avoid loading native code on unsupported ABIs (x86 emulators)
 - **Camera Fallback**: Automatically falls back to 720×1280 if requested resolution fails
 - **Watermark Timing**: Supports deferred watermark application after GL context creation
 - **Permission Handling**: Camera operations gracefully defer until permissions granted
@@ -171,7 +171,7 @@ Replace `YOUR_STREAM_SERVER` and `YOUR_STREAM_KEY` with actual values when testi
 - Role: Sample application demonstrating streaming pipeline (preview→encoding→packaging→sending) with permissions and UI interactions
 - Entry Activity: `app/src/main/java/com/devyk/av/rtmppush/LiveActivity.kt`
 - Configuration & preparation: Bind packager and preview in `init()`; `startPreview()` after permissions ready
-- Streaming: Create and connect `RtmpStreamSession` from address dialog (lazy creation to avoid unsupported ABI crashes)
+- Streaming: Create and connect a `NativeSender` handle from the address dialog (lazy creation to avoid unsupported ABI crashes)
 - Permissions & Stability: Camera/recording/storage permissions requested via `LiveActivity.requestRuntimePermissions()`; preview stays pending until granted
 - Common scenarios: Dynamic bitrate adjustment: `live.setVideoBps(bps)`. Camera switching: `live.switchCamera()`
 
@@ -189,5 +189,5 @@ Replace `YOUR_STREAM_SERVER` and `YOUR_STREAM_KEY` with actual values when testi
   - Watermark setting: Supports deferred application: `CameraView.setWatermark()` only caches when renderer/GL not ready, auto-applies after GL onCreate callback to avoid `lateinit renderer` crashes
   - Camera management: `CameraHolder` unified open/start/stop/release; exception capture and degradation
   - Encoding/decoding: Video: `VideoMediaCodec`, `VideoEncoder`; audio similar. Output SPS/PPS transparently passed to packager by `StreamController`
-  - Sending (RTMP): `RtmpStreamSession` calls native via JNI; lazy load native library to avoid unsupported ABI crashes
+  - Sending (RTMP): `NativeSenderBridge` routes all commands to JNI; lazy handle creation avoids unsupported ABI crashes
 - JNI/NDK: CMake: `library/src/main/cpp/CMakeLists.txt`. Target library: `astra` (SHARED); links `librtmp.a` and `log`. STL: `c++_shared`. Supported ABI: `arm64-v8a`

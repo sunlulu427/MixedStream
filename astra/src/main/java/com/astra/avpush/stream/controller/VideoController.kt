@@ -3,7 +3,7 @@ package com.astra.avpush.stream.controller
 import com.astra.avpush.domain.config.VideoConfiguration
 import com.astra.avpush.infrastructure.camera.CameraRecorder
 import com.astra.avpush.infrastructure.camera.Watermark
-import com.astra.avpush.infrastructure.stream.sender.Sender
+import com.astra.avpush.infrastructure.stream.nativebridge.NativeSender
 import com.astra.avpush.runtime.AstraLog
 import javax.microedition.khronos.egl.EGLContext
 
@@ -12,7 +12,7 @@ class VideoController(
     textureId: Int,
     eglContext: EGLContext?,
     private var videoConfiguration: VideoConfiguration,
-    private val senderProvider: () -> Sender?
+    private val senderProvider: () -> NativeSender?
 ) {
 
     private val recorder = CameraRecorder(textureId, eglContext).also {

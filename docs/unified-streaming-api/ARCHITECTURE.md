@@ -43,6 +43,25 @@
 └─────────────────────────────────────────────────────────────┘
 ```
 
+### 业务接入视角
+
+从业务集成角度现在只有三个核心节点：
+
+```
+App / LiveActivity
+        ↓ (Compose 交互)
+LiveSessionCoordinator —— 负责权限、场景状态、业务日志
+        ↓ (单一入口)
+AVLiveView + StreamController —— 纯 UI/Use-Case 层，所有推流操作都代理给 Native
+        ↓ (JNI Bridge)
+NativeSenderBridge + NativeStreamEngine + PushProxy (C++)
+```
+
+- 业务层不再接触 `Sender` 接口与实现，只需要调用 `LiveSessionCoordinator.startStreaming()`。
+- `NativeSender` 只是一个轻量句柄，内部通过 `NativeSenderBridge` 将 connect/close/encoder 等指令下沉到 C++。
+- 事件回调 (`onConnecting/onConnected/onFail/onStats`) 统一从 native 回流至 `NativeSenderRegistry`，再注入到业务注册的监听器，简化接入心智。
+- 渲染链路（`CameraRendererNative`/`EncodeRendererNative`）保持在 C++，Kotlin 层只负责 Surface 生命周期，后续将继续收敛剩余的 watermark/pending 逻辑。
+
 ### 核心原则
 
 1. **依赖倒置**: 高层模块不依赖低层模块，都依赖于抽象
@@ -269,28 +288,24 @@ class RtmpTransport(private val config: RtmpConfig) : StreamTransport {
     private val _state = MutableStateFlow<TransportState>(TransportState.DISCONNECTED)
     override val state: StateFlow<TransportState> = _state.asStateFlow()
 
-    private val streamSession = RtmpStreamSession() // 使用现有实现
+    private val sender = NativeSenderFactory.createForProtocol(TransportProtocol.RTMP)
 
     override suspend fun connect() {
         _state.value = TransportState.CONNECTING
-
-        try {
-            streamSession.setDataSource(config.pushUrl)
-            streamSession.connect()
-            _state.value = TransportState.CONNECTED
-        } catch (e: Exception) {
-            _state.value = TransportState.ERROR(TransportError.ConnectionFailed(
-                message = e.message ?: "Connection failed",
-                transport = protocol
-            ))
-        }
+        runCatching { sender.connect(config.pushUrl) }
+            .onSuccess { _state.value = TransportState.CONNECTED }
+            .onFailure { error ->
+                _state.value = TransportState.ERROR(
+                    TransportError.ConnectionFailed(
+                        message = error.message ?: "Connection failed",
+                        transport = protocol
+                    )
+                )
+            }
     }
 
     override suspend fun send(data: StreamData) {
-        when (data) {
-            is AudioData -> streamSession.sendAudio(data.bytes, data.timestamp)
-            is VideoData -> streamSession.sendVideo(data.bytes, data.timestamp, data.isKeyFrame)
-        }
+        // 编解码与打包由 NativeStreamEngine 完成，业务只需驱动 sender
     }
 }
 ```
@@ -535,6 +550,15 @@ interface StreamEventListener {
     fun onEvent(event: StreamEvent)
 }
 ```
+
+### Native Bridge Layer（JNI/NDK层）
+
+- **NativeSenderBridge**：负责创建/销毁 native sender 句柄，并把 connect/close/prepareSurface/updateBitrate 等调用映射到 `NativeStreamEngine` 与 `PushProxy`。业务层只有轻量的 `NativeSender` 句柄，不再实现任何协议细节。
+- **NativeSenderRegistry**：保存所有监听器引用，提供 `onConnecting/onConnected/onFail/onStats` 的统一派发；native 回调只需要 handle 即可。
+- **RenderBridge**：`CameraRendererNative` / `EncodeRendererNative` 通过 `render_bridge.cpp` 暴露，包含 OES 纹理、FBO、Watermark 的所有计算，Kotlin 仅封装 `SurfaceTexture` 生命周期。
+- **Diagnostics**：`JavaCallback` 将 native 状态翻译为 `StreamError`/`RtmpErrorCode`，并通过 Registry 注入到业务层，保证日志与错误语义一致。
+
+该层使得“业务接入”只需关注 Kotlin API，性能瓶颈与跨平台逻辑完全封装在 C++ 中。
 
 ### 3. Strategy Pattern（策略模式）
 

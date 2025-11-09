@@ -4,7 +4,7 @@ import android.content.Context
 import com.astra.avpush.domain.config.AudioConfiguration
 import com.astra.avpush.domain.config.VideoConfiguration
 import com.astra.avpush.infrastructure.camera.Watermark
-import com.astra.avpush.infrastructure.stream.sender.Sender
+import com.astra.avpush.infrastructure.stream.nativebridge.NativeSender
 import com.astra.avpush.runtime.AstraLog
 import javax.microedition.khronos.egl.EGLContext
 
@@ -15,7 +15,7 @@ class StreamController : LiveStreamSession {
     private var watermark: Watermark? = null
     private var audioConfiguration = AudioConfiguration()
     private var videoConfiguration = VideoConfiguration()
-    private var sender: Sender? = null
+    private var sender: NativeSender? = null
     private var statsListener: LiveStreamSession.StatsListener? = null
 
     private var textureId: Int = 0
@@ -48,7 +48,7 @@ class StreamController : LiveStreamSession {
         videoController?.updateConfiguration(videoConfiguration)
     }
 
-    override fun setSender(sender: Sender) {
+    override fun setSender(sender: NativeSender) {
         this.sender = sender
         AstraLog.d(tag) { "sender attached: ${sender.javaClass.simpleName}" }
         sender.setOnStatsListener { bitrate, fps -> statsListener?.onVideoStats(bitrate, fps) }

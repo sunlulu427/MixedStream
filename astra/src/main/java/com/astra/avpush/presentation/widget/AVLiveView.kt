@@ -6,7 +6,7 @@ import com.astra.avpush.domain.config.AudioConfiguration
 import com.astra.avpush.domain.config.CameraConfiguration
 import com.astra.avpush.domain.config.VideoConfiguration
 import com.astra.avpush.infrastructure.camera.Watermark
-import com.astra.avpush.infrastructure.stream.sender.Sender
+import com.astra.avpush.infrastructure.stream.nativebridge.NativeSender
 import com.astra.avpush.stream.controller.LiveStreamSession
 import com.astra.avpush.stream.controller.StreamController
 import com.astrastream.avpush.R
@@ -64,7 +64,7 @@ class AVLiveView @JvmOverloads constructor(
         streamSession.setWatermark(watermark)
     }
 
-    fun setSender(sender: Sender) {
+    fun setSender(sender: NativeSender) {
         streamSession.setSender(sender)
     }
 

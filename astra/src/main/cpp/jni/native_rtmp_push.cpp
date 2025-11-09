@@ -48,11 +48,34 @@ jint JNI_OnLoad(JavaVM* vm, void*) {
 extern "C" {
 
 JNIEXPORT void JNICALL
-Java_com_astra_avpush_infrastructure_stream_sender_rtmp_RtmpStreamSession_nativeConnect(
-        JNIEnv* env, jobject thiz, jstring url) {
+Java_com_astra_avpush_infrastructure_stream_nativebridge_NativeSenderBridge_nativeCreateSender(
+        JNIEnv*, jclass, jlong handle, jint protocolOrdinal) {
+    __android_log_print(ANDROID_LOG_DEBUG,
+                        kTag,
+                        "nativeCreateSender handle=%lld protocol=%d",
+                        static_cast<long long>(handle),
+                        protocolOrdinal);
+}
+
+JNIEXPORT void JNICALL
+Java_com_astra_avpush_infrastructure_stream_nativebridge_NativeSenderBridge_nativeDestroySender(
+        JNIEnv*, jclass, jlong handle) {
+    __android_log_print(ANDROID_LOG_DEBUG,
+                        kTag,
+                        "nativeDestroySender handle=%lld",
+                        static_cast<long long>(handle));
+}
+
+JNIEXPORT void JNICALL
+Java_com_astra_avpush_infrastructure_stream_nativebridge_NativeSenderBridge_nativeConnect(
+        JNIEnv* env, jclass, jlong handle, jobject callback_proxy, jstring url) {
     const char* rtmpUrl = env->GetStringUTFChars(url, nullptr);
-    __android_log_print(ANDROID_LOG_INFO, kTag, "nativeConnect invoked url=%s", MaskUrl(rtmpUrl).c_str());
-    auto* callback = new JavaCallback(gJavaVM, env, thiz);
+    __android_log_print(ANDROID_LOG_INFO,
+                        kTag,
+                        "nativeConnect handle=%lld url=%s",
+                        static_cast<long long>(handle),
+                        MaskUrl(rtmpUrl).c_str());
+    auto* callback = new JavaCallback(gJavaVM, env, callback_proxy);
     PushProxy::getInstance()->init(rtmpUrl, &callback);
     NativeStreamEngine::Instance().setCallback(callback);
     PushProxy::getInstance()->start();
@@ -60,20 +83,24 @@ Java_com_astra_avpush_infrastructure_stream_sender_rtmp_RtmpStreamSession_native
 }
 
 JNIEXPORT void JNICALL
-Java_com_astra_avpush_infrastructure_stream_sender_rtmp_RtmpStreamSession_nativeClose(
-        JNIEnv*, jobject) {
-    __android_log_print(ANDROID_LOG_INFO, kTag, "nativeClose invoked");
+Java_com_astra_avpush_infrastructure_stream_nativebridge_NativeSenderBridge_nativeClose(
+        JNIEnv*, jclass, jlong handle) {
+    __android_log_print(ANDROID_LOG_INFO,
+                        kTag,
+                        "nativeClose invoked handle=%lld",
+                        static_cast<long long>(handle));
     NativeStreamEngine::Instance().shutdown();
     NativeStreamEngine::Instance().setCallback(nullptr);
     PushProxy::getInstance()->stop();
 }
 
 JNIEXPORT void JNICALL
-Java_com_astra_avpush_infrastructure_stream_sender_rtmp_RtmpStreamSession_nativeConfigureVideo(
-        JNIEnv*, jobject, jint width, jint height, jint fps, jint codecOrdinal) {
+Java_com_astra_avpush_infrastructure_stream_nativebridge_NativeSenderBridge_nativeConfigureVideo(
+        JNIEnv*, jclass, jlong handle, jint width, jint height, jint fps, jint codecOrdinal) {
     __android_log_print(ANDROID_LOG_DEBUG,
                         kTag,
-                        "nativeConfigureVideo width=%d height=%d fps=%d codec=%d",
+                        "nativeConfigureVideo handle=%lld width=%d height=%d fps=%d codec=%d",
+                        static_cast<long long>(handle),
                         width,
                         height,
                         fps,
@@ -87,11 +114,18 @@ Java_com_astra_avpush_infrastructure_stream_sender_rtmp_RtmpStreamSession_native
 }
 
 JNIEXPORT void JNICALL
-Java_com_astra_avpush_infrastructure_stream_sender_rtmp_RtmpStreamSession_nativeConfigureAudio(
-        JNIEnv* env, jobject, jint sampleRate, jint channels, jint sampleSizeBits, jbyteArray asc) {
+Java_com_astra_avpush_infrastructure_stream_nativebridge_NativeSenderBridge_nativeConfigureAudio(
+        JNIEnv* env,
+        jclass,
+        jlong handle,
+        jint sampleRate,
+        jint channels,
+        jint sampleSizeBits,
+        jbyteArray asc) {
     __android_log_print(ANDROID_LOG_DEBUG,
                         kTag,
-                        "nativeConfigureAudio sampleRate=%d channels=%d sampleSizeBits=%d ascBytes=%d",
+                        "nativeConfigureAudio handle=%lld sampleRate=%d channels=%d sampleSizeBits=%d ascBytes=%d",
+                        static_cast<long long>(handle),
                         sampleRate,
                         channels,
                         sampleSizeBits,
@@ -111,8 +145,8 @@ Java_com_astra_avpush_infrastructure_stream_sender_rtmp_RtmpStreamSession_native
 }
 
 JNIEXPORT void JNICALL
-Java_com_astra_avpush_infrastructure_stream_sender_rtmp_RtmpStreamSession_nativePushVideoFrame(
-        JNIEnv* env, jobject, jobject buffer, jint offset, jint size, jlong pts) {
+Java_com_astra_avpush_infrastructure_stream_nativebridge_NativeSenderBridge_nativePushVideoFrame(
+        JNIEnv* env, jclass, jlong /*handle*/, jobject buffer, jint offset, jint size, jlong pts) {
     if (buffer == nullptr || size <= 0) {
         __android_log_print(ANDROID_LOG_WARN, kTag, "nativePushVideoFrame skipped buffer=%p size=%d", buffer, size);
         return;
@@ -126,8 +160,8 @@ Java_com_astra_avpush_infrastructure_stream_sender_rtmp_RtmpStreamSession_native
 }
 
 JNIEXPORT void JNICALL
-Java_com_astra_avpush_infrastructure_stream_sender_rtmp_RtmpStreamSession_nativePushAudioFrame(
-        JNIEnv* env, jobject, jobject buffer, jint offset, jint size, jlong pts) {
+Java_com_astra_avpush_infrastructure_stream_nativebridge_NativeSenderBridge_nativePushAudioFrame(
+        JNIEnv* env, jclass, jlong /*handle*/, jobject buffer, jint offset, jint size, jlong pts) {
     if (buffer == nullptr || size <= 0) {
         __android_log_print(ANDROID_LOG_WARN, kTag, "nativePushAudioFrame skipped buffer=%p size=%d", buffer, size);
         return;

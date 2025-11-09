@@ -4,7 +4,7 @@ import android.content.Context
 import com.astra.avpush.infrastructure.camera.Watermark
 import com.astra.avpush.domain.config.AudioConfiguration
 import com.astra.avpush.domain.config.VideoConfiguration
-import com.astra.avpush.infrastructure.stream.sender.Sender
+import com.astra.avpush.infrastructure.stream.nativebridge.NativeSender
 import javax.microedition.khronos.egl.EGLContext
 
 /**
@@ -20,7 +20,7 @@ interface LiveStreamSession {
 
     fun setVideoConfigure(videoConfiguration: VideoConfiguration)
 
-    fun setSender(sender: Sender)
+    fun setSender(sender: NativeSender)
 
     fun prepare(context: Context, textureId: Int, eglContext: EGLContext?)
 

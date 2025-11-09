@@ -14,7 +14,7 @@
 - **FBO Rendering**: `FboRenderer` manages off-screen rendering. Create textures only after the EGL context is live.
 - **Camera Management**: `CameraHolder` centralises open/start/stop/release and downgrades gracefully when hardware is busy or unavailable.
 - **Codec Output**: Kotlin controllers supply raw surfaces/PCM; native `NativeStreamEngine` drives `AMediaCodec` encoders and pushes encoded frames directly into the FLV/RTMP muxer.
-- **RTMP Sender**: `RtmpStreamSession` calls into native code lazily, avoiding ABI mismatches. Refer to `docs/video_streaming.puml` for flow details.
+- **RTMP Sender**: `NativeSenderBridge` allocates native handles and routes every streaming command through the C++ pipeline (see `docs/video_streaming.puml`). Kotlin never implements protocol logic directly anymore.
 
 ## Native Build
 - CMake target: `astra` (shared library) linked with `librtmp.a` and `log`.

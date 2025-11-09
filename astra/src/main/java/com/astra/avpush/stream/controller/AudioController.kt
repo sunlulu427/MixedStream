@@ -2,12 +2,12 @@ package com.astra.avpush.stream.controller
 
 import com.astra.avpush.domain.config.AudioConfiguration
 import com.astra.avpush.infrastructure.audio.NativeAudioCapturer
-import com.astra.avpush.infrastructure.stream.sender.Sender
+import com.astra.avpush.infrastructure.stream.nativebridge.NativeSender
 import com.astra.avpush.runtime.AstraLog
 
 class AudioController(
     private var audioConfiguration: AudioConfiguration,
-    private val senderProvider: () -> Sender?
+    private val senderProvider: () -> NativeSender?
 ) {
     private val nativeCapturer = NativeAudioCapturer()
 

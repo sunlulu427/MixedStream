@@ -4,6 +4,8 @@
 
 本指南帮助现有AVRtmpPushSDK用户从当前API迁移到新的统一推流接口。新接口保持向后兼容，支持渐进式迁移。
 
+> **提示**：Runtime 已切换至 `NativeSenderBridge`。文中的 `RtmpStreamSession` 示例代表旧版接口，在新架构中应替换为 `NativeSender` 句柄。
+
 ## 迁移策略
 
 ### 策略1: 适配器模式（推荐）
